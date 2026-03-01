@@ -122,7 +122,7 @@ async def _check_intent_spikes_async():
                 )
             )
             signals = sig_result.scalars().all()
-            pages = [s.metadata.get("page", "") for s in signals if s.metadata]
+            pages = [s.extra_data.get("page", "") for s in signals if s.extra_data]
 
             alert = await create_intent_spike_alert(
                 db=db,

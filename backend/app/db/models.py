@@ -143,8 +143,8 @@ class Signal(Base):
     external_url = Column(String(500), nullable=True)
     detected_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     
-    # Flexible metadata
-    metadata = Column(JSON, nullable=True)
+    # Flexible metadata — named extra_data because 'metadata' is reserved by SQLAlchemy
+    extra_data = Column(JSON, nullable=True)
     
     # Timestamp
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)

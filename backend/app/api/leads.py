@@ -57,7 +57,7 @@ def _signal_to_dict(signal) -> dict:
         "source": signal.source,
         "external_url": signal.external_url,
         "detected_at": signal.detected_at.isoformat() if signal.detected_at else None,
-        "metadata": signal.metadata,
+        "metadata": signal.extra_data,
     }
 
 
