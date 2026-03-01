@@ -10,8 +10,11 @@ from typing import AsyncGenerator
 from app.core.config import get_database_url
 
 # Create async engine
+# Railway provides postgresql:// but asyncpg needs postgresql+asyncpg://
 # SQLite (dev) doesn't support pool_size / max_overflow — use minimal config
 _db_url = get_database_url()
+if _db_url.startswith("postgresql://"):
+    _db_url = _db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 _is_sqlite = _db_url.startswith("sqlite")
 
 engine = create_async_engine(
