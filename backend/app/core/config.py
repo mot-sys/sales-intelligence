@@ -37,8 +37,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    # CORS — wildcard by default so any frontend domain works out of the box.
+    # Override via CORS_ORIGINS env var in production to lock down to specific URLs.
+    CORS_ORIGINS: list[str] = ["*"]
     
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 100

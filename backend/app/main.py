@@ -64,7 +64,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,   # App uses JWT headers, not cookies — wildcard origin is safe
     allow_methods=["*"],
     allow_headers=["*"],
 )
