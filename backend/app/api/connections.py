@@ -1,0 +1,592 @@
+"""
+Connections API Routes
+Manage integrations with external services (Clay, Salesforce, Snitcher, Outreach).
+"""
+
+import logging
+from typing import Optional
+import uuid
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.session import get_db
+from app.db.models import Integration
+from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.integrations.clay import ClayIntegration
+from app.db import crud
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter()
+
+
+def _integration_to_dict(integration: Integration) -> dict:
+    """Serialise an Integration ORM object (omitting raw credentials)."""
+    return {
+        "id": str(integration.id),
+        "service": integration.service,
+        "status": integration.status,
+        "last_sync": integration.last_sync.isoformat() if integration.last_sync else None,
+        "sync_frequency": integration.sync_frequency,
+        "config": integration.config or {},
+        "created_at": integration.created_at.isoformat() if integration.created_at else None,
+    }
+
+
+# ─────────────────────────────────────────────
+# GET /connections/
+# ─────────────────────────────────────────────
+
+@router.get("/")
+async def list_connections(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """List all integrations and their current status."""
+    result = await db.execute(
+        select(Integration).where(Integration.customer_id == customer_id)
+    )
+    integrations = result.scalars().all()
+    return {"integrations": [_integration_to_dict(i) for i in integrations]}
+
+
+# ─────────────────────────────────────────────
+# POST /connections/clay
+# ─────────────────────────────────────────────
+
+@router.post("/clay")
+async def connect_clay(
+    api_key: str,
+    table_ids: Optional[str] = None,  # comma-separated list of Clay table IDs
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Connect a Clay account via API key.
+
+    - Tests the connection before saving.
+    - Stores encrypted credentials in the integrations table.
+    - Optional: restrict sync to specific table IDs.
+    """
+    # Test connection first
+    async with ClayIntegration(credentials={"api_key": api_key}) as clay:
+        ok = await clay.test_connection()
+        if not ok:
+            raise HTTPException(
+                status_code=400,
+                detail="Could not connect to Clay – please verify the API key.",
+            )
+
+    config = {}
+    if table_ids:
+        config["table_ids"] = [t.strip() for t in table_ids.split(",") if t.strip()]
+
+    # Upsert integration record (one per service per customer)
+    existing = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "clay",
+        )
+    )
+
+    if existing:
+        existing.credentials = {"api_key": api_key}
+        existing.status = "connected"
+        existing.config = config
+        integration = existing
+    else:
+        integration = Integration(
+            customer_id=customer_id,
+            service="clay",
+            status="connected",
+            credentials={"api_key": api_key},
+            config=config,
+        )
+        db.add(integration)
+
+    await db.flush()
+    await db.refresh(integration)
+
+    logger.info("Clay connected for customer %s", customer_id)
+
+    return {
+        "message": "Clay connected successfully",
+        "integration_id": str(integration.id),
+        "service": "clay",
+        "status": "connected",
+    }
+
+
+# ─────────────────────────────────────────────
+# POST /connections/salesforce  (stub – Week 3)
+# ─────────────────────────────────────────────
+
+@router.post("/salesforce")
+async def connect_salesforce(
+    username: str,
+    password: str,
+    security_token: str = "",
+    domain: str = "login",
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Connect Salesforce via username + password + security token.
+    Tests the connection before saving credentials.
+    """
+    from app.integrations.salesforce import SalesforceIntegration
+
+    credentials = {
+        "username": username,
+        "password": password,
+        "security_token": security_token,
+        "domain": domain,
+    }
+
+    sf = SalesforceIntegration(credentials)
+    ok = await sf.test_connection()
+    if not ok:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not connect to Salesforce — check username, password, and security token.",
+        )
+
+    existing = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "salesforce",
+        )
+    )
+    if existing:
+        existing.credentials = credentials
+        existing.status = "connected"
+        integration = existing
+    else:
+        integration = Integration(
+            customer_id=customer_id,
+            service="salesforce",
+            status="connected",
+            credentials=credentials,
+        )
+        db.add(integration)
+
+    await db.flush()
+    await db.refresh(integration)
+    await db.commit()
+
+    logger.info("Salesforce connected for customer %s", customer_id)
+    return {
+        "message": "Salesforce connected successfully",
+        "integration_id": str(integration.id),
+        "service": "salesforce",
+        "status": "connected",
+    }
+
+
+@router.post("/salesforce/sync")
+async def sync_salesforce(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Trigger a full Salesforce sync: fetch opportunities + accounts,
+    upsert them to the DB, and run stall detection.
+    """
+    from app.integrations.salesforce import SalesforceIntegration
+    from datetime import datetime
+    from sqlalchemy import update as sa_update
+
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "salesforce",
+            Integration.status == "connected",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="Salesforce not connected")
+
+    sf = SalesforceIntegration(integration.credentials)
+    opps = await sf.sync_opportunities()
+    accs = await sf.sync_accounts()
+
+    opps_upserted = 0
+    for opp in opps:
+        sf_id = opp.pop("sf_opportunity_id")
+        await crud.upsert_sf_opportunity(db, customer_id, sf_id, opp)
+        opps_upserted += 1
+
+    accs_upserted = 0
+    for acc in accs:
+        sf_id = acc.pop("sf_account_id")
+        await crud.upsert_sf_account(db, customer_id, sf_id, acc)
+        accs_upserted += 1
+
+    await db.execute(
+        sa_update(Integration)
+        .where(Integration.id == integration.id)
+        .values(last_sync=datetime.utcnow())
+    )
+    await db.commit()
+
+    return {
+        "message": "Salesforce sync complete",
+        "opportunities_synced": opps_upserted,
+        "accounts_synced": accs_upserted,
+    }
+
+
+# ─────────────────────────────────────────────
+# POST /connections/snitcher  (stub – Week 3)
+# ─────────────────────────────────────────────
+
+@router.post("/snitcher")
+async def connect_snitcher(
+    api_key: str,
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """Connect Snitcher via API key. (Full implementation in Week 3)"""
+    # TODO: Test Snitcher connection in Week 3
+    existing = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "snitcher",
+        )
+    )
+    if existing:
+        existing.credentials = {"api_key": api_key}
+        existing.status = "connected"
+        integration = existing
+    else:
+        integration = Integration(
+            customer_id=customer_id,
+            service="snitcher",
+            status="connected",
+            credentials={"api_key": api_key},
+        )
+        db.add(integration)
+
+    await db.flush()
+    await db.refresh(integration)
+
+    return {
+        "message": "Snitcher connected successfully",
+        "integration_id": str(integration.id),
+        "service": "snitcher",
+        "status": "connected",
+    }
+
+
+# ─────────────────────────────────────────────
+# POST /connections/outreach  (stub – Week 3)
+# ─────────────────────────────────────────────
+
+@router.post("/outreach")
+async def connect_outreach(
+    api_key: str,
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """Connect Outreach.io via API key. (Full implementation in Week 3)"""
+    # TODO: Test Outreach connection in Week 3
+    existing = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "outreach",
+        )
+    )
+    if existing:
+        existing.credentials = {"api_key": api_key}
+        existing.status = "connected"
+        integration = existing
+    else:
+        integration = Integration(
+            customer_id=customer_id,
+            service="outreach",
+            status="connected",
+            credentials={"api_key": api_key},
+        )
+        db.add(integration)
+
+    await db.flush()
+    await db.refresh(integration)
+
+    return {
+        "message": "Outreach.io connected successfully",
+        "integration_id": str(integration.id),
+        "service": "outreach",
+        "status": "connected",
+    }
+
+
+# ─────────────────────────────────────────────
+# POST /connections/hubspot
+# ─────────────────────────────────────────────
+
+@router.post("/hubspot")
+async def connect_hubspot(
+    access_token: str,
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Connect HubSpot via Private App access token.
+    Tests the connection before saving credentials.
+    """
+    from app.integrations.hubspot import HubSpotIntegration
+
+    hs = HubSpotIntegration(credentials={"access_token": access_token})
+    ok = await hs.test_connection()
+    if not ok:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not connect to HubSpot — please verify the access token.",
+        )
+
+    existing = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "hubspot",
+        )
+    )
+    if existing:
+        existing.credentials = {"access_token": access_token}
+        existing.status = "connected"
+        integration = existing
+    else:
+        integration = Integration(
+            customer_id=customer_id,
+            service="hubspot",
+            status="connected",
+            credentials={"access_token": access_token},
+        )
+        db.add(integration)
+
+    await db.flush()
+    await db.refresh(integration)
+    await db.commit()
+
+    logger.info("HubSpot connected for customer %s", customer_id)
+    return {
+        "message": "HubSpot connected successfully",
+        "integration_id": str(integration.id),
+        "service": "hubspot",
+        "status": "connected",
+    }
+
+
+@router.post("/hubspot/sync")
+async def sync_hubspot(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Trigger a full HubSpot sync: fetch deals + companies,
+    upsert them into the salesforce_opportunities / salesforce_accounts tables
+    (IDs prefixed with 'hs_' to avoid collision with Salesforce IDs).
+    """
+    from app.integrations.hubspot import HubSpotIntegration
+    from datetime import datetime
+    from sqlalchemy import update as sa_update
+
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "hubspot",
+            Integration.status == "connected",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="HubSpot not connected")
+
+    hs = HubSpotIntegration(credentials=integration.credentials)
+    deals = await hs.sync_deals()
+    companies = await hs.sync_companies()
+
+    deals_upserted = 0
+    for deal in deals:
+        sf_id = deal.pop("sf_opportunity_id")
+        await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
+        deals_upserted += 1
+
+    companies_upserted = 0
+    for company in companies:
+        sf_id = company.pop("sf_account_id")
+        await crud.upsert_sf_account(db, customer_id, sf_id, company)
+        companies_upserted += 1
+
+    await db.execute(
+        sa_update(Integration)
+        .where(Integration.id == integration.id)
+        .values(last_sync=datetime.utcnow())
+    )
+    await db.commit()
+
+    logger.info(
+        "HubSpot sync complete for customer %s: %d deals, %d companies",
+        customer_id,
+        deals_upserted,
+        companies_upserted,
+    )
+    return {
+        "message": "HubSpot sync complete",
+        "deals_synced": deals_upserted,
+        "companies_synced": companies_upserted,
+    }
+
+
+# ─────────────────────────────────────────────
+# POST /connections/{integration_id}/sync
+# ─────────────────────────────────────────────
+
+@router.post("/{integration_id}/sync")
+async def trigger_sync(
+    integration_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Manually trigger a data sync for an integration.
+
+    For Clay: fetches all rows and creates/updates leads with scores.
+    For other services: returns a stub response (Week 3).
+    """
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.id == integration_id,
+            Integration.customer_id == customer_id,
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+
+    if integration.service == "clay":
+        return await _sync_clay(db, integration, customer_id)
+
+    # Other services: Week 3
+    return {
+        "message": f"Sync triggered for {integration.service} (background job not yet implemented)",
+        "integration_id": str(integration_id),
+    }
+
+
+async def _sync_clay(db: AsyncSession, integration: Integration, customer_id: str) -> dict:
+    """
+    Run a synchronous Clay sync: fetch rows, upsert leads, score each one.
+    Returns a summary of created/updated leads.
+    """
+    from app.ml.scorer import score_lead as do_score
+
+    async with ClayIntegration(
+        credentials=integration.credentials,
+        config=integration.config or {},
+    ) as clay:
+        rows = await clay.sync_data()
+
+    created = 0
+    updated = 0
+
+    for lead_data in rows:
+        external_id = lead_data.pop("external_id", None)
+
+        lead = await crud.upsert_lead(
+            db,
+            lead_data=lead_data,
+            customer_id=customer_id,
+            source="clay",
+            external_id=external_id,
+        )
+
+        # Score immediately after upsert
+        signals = await crud.get_signals_for_lead(db, str(lead.id))
+        signal_dicts = [
+            {"type": s.type, "title": s.title, "detected_at": s.detected_at}
+            for s in signals
+        ]
+        result = do_score(
+            {
+                "company_name": lead.company_name,
+                "industry": lead.industry,
+                "employee_count": lead.employee_count,
+            },
+            signal_dicts,
+        )
+        await crud.update_lead_score(
+            db,
+            lead_id=str(lead.id),
+            score=result["score"],
+            priority=result["priority"],
+            recommendation=result["recommendation"],
+        )
+
+        if external_id:
+            updated += 1
+        else:
+            created += 1
+
+    # Update last_sync timestamp
+    from datetime import datetime
+    from sqlalchemy import update as sa_update
+    await db.execute(
+        sa_update(Integration)
+        .where(Integration.id == integration.id)
+        .values(last_sync=datetime.utcnow(), status="connected")
+    )
+
+    logger.info(
+        "Clay sync complete for customer %s: %d rows (%d created, %d updated)",
+        customer_id,
+        len(rows),
+        created,
+        updated,
+    )
+
+    return {
+        "message": "Clay sync complete",
+        "integration_id": str(integration.id),
+        "leads_synced": len(rows),
+        "created": created,
+        "updated": updated,
+    }
+
+
+# ─────────────────────────────────────────────
+# DELETE /connections/{integration_id}
+# ─────────────────────────────────────────────
+
+@router.delete("/{integration_id}")
+async def disconnect_integration(
+    integration_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """Disconnect an integration (removes credentials and stops future syncing)."""
+    result = await db.execute(
+        select(Integration).where(
+            Integration.id == integration_id,
+            Integration.customer_id == customer_id,
+        )
+    )
+    integration = result.scalar_one_or_none()
+    if not integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+
+    await db.execute(
+        delete(Integration).where(Integration.id == integration_id)
+    )
+
+    logger.info(
+        "Integration %s (%s) disconnected for customer %s",
+        integration_id,
+        integration.service,
+        customer_id,
+    )
+
+    return {
+        "message": "Integration disconnected",
+        "integration_id": str(integration_id),
+        "service": integration.service,
+    }
