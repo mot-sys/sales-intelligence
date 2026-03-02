@@ -60,8 +60,8 @@ class Settings(BaseSettings):
     SNITCHER_API_KEY: Optional[str] = None
     SNITCHER_BASE_URL: str = "https://snitcher.com/api/v2"
     
-    # External APIs - Outreach.io
-    OUTREACH_API_KEY: Optional[str] = None
+    # External APIs - Outreach.io (OAuth 2.0)
+    OUTREACH_REDIRECT_URI: str = "https://sales-intelligence-orcin.vercel.app/api/connections/outreach/callback"
     OUTREACH_BASE_URL: str = "https://api.outreach.io/api/v2"
 
     # External APIs - HubSpot

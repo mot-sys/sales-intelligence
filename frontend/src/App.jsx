@@ -427,7 +427,14 @@ const SalesIntelligencePlatform = () => {
     setConnectError(null);
     try {
       const params = new URLSearchParams(connectForm).toString();
-      await API.post(`/connections/${connectModal}?${params}`);
+      const data = await API.post(`/connections/${connectModal}?${params}`);
+      // OAuth services return an auth_url — open it in a new tab
+      if (data.auth_url) {
+        window.open(data.auth_url, '_blank', 'noopener,noreferrer');
+        setConnectModal(null);
+        setConnectForm({});
+        return;
+      }
       await fetchConnections();
       setConnectModal(null);
       setConnectForm({});
@@ -437,6 +444,15 @@ const SalesIntelligencePlatform = () => {
       setConnectLoading(false);
     }
   };
+
+  // Detect ?outreach_connected=1 after OAuth callback redirect
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('outreach_connected') === '1') {
+      fetchConnections();
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const weekActivity = [
     { date: 'Mon', alerts: 8, actioned: 6 },
@@ -861,7 +877,11 @@ const SalesIntelligencePlatform = () => {
               id: 'outreach', name: 'Outreach.io',
               desc: 'Automated sequence enrollment + reply tracking',
               icon: Send,
-              fields: [{ key: 'api_key', label: 'API Key', type: 'password' }],
+              oauth: true,
+              fields: [
+                { key: 'client_id', label: 'OAuth Application ID', type: 'text', placeholder: 'Your Outreach App ID' },
+                { key: 'client_secret', label: 'Application Secret', type: 'password', placeholder: 'Your Outreach App Secret' },
+              ],
             },
           ];
           const connectedIds = new Set(connections.map(c => c.service));
@@ -972,7 +992,7 @@ const SalesIntelligencePlatform = () => {
                         disabled={connectLoading}
                         className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                       >
-                        {connectLoading ? 'Connecting…' : `Connect ${activeDef.name}`}
+                        {connectLoading ? 'Connecting…' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
                       </button>
                     </div>
                   </div>
