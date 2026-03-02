@@ -121,12 +121,16 @@ async def not_found_handler(request: Request, exc):
 
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc):
-    """Custom 500 handler"""
+    """Custom 500 handler — exposes error in dev for debugging"""
+    import traceback
+    err = traceback.format_exc()
+    print("500 ERROR:", err)
     return JSONResponse(
         status_code=500,
         content={
             "detail": "Internal server error",
-            "message": "Something went wrong. Our team has been notified."
+            "message": str(exc) if not is_production() else "Something went wrong.",
+            "trace": err if not is_production() else None,
         }
     )
 
