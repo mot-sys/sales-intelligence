@@ -4,15 +4,15 @@ SQLAlchemy ORM models for all database tables.
 """
 
 from sqlalchemy import (
-    Column, String, Integer, BigInteger, Text, Boolean, 
+    Column, String, Integer, BigInteger, Text, Boolean,
     ForeignKey, Index, CheckConstraint, TIMESTAMP, JSON
 )
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 
-Base = declarative_base()
+from app.db.session import Base  # single shared Base so create_all sees all models
 
 
 class Customer(Base):
