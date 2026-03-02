@@ -41,20 +41,23 @@ async def lifespan(app: FastAPI):
             await conn.run_sync(Base.metadata.create_all)
 
         # Seed the dev customer so the FK constraint on integrations/leads is satisfied
-        from app.db.models import Customer
-        from app.core.security import TEMP_CUSTOMER_ID
-        from sqlalchemy import select
-        dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
-        async with AsyncSessionLocal() as session:
-            exists = await session.scalar(select(Customer).where(Customer.id == dev_id))
-            if not exists:
-                session.add(Customer(
-                    id=dev_id,
-                    name="Dev User",
-                    email="dev@example.com",
-                ))
-                await session.commit()
-                print("✅ Dev customer seeded")
+        try:
+            from app.db.models import Customer
+            from app.core.security import TEMP_CUSTOMER_ID
+            from sqlalchemy import select as sa_select
+            dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
+            async with AsyncSessionLocal() as session:
+                exists = await session.scalar(sa_select(Customer).where(Customer.id == dev_id))
+                if not exists:
+                    session.add(Customer(
+                        id=dev_id,
+                        name="Dev User",
+                        email="dev@example.com",
+                    ))
+                    await session.commit()
+                    print("✅ Dev customer seeded")
+        except Exception as e:
+            print(f"⚠️  Dev customer seed skipped: {e}")
 
     yield
     
