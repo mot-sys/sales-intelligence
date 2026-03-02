@@ -310,6 +310,16 @@ class OutreachIntegration(BaseIntegration):
         except (KeyError, TypeError):
             return None
 
+    @staticmethod
+    def _first_val(lst, key: str) -> Optional[str]:
+        """Extract first value from a list that may contain dicts or plain strings."""
+        if not lst:
+            return None
+        first = lst[0]
+        if isinstance(first, dict):
+            return first.get(key)
+        return str(first)
+
     def _map_prospect(self, record: Dict) -> Dict:
         a = self._attr(record)
         return {
@@ -317,10 +327,10 @@ class OutreachIntegration(BaseIntegration):
             "outreach_id": record.get("id"),
             "first_name": a.get("firstName"),
             "last_name": a.get("lastName"),
-            "email": (a.get("emails") or [{}])[0].get("email"),
+            "email": self._first_val(a.get("emails"), "email"),
             "title": a.get("title"),
             "company": a.get("company"),
-            "phone": (a.get("phones") or [{}])[0].get("phone"),
+            "phone": self._first_val(a.get("phones"), "phone"),
             "stage": a.get("stage"),
             "score": a.get("score"),
             "opted_out": a.get("optedOut", False),
