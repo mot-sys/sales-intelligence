@@ -32,6 +32,11 @@ const API = {
     if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
     return res.json();
   },
+  async delete(path) {
+    const res = await fetch(`${API_BASE}/api${path}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
+    return res.json();
+  },
 };
 
 // ─────────────────────────────────────────────
@@ -419,6 +424,16 @@ const SalesIntelligencePlatform = () => {
       setError(`Action failed: ${e.message}`);
     } finally {
       setActioningId(null);
+    }
+  };
+
+  const handleDisconnect = async (integrationId) => {
+    if (!window.confirm('Are you sure you want to disconnect this integration?')) return;
+    try {
+      await API.delete(`/connections/${integrationId}`);
+      await fetchConnections();
+    } catch (e) {
+      alert('Disconnect failed: ' + e.message);
     }
   };
 
@@ -927,8 +942,11 @@ const SalesIntelligencePlatform = () => {
                             </button>
                           )}
                           {connected && (
-                            <button className="p-2 text-gray-400 hover:text-gray-600">
-                              <Settings className="w-5 h-5" />
+                            <button
+                              onClick={() => handleDisconnect(conn.id)}
+                              className="px-3 py-1.5 border border-red-200 text-red-600 text-sm rounded-lg hover:bg-red-50"
+                            >
+                              Disconnect
                             </button>
                           )}
                         </div>
