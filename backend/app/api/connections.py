@@ -454,6 +454,7 @@ async def sync_outreach(
 
     try:
         import asyncio as _asyncio
+        import traceback as _tb
         prospects, accounts, sequences, seq_states = await _asyncio.gather(
             ot.sync_prospects(),
             ot.sync_accounts(),
@@ -462,7 +463,7 @@ async def sync_outreach(
             return_exceptions=False,
         )
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Outreach API error: {exc}")
+        raise HTTPException(status_code=502, detail=f"Outreach API error: {exc}\n{_tb.format_exc()}")
 
     # If token was refreshed, persist the new credentials
     updated_creds = {
