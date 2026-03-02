@@ -283,6 +283,10 @@ class OutreachIntegration(BaseIntegration):
                     headers=headers,
                     params=base_params if first else None,
                 )
+                if r.status_code == 401:
+                    raise ValueError(f"Outreach token invalid or expired (401) — re-connect Outreach")
+                if r.status_code == 403:
+                    raise ValueError(f"Outreach scope missing for {next_url} (403)")
                 r.raise_for_status()
                 data = r.json()
                 results.extend(data.get("data", []))

@@ -413,10 +413,17 @@ async def sync_outreach(
 
     ot = OutreachIntegration(credentials=integration.credentials)
 
-    prospects = await ot.sync_prospects()
-    accounts = await ot.sync_accounts()
-    sequences = await ot.sync_sequences()
-    seq_states = await ot.sync_sequence_states()
+    try:
+        import asyncio as _asyncio
+        prospects, accounts, sequences, seq_states = await _asyncio.gather(
+            ot.sync_prospects(),
+            ot.sync_accounts(),
+            ot.sync_sequences(),
+            ot.sync_sequence_states(),
+            return_exceptions=False,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Outreach API error: {exc}")
 
     # If token was refreshed, persist the new credentials
     updated_creds = {
