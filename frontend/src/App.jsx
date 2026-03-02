@@ -427,6 +427,23 @@ const SalesIntelligencePlatform = () => {
     }
   };
 
+  const [syncingId, setSyncingId] = React.useState(null);
+  const [syncResult, setSyncResult] = React.useState({});
+
+  const handleSync = async (service, integrationId) => {
+    setSyncingId(integrationId);
+    setSyncResult(r => ({ ...r, [integrationId]: null }));
+    try {
+      const data = await API.post(`/connections/${service}/sync`);
+      setSyncResult(r => ({ ...r, [integrationId]: { ok: true, msg: data.message || 'Sync complete' } }));
+      await fetchConnections();
+    } catch (e) {
+      setSyncResult(r => ({ ...r, [integrationId]: { ok: false, msg: e.message } }));
+    } finally {
+      setSyncingId(null);
+    }
+  };
+
   const handleDisconnect = async (integrationId) => {
     if (!window.confirm('Are you sure you want to disconnect this integration?')) return;
     try {
@@ -942,12 +959,27 @@ const SalesIntelligencePlatform = () => {
                             </button>
                           )}
                           {connected && (
-                            <button
-                              onClick={() => handleDisconnect(conn.id)}
-                              className="px-3 py-1.5 border border-red-200 text-red-600 text-sm rounded-lg hover:bg-red-50"
-                            >
-                              Disconnect
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleSync(id, conn.id)}
+                                disabled={syncingId === conn.id}
+                                className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                <RefreshCw className={`w-3.5 h-3.5 ${syncingId === conn.id ? 'animate-spin' : ''}`} />
+                                {syncingId === conn.id ? 'Syncing…' : 'Sync now'}
+                              </button>
+                              <button
+                                onClick={() => handleDisconnect(conn.id)}
+                                className="px-3 py-1.5 border border-red-200 text-red-600 text-sm rounded-lg hover:bg-red-50"
+                              >
+                                Disconnect
+                              </button>
+                            </>
+                          )}
+                          {syncResult[conn?.id] && (
+                            <span className={`text-xs ${syncResult[conn.id].ok ? 'text-green-600' : 'text-red-500'}`}>
+                              {syncResult[conn.id].ok ? '✓' : '✗'} {syncResult[conn.id].msg}
+                            </span>
                           )}
                         </div>
                       </div>
