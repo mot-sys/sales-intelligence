@@ -75,6 +75,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     description="AI-powered sales intelligence platform",
     lifespan=lifespan,
+    redirect_slashes=False,  # Prevents 307 redirects when Vercel proxies without trailing slash
     docs_url="/docs" if not is_production() else None,  # Disable docs in production
     redoc_url="/redoc" if not is_production() else None,
 )
