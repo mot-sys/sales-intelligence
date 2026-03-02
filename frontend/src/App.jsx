@@ -12,11 +12,10 @@ import {
 // API HELPERS
 // ─────────────────────────────────────────────
 
-// In production set VITE_API_URL to your backend URL (e.g. https://api.yourapp.railway.app)
-// In local dev leave it unset — Vite proxies /api/* to localhost:8000
-let _apiBase = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
-if (_apiBase && !_apiBase.startsWith('http')) _apiBase = 'https://' + _apiBase;
-const API_BASE = _apiBase;
+// API requests use relative URLs so Vercel proxies them to Railway server-side.
+// Override with VITE_API_URL only if you need to bypass the proxy.
+const API_BASE = ((import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '')
+  || '').replace(/^(?!https?:\/\/)(.+)/, 'https://$1');
 
 const API = {
   async get(path) {
