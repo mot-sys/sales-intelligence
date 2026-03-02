@@ -335,7 +335,7 @@ const SalesIntelligencePlatform = () => {
   const fetchLeads = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await API.get('/leads/?limit=50');
+      const data = await API.get('/leads?limit=50');
       setLeads(data.leads || data.items || []);
       setUsingMockData(false);
     } catch {
@@ -348,7 +348,7 @@ const SalesIntelligencePlatform = () => {
 
   const fetchConnections = useCallback(async () => {
     try {
-      const data = await API.get('/connections/');
+      const data = await API.get('/connections');
       setConnections(data.integrations || []);
     } catch {
       setConnections([]);
@@ -381,7 +381,7 @@ const SalesIntelligencePlatform = () => {
     setChatInput('');
     setChatLoading(true);
     try {
-      const data = await API.post('/chat/', { question, history });
+      const data = await API.post('/chat', { question, history });
       setChatMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
       if (data.pipeline_summary) setChatContext(data.pipeline_summary);
     } catch (e) {
