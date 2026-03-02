@@ -267,17 +267,19 @@ class OutreachIntegration(BaseIntegration):
     # ─────────────────────────────────────────────
 
     async def _paginate(
-        self, url: str, params: Optional[Dict] = None, page_size: int = 100
+        self, url: str, params: Optional[Dict] = None, page_size: int = 100,
+        max_pages: int = 5,
     ) -> List[Dict]:
-        """Follow Outreach JSON:API cursor pagination, return all results."""
+        """Follow Outreach JSON:API cursor pagination, return up to max_pages pages."""
         results = []
         next_url: Optional[str] = url
         base_params = {"page[size]": page_size, **(params or {})}
         headers = await self._auth_headers()
+        pages_fetched = 0
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             first = True
-            while next_url:
+            while next_url and pages_fetched < max_pages:
                 r = await client.get(
                     next_url,
                     headers=headers,
@@ -292,6 +294,7 @@ class OutreachIntegration(BaseIntegration):
                 results.extend(data.get("data", []))
                 next_url = data.get("links", {}).get("next")
                 first = False
+                pages_fetched += 1
         return results
 
     # ─────────────────────────────────────────────
