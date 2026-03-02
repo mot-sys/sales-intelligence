@@ -39,6 +39,7 @@ def _integration_to_dict(integration: Integration) -> dict:
 # GET /connections/
 # ─────────────────────────────────────────────
 
+@router.get("")
 @router.get("/")
 async def list_connections(
     db: AsyncSession = Depends(get_db),

@@ -64,6 +64,7 @@ async def get_pipeline_context(
     return await build_pipeline_context(db, customer_id)
 
 
+@router.post("", response_model=ChatResponse)
 @router.post("/", response_model=ChatResponse)
 async def chat(
     body: ChatRequest,

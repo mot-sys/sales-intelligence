@@ -70,6 +70,7 @@ async def get_alert_stats(
     return await crud.get_alert_stats(db, customer_id)
 
 
+@router.get("")
 @router.get("/")
 async def list_alerts(
     status: Optional[str] = Query(None, description="Filter: pending|snoozed|dismissed|actioned"),

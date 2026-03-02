@@ -65,6 +65,7 @@ def _signal_to_dict(signal) -> dict:
 # GET /leads/
 # ─────────────────────────────────────────────
 
+@router.get("")
 @router.get("/")
 async def get_leads(
     db: AsyncSession = Depends(get_db),
