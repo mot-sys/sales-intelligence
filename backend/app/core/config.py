@@ -67,9 +67,12 @@ class Settings(BaseSettings):
     # External APIs - HubSpot
     HUBSPOT_ACCESS_TOKEN: Optional[str] = None  # Private App access token
     
-    # OpenAI
+    # Anthropic (Claude)
+    ANTHROPIC_API_KEY: Optional[str] = None
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
+
+    # OpenAI (legacy — kept for backwards compat, prefer ANTHROPIC_API_KEY)
     OPENAI_API_KEY: Optional[str] = None
-    OPENAI_MODEL: str = "gpt-4-turbo-preview"
     
     # Celery (Task Queue)
     CELERY_BROKER_URL: str = "redis://localhost:6379/1"

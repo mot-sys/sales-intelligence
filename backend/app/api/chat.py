@@ -48,7 +48,7 @@ async def get_suggested_questions():
     """Return suggested questions for the chat UI."""
     return {
         "questions": SUGGESTED_QUESTIONS,
-        "ai_configured": bool(settings.OPENAI_API_KEY),
+        "ai_configured": bool(settings.ANTHROPIC_API_KEY),
     }
 
 
@@ -90,12 +90,12 @@ async def chat(
     # Build context regardless of AI config (we always return the summary)
     context = await build_pipeline_context(db, customer_id)
 
-    ai_configured = bool(settings.OPENAI_API_KEY)
+    ai_configured = bool(settings.ANTHROPIC_API_KEY)
 
     if not ai_configured:
         return ChatResponse(
             answer=(
-                "AI chat er ikke aktiveret. Tilføj `OPENAI_API_KEY` til din `.env` fil for at aktivere.\n\n"
+                "AI chat er ikke aktiveret. Tilføj `ANTHROPIC_API_KEY` til Railway Variables for at aktivere.\n\n"
                 "Du kan stadig se din pipeline nedenfor."
             ),
             ai_configured=False,

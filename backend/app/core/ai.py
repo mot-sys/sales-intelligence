@@ -200,7 +200,7 @@ async def chat_with_pipeline(
     history: Optional[List[Dict]] = None,
 ) -> str:
     """
-    Send a question + full pipeline context to the LLM and return the answer.
+    Send a question + full pipeline context to Claude and return the answer.
 
     Args:
         question:  The user's natural-language question.
@@ -208,34 +208,35 @@ async def chat_with_pipeline(
         history:   Optional prior messages [{role, content}, ...] for multi-turn.
 
     Raises:
-        ValueError  if OPENAI_API_KEY is not set.
-        Exception   for OpenAI API errors (caller should handle).
+        ValueError  if ANTHROPIC_API_KEY is not set.
+        Exception   for Anthropic API errors (caller should handle).
     """
-    if not settings.OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY is not configured")
+    if not settings.ANTHROPIC_API_KEY:
+        raise ValueError("ANTHROPIC_API_KEY is not configured")
 
-    from openai import AsyncOpenAI
+    from anthropic import AsyncAnthropic
 
-    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+    client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
     system_content = _SYSTEM_PROMPT.format(
         today=datetime.utcnow().strftime("%A, %B %d %Y"),
         context_json=json.dumps(context, indent=2, default=str),
     )
 
-    messages = [{"role": "system", "content": system_content}]
-
-    # Inject prior conversation turns (last 10 to stay within token budget)
+    # Build message list (Anthropic uses user/assistant roles only — system is separate)
+    messages = []
     if history:
-        messages.extend(history[-10:])
+        for m in history[-10:]:
+            if m["role"] in ("user", "assistant"):
+                messages.append({"role": m["role"], "content": m["content"]})
 
     messages.append({"role": "user", "content": question})
 
-    response = await client.chat.completions.create(
-        model=settings.OPENAI_MODEL,
+    response = await client.messages.create(
+        model=settings.ANTHROPIC_MODEL,
+        system=system_content,
         messages=messages,
         max_tokens=700,
-        temperature=0.3,  # Low temperature for factual, grounded answers
     )
 
-    return response.choices[0].message.content.strip()
+    return response.content[0].text.strip()
