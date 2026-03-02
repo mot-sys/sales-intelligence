@@ -387,7 +387,7 @@ const SalesIntelligencePlatform = () => {
     } catch (e) {
       setChatMessages(prev => [...prev, {
         role: 'assistant',
-        content: `Fejl: ${e.message}. Tjek at OPENAI_API_KEY er sat i .env filen.`,
+        content: `Fejl: ${e.message}. Tjek at ANTHROPIC_API_KEY er sat i Railway Variables.`,
         isError: true,
       }]);
     } finally {
