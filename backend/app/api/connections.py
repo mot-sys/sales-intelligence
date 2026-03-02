@@ -385,6 +385,45 @@ async def outreach_callback(
 
 
 # ─────────────────────────────────────────────
+# GET /connections/outreach/test
+# ─────────────────────────────────────────────
+
+@router.get("/outreach/test")
+async def test_outreach(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """Quick token validity check — fetches a single user record from Outreach."""
+    from app.integrations.outreach import OutreachIntegration
+    import httpx
+
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "outreach",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="Outreach not connected")
+
+    ot = OutreachIntegration(credentials=integration.credentials)
+    try:
+        headers = await ot._auth_headers()
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(
+                "https://api.outreach.io/api/v2/users?page[size]=1",
+                headers=headers,
+            )
+        return {
+            "status_code": r.status_code,
+            "ok": r.status_code == 200,
+            "body_preview": r.text[:300],
+        }
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+# ─────────────────────────────────────────────
 # POST /connections/outreach/sync
 # ─────────────────────────────────────────────
 
