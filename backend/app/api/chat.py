@@ -115,7 +115,7 @@ async def chat(
         logger.exception("Chat LLM error: %s", e)
         raise HTTPException(
             status_code=502,
-            detail="AI service returned an error — please try again",
+            detail=f"AI error: {type(e).__name__}: {e}",
         )
 
     return ChatResponse(
