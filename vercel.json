@@ -3,6 +3,10 @@
   "outputDirectory": "frontend/dist",
   "framework": null,
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sales-intelligence-production.up.railway.app/api/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
