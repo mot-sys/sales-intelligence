@@ -12,9 +12,10 @@ import time
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
+import uuid
 from app.core.config import settings, is_production
 from app.api import leads, analysis, outbound, connections, auth, alerts, webhooks, chat
-from app.db.session import engine, Base
+from app.db.session import engine, Base, AsyncSessionLocal
 
 
 # Initialize Sentry for error tracking (production only)
@@ -38,7 +39,23 @@ async def lifespan(app: FastAPI):
     if not is_production():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-    
+
+        # Seed the dev customer so the FK constraint on integrations/leads is satisfied
+        from app.db.models import Customer
+        from app.core.security import TEMP_CUSTOMER_ID
+        from sqlalchemy import select
+        dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
+        async with AsyncSessionLocal() as session:
+            exists = await session.scalar(select(Customer).where(Customer.id == dev_id))
+            if not exists:
+                session.add(Customer(
+                    id=dev_id,
+                    name="Dev User",
+                    email="dev@example.com",
+                ))
+                await session.commit()
+                print("✅ Dev customer seeded")
+
     yield
     
     # Shutdown
