@@ -33,6 +33,36 @@ class HubSpotIntegration(BaseIntegration):
         }
 
     # ─────────────────────────────────────────────
+    # Owners
+    # ─────────────────────────────────────────────
+
+    async def _fetch_owners(self) -> Dict[str, str]:
+        """
+        Fetch all HubSpot owners and return {owner_id_str: full_name} lookup.
+        Falls back gracefully if the /owners endpoint is not accessible.
+        """
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                r = await client.get(
+                    f"{HUBSPOT_BASE}/crm/v3/owners",
+                    headers=self._headers,
+                    params={"limit": 100},
+                )
+                if r.status_code != 200:
+                    return {}
+                data = r.json()
+            return {
+                str(o["id"]): (
+                    f"{o.get('firstName', '')} {o.get('lastName', '')}".strip()
+                    or o.get("email", "")
+                    or str(o["id"])
+                )
+                for o in data.get("results", [])
+            }
+        except Exception:
+            return {}
+
+    # ─────────────────────────────────────────────
     # BaseIntegration interface
     # ─────────────────────────────────────────────
 
@@ -75,16 +105,23 @@ class HubSpotIntegration(BaseIntegration):
         Fetch all open HubSpot deals and return as dicts
         suitable for upserting into the SalesforceOpportunity table
         (IDs prefixed with 'hs_' to distinguish from SF records).
+        Resolves owner IDs to full names via /crm/v3/owners.
         """
-        properties = [
-            "dealname", "amount", "closedate", "dealstage",
-            "hubspot_owner_id", "hs_lastmodifieddate", "notes_last_updated",
-        ]
-        records = await self._paginate(
-            f"{HUBSPOT_BASE}/crm/v3/objects/deals",
-            params={"properties": ",".join(properties), "limit": 100},
+        # Fetch owner map in parallel with deals for speed
+        owner_map, records = await asyncio.gather(
+            self._fetch_owners(),
+            self._paginate(
+                f"{HUBSPOT_BASE}/crm/v3/objects/deals",
+                params={
+                    "properties": ",".join([
+                        "dealname", "amount", "closedate", "dealstage",
+                        "hubspot_owner_id", "hs_lastmodifieddate", "notes_last_updated",
+                    ]),
+                    "limit": 100,
+                },
+            ),
         )
-        return [self._map_deal(r) for r in records]
+        return [self._map_deal(r, owner_map) for r in records]
 
     async def detect_stalled_deals(self, days: int = 7) -> List[Dict]:
         """Return deals with no activity in the last `days` days."""
@@ -135,7 +172,7 @@ class HubSpotIntegration(BaseIntegration):
                     break
         return results
 
-    def _map_deal(self, record: Dict) -> Dict:
+    def _map_deal(self, record: Dict, owner_map: Optional[Dict[str, str]] = None) -> Dict:
         """Map a HubSpot deal record to our internal opportunity dict."""
         props = record.get("properties", {})
         deal_id = record.get("id", "")
@@ -152,13 +189,17 @@ class HubSpotIntegration(BaseIntegration):
         except (ValueError, TypeError):
             amount = None
 
+        # Resolve owner ID → full name using pre-fetched owner map
+        owner_id = props.get("hubspot_owner_id")
+        owner_name = (owner_map or {}).get(str(owner_id)) if owner_id else None
+
         return {
             "sf_opportunity_id": f"hs_{deal_id}",  # prefix to avoid SF ID collision
             "account_name": props.get("dealname", "Unknown Deal"),
             "amount": amount,
             "stage": props.get("dealstage"),
             "close_date": close_date,
-            "owner_name": props.get("hubspot_owner_id"),  # owner name resolved separately if needed
+            "owner_name": owner_name,
             "last_activity_date": last_activity,
             "is_stalled": False,
             "raw_data": record,

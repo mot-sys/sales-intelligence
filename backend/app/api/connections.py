@@ -560,6 +560,7 @@ async def sync_hubspot(
     Trigger a full HubSpot sync: fetch deals + companies,
     upsert them into the salesforce_opportunities / salesforce_accounts tables
     (IDs prefixed with 'hs_' to avoid collision with Salesforce IDs).
+    Also upserts deals into the leads table so Lead Intel is populated.
     """
     from app.integrations.hubspot import HubSpotIntegration
     from datetime import datetime
@@ -579,11 +580,49 @@ async def sync_hubspot(
     deals = await hs.sync_deals()
     companies = await hs.sync_companies()
 
+    # Stage → score mapping for Lead Intel scoring
+    _STAGE_SCORES: dict = {
+        "appointmentscheduled": 40,
+        "qualifiedtobuy": 55,
+        "presentationscheduled": 65,
+        "decisionmakerboughtin": 75,
+        "contractsent": 85,
+        "closedwon": 95,
+        "closedlost": 5,
+    }
+
     deals_upserted = 0
+    leads_upserted = 0
     for deal in deals:
         sf_id = deal.pop("sf_opportunity_id")
         await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
         deals_upserted += 1
+
+        # Also add to Lead Intel (leads table) so the Lead Intel tab is populated
+        stage = (deal.get("stage") or "").lower()
+        score = _STAGE_SCORES.get(stage, 50)
+        priority = "hot" if score >= 70 else ("warm" if score >= 45 else "cold")
+        amount = deal.get("amount")
+        amount_str = f"€{amount:,}" if amount else "N/A"
+        close = deal.get("close_date")
+        close_str = close.strftime("%Y-%m-%d") if close else "N/A"
+
+        lead_data = {
+            "company_name": deal.get("account_name") or "Unknown Deal",
+            "owner_name": deal.get("owner_name"),
+            "last_activity": deal.get("last_activity_date"),
+            "score": score,
+            "priority": priority,
+            "recommendation": (
+                f"HubSpot deal · Stage: {deal.get('stage') or 'unknown'} · "
+                f"Amount: {amount_str} · Close: {close_str}"
+            ),
+        }
+        await crud.upsert_lead(
+            db, lead_data=lead_data, customer_id=customer_id,
+            source="hubspot", external_id=sf_id,
+        )
+        leads_upserted += 1
 
     companies_upserted = 0
     for company in companies:
@@ -599,15 +638,17 @@ async def sync_hubspot(
     await db.commit()
 
     logger.info(
-        "HubSpot sync complete for customer %s: %d deals, %d companies",
+        "HubSpot sync complete for customer %s: %d deals, %d companies, %d leads",
         customer_id,
         deals_upserted,
         companies_upserted,
+        leads_upserted,
     )
     return {
         "message": "HubSpot sync complete",
         "deals_synced": deals_upserted,
         "companies_synced": companies_upserted,
+        "leads_upserted": leads_upserted,
     }
 
 
