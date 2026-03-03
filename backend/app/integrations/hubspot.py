@@ -33,8 +33,57 @@ class HubSpotIntegration(BaseIntegration):
         }
 
     # ─────────────────────────────────────────────
-    # Owners & Tasks (write)
+    # Owners & Tasks
     # ─────────────────────────────────────────────
+
+    async def get_open_tasks(self, limit: int = 200) -> List[Dict]:
+        """
+        Fetch open (not completed) HubSpot tasks and return a summary
+        grouped by owner — useful for the weekly report.
+
+        Returns a list of dicts with keys:
+          task_id, subject, body, owner_id, owner_name, due_date, status
+        """
+        try:
+            owner_map = await self._fetch_owners()
+            records = await self._paginate(
+                f"{HUBSPOT_BASE}/crm/v3/objects/tasks",
+                params={
+                    "properties": ",".join([
+                        "hs_task_subject", "hs_task_body", "hs_task_status",
+                        "hs_timestamp", "hubspot_owner_id", "hs_task_priority",
+                    ]),
+                    "limit": min(limit, 100),
+                    "filterGroups": None,
+                },
+            )
+            tasks = []
+            for r in records:
+                props = r.get("properties", {})
+                status = (props.get("hs_task_status") or "").upper()
+                if status in ("COMPLETED", "DEFERRED"):
+                    continue
+                owner_id = str(props.get("hubspot_owner_id") or "")
+                ts_ms = props.get("hs_timestamp")
+                due_date = None
+                if ts_ms:
+                    try:
+                        due_date = datetime.utcfromtimestamp(int(ts_ms) / 1000).strftime("%Y-%m-%d")
+                    except Exception:
+                        pass
+                tasks.append({
+                    "task_id": r.get("id"),
+                    "subject": props.get("hs_task_subject") or "(no subject)",
+                    "body": props.get("hs_task_body") or "",
+                    "owner_id": owner_id,
+                    "owner_name": owner_map.get(owner_id, owner_id or "Unassigned"),
+                    "due_date": due_date,
+                    "status": status or "NOT_STARTED",
+                    "priority": props.get("hs_task_priority") or "MEDIUM",
+                })
+            return tasks
+        except Exception:
+            return []
 
     async def create_task(
         self,

@@ -38,6 +38,7 @@ class Customer(Base):
     sf_accounts = relationship("SalesforceAccount", back_populates="customer", cascade="all, delete-orphan")
     chat_sessions = relationship("ChatSession", back_populates="customer", cascade="all, delete-orphan")
     ai_actions = relationship("AIAction", back_populates="customer", cascade="all, delete-orphan")
+    weekly_reports = relationship("WeeklyReport", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -507,6 +508,43 @@ class AIAction(Base):
         Index("idx_ai_action_customer", "customer_id", "created_at"),
         Index("idx_ai_action_type", "customer_id", "action_type"),
         Index("idx_ai_action_session", "session_id"),
+    )
+
+
+class WeeklyReport(Base):
+    """
+    AI-generated weekly sales report.
+    One report per customer per week (keyed by the Monday of that week).
+    Stores the raw data snapshot + three AI-written narrative sections.
+    """
+    __tablename__ = "weekly_reports"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    # The Monday (00:00 UTC) this report covers (last 7 days from that date)
+    week_start = Column(TIMESTAMP, nullable=False)
+    generated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Raw data used to generate the report (pipeline stats, tasks, alerts, etc.)
+    data_snapshot = Column(JSON, nullable=True)
+
+    # AI-generated markdown narrative sections
+    section_what_happened = Column(Text, nullable=True)   # Hvad skete der
+    section_this_week = Column(Text, nullable=True)       # Hvad skal der ske
+    section_management = Column(Text, nullable=True)      # Sales management hjælp
+
+    model_used = Column(String(100), nullable=True)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="weekly_reports")
+
+    __table_args__ = (
+        Index("idx_weekly_report_customer", "customer_id", "week_start"),
     )
 
 

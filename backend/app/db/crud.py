@@ -14,7 +14,7 @@ from sqlalchemy.orm import selectinload
 from app.db.models import (
     Lead, Signal, ScoringHistory, Customer, OutboundAction, Alert, AlertAction,
     SalesforceOpportunity, SalesforceAccount,
-    ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings,
+    ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings, WeeklyReport,
 )
 
 
@@ -871,3 +871,68 @@ async def upsert_ai_settings(
         await db.commit()
         await db.refresh(row)
         return row
+
+
+# ─────────────────────────────────────────────
+# WEEKLY REPORT CRUD
+# ─────────────────────────────────────────────
+
+async def get_latest_weekly_report(
+    db: AsyncSession,
+    customer_id: str,
+) -> Optional[WeeklyReport]:
+    """Return the most recently generated weekly report for this customer."""
+    result = await db.execute(
+        select(WeeklyReport)
+        .where(WeeklyReport.customer_id == customer_id)
+        .order_by(WeeklyReport.generated_at.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
+async def save_weekly_report(
+    db: AsyncSession,
+    customer_id: str,
+    week_start: datetime,
+    data_snapshot: Optional[Dict] = None,
+    section_what_happened: Optional[str] = None,
+    section_this_week: Optional[str] = None,
+    section_management: Optional[str] = None,
+    model_used: Optional[str] = None,
+) -> WeeklyReport:
+    """
+    Upsert the weekly report for a given week_start.
+    If a report already exists for this customer+week_start, it is replaced.
+    """
+    import uuid as _uuid
+    existing = await db.scalar(
+        select(WeeklyReport).where(
+            WeeklyReport.customer_id == customer_id,
+            WeeklyReport.week_start == week_start,
+        )
+    )
+    if existing:
+        existing.generated_at = datetime.utcnow()
+        existing.data_snapshot = data_snapshot
+        existing.section_what_happened = section_what_happened
+        existing.section_this_week = section_this_week
+        existing.section_management = section_management
+        existing.model_used = model_used
+        await db.commit()
+        await db.refresh(existing)
+        return existing
+
+    report = WeeklyReport(
+        customer_id=customer_id,
+        week_start=week_start,
+        data_snapshot=data_snapshot,
+        section_what_happened=section_what_happened,
+        section_this_week=section_this_week,
+        section_management=section_management,
+        model_used=model_used,
+    )
+    db.add(report)
+    await db.commit()
+    await db.refresh(report)
+    return report
