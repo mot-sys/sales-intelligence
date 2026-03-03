@@ -54,7 +54,6 @@ class HubSpotIntegration(BaseIntegration):
                         "hs_timestamp", "hubspot_owner_id", "hs_task_priority",
                     ]),
                     "limit": min(limit, 100),
-                    "filterGroups": None,
                 },
             )
             tasks = []
