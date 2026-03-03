@@ -87,7 +87,7 @@ async def _gather_week_data(db: AsyncSession, customer_id: str) -> Dict:
         "stage_distribution": dict(stage_counts),
         "recently_active_details": [
             {
-                "name": o.name,
+                "name": o.account_name,
                 "stage": o.stage,
                 "amount": float(o.amount or 0),
                 "owner": o.owner_name,
