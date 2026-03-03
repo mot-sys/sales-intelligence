@@ -282,6 +282,53 @@ async def connect_snitcher(
 
 
 # ─────────────────────────────────────────────
+# GET /connections/hubspot/owners-debug
+# ─────────────────────────────────────────────
+
+@router.get("/hubspot/owners-debug")
+async def debug_hubspot_owners(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Debug endpoint: returns raw /crm/v3/owners response from HubSpot.
+    Use this to check if crm.objects.owners.read scope is configured.
+    """
+    from app.integrations.hubspot import HubSpotIntegration, HUBSPOT_BASE
+    import httpx
+
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "hubspot",
+            Integration.status == "connected",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="HubSpot not connected")
+
+    hs = HubSpotIntegration(credentials=integration.credentials)
+    owner_map = await hs._fetch_owners()
+
+    # Also fetch the raw response for debugging
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(
+                f"{HUBSPOT_BASE}/crm/v3/owners",
+                headers=hs._headers,
+                params={"limit": 100},
+            )
+        return {
+            "status_code": r.status_code,
+            "owner_map": owner_map,
+            "owner_count": len(owner_map),
+            "raw_preview": r.json() if r.status_code == 200 else r.text[:300],
+        }
+    except Exception as exc:
+        return {"error": str(exc), "owner_map": owner_map}
+
+
+# ─────────────────────────────────────────────
 # POST /connections/outreach  — save creds + return OAuth URL
 # ─────────────────────────────────────────────
 

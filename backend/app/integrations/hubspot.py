@@ -189,9 +189,15 @@ class HubSpotIntegration(BaseIntegration):
         except (ValueError, TypeError):
             amount = None
 
-        # Resolve owner ID → full name using pre-fetched owner map
+        # Resolve owner ID → full name using pre-fetched owner map.
+        # Falls back to the raw ID string if the owners endpoint wasn't accessible
+        # (requires crm.objects.owners.read scope on the HubSpot Private App).
         owner_id = props.get("hubspot_owner_id")
-        owner_name = (owner_map or {}).get(str(owner_id)) if owner_id else None
+        if owner_id:
+            resolved = (owner_map or {}).get(str(owner_id))
+            owner_name = resolved if resolved else f"User {owner_id}"
+        else:
+            owner_name = None
 
         return {
             "sf_opportunity_id": f"hs_{deal_id}",  # prefix to avoid SF ID collision
