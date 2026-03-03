@@ -459,6 +459,7 @@ const SalesIntelligencePlatform = () => {
   // Analytics tab
   const [analyticsData, setAnalyticsData] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState(null);
   const [analyticsView, setAnalyticsView] = useState('forecast'); // forecast | funnel | health | accounts
 
   const fetchAlerts = useCallback(async () => {
@@ -544,6 +545,7 @@ const SalesIntelligencePlatform = () => {
 
   const fetchAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
+    setAnalyticsError(null);
     try {
       const [forecast, funnel, health, accounts] = await Promise.all([
         API.get('/analysis/forecast'),
@@ -554,6 +556,7 @@ const SalesIntelligencePlatform = () => {
       setAnalyticsData({ forecast, funnel, health, accounts });
     } catch (e) {
       console.error('Analytics fetch failed:', e);
+      setAnalyticsError(e.message || 'Unknown error');
       setAnalyticsData(null);
     } finally {
       setAnalyticsLoading(false);
@@ -1430,7 +1433,17 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {!analyticsLoading && !ad && (
+              {!analyticsLoading && !ad && analyticsError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-5 flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-red-800">Kunne ikke hente analytics data</p>
+                    <p className="text-sm text-red-600 mt-1 font-mono">{analyticsError}</p>
+                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig — vent 1-2 min og klik Refresh</p>
+                  </div>
+                </div>
+              )}
+              {!analyticsLoading && !ad && !analyticsError && (
                 <div className="flex flex-col items-center justify-center py-24 text-gray-400 bg-white rounded-lg border border-gray-200">
                   <BarChart2 className="w-12 h-12 mb-3 text-gray-300" />
                   <p className="font-medium text-gray-500">No analytics data available</p>
