@@ -33,8 +33,101 @@ class HubSpotIntegration(BaseIntegration):
         }
 
     # ─────────────────────────────────────────────
-    # Owners
+    # Owners & Tasks (write)
     # ─────────────────────────────────────────────
+
+    async def create_task(
+        self,
+        subject: str,
+        body: str,
+        owner_email: Optional[str] = None,
+        due_date: Optional[str] = None,
+    ) -> Dict:
+        """
+        Create a HubSpot task via the CRM Tasks API.
+
+        Requires crm.objects.tasks.write scope on the Private App.
+
+        Args:
+            subject:     Task title shown in HubSpot.
+            body:        Detailed description of the task.
+            owner_email: Email of the HubSpot user to assign the task to.
+            due_date:    ISO date string YYYY-MM-DD. Defaults to today if omitted.
+
+        Returns:
+            The created task object dict from HubSpot (includes id, properties).
+        """
+        from datetime import timezone
+
+        # Resolve owner email → HubSpot owner ID
+        owner_id: Optional[str] = None
+        if owner_email:
+            owner_id = await self._fetch_owner_id_by_email(owner_email)
+
+        # HubSpot hs_timestamp = milliseconds UTC (required field)
+        if due_date:
+            try:
+                dt = datetime.fromisoformat(due_date).replace(
+                    hour=9, minute=0, second=0, microsecond=0,
+                    tzinfo=timezone.utc,
+                )
+            except ValueError:
+                dt = datetime.now(tz=timezone.utc)
+        else:
+            dt = datetime.now(tz=timezone.utc)
+
+        props: Dict = {
+            "hs_task_subject": subject,
+            "hs_task_body": body,
+            "hs_task_type": "TODO",
+            "hs_task_priority": "HIGH",
+            "hs_timestamp": str(int(dt.timestamp() * 1000)),
+        }
+        if owner_id:
+            props["hubspot_owner_id"] = owner_id
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            r = await client.post(
+                f"{HUBSPOT_BASE}/crm/v3/objects/tasks",
+                headers=self._headers,
+                json={"properties": props},
+            )
+
+        if r.status_code == 403:
+            return {
+                "error": "scope_missing",
+                "message": (
+                    "HubSpot Private App mangler 'crm.objects.tasks.write' scope. "
+                    "Tilføj det i HubSpot → Settings → Integrations → Private Apps → Scopes."
+                ),
+            }
+        r.raise_for_status()
+        data = r.json()
+        return {
+            "task_id": data.get("id"),
+            "subject": subject,
+            "owner_email": owner_email,
+            "due_date": due_date or dt.strftime("%Y-%m-%d"),
+            "hubspot_url": f"https://app.hubspot.com/tasks/{data.get('id')}",
+        }
+
+    async def _fetch_owner_id_by_email(self, email: str) -> Optional[str]:
+        """Look up a HubSpot owner ID by email address."""
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                r = await client.get(
+                    f"{HUBSPOT_BASE}/crm/v3/owners",
+                    headers=self._headers,
+                    params={"limit": 100},
+                )
+            if r.status_code != 200:
+                return None
+            for owner in r.json().get("results", []):
+                if owner.get("email", "").lower() == email.lower():
+                    return str(owner["id"])
+            return None
+        except Exception:
+            return None
 
     async def _fetch_owners(self) -> Dict[str, str]:
         """

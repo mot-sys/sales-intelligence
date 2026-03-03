@@ -78,14 +78,15 @@ async def chat(
     - All open deals (Salesforce + HubSpot) with stage, amount, activity date
     - Pending alerts (stalled deals, intent spikes, score jumps) with recommendations
     - Top-scored leads with their signals
+    - HubSpot tools: create tasks (if HubSpot is connected)
 
     Multi-turn: pass prior messages in `history` to maintain conversation context.
 
     Examples:
     - "Hvad skal jeg fokusere på denne uge?"
+    - "Opret en task til Ida om at følge op på Scandifinanceaps"
     - "Which deals are most at risk of going cold?"
     - "Giv mig et overblik over min pipeline"
-    - "Which leads should I call today?"
     """
     # Build context regardless of AI config (we always return the summary)
     context = await build_pipeline_context(db, customer_id)
@@ -102,13 +103,35 @@ async def chat(
             pipeline_summary=context["pipeline_summary"],
         )
 
+    # ── Look up HubSpot integration for tool use ──────────────────────────
+    hs_integration = None
+    try:
+        from sqlalchemy import select as sa_select
+        from app.db.models import Integration
+        from app.integrations.hubspot import HubSpotIntegration
+
+        hs_row = await db.scalar(
+            sa_select(Integration).where(
+                Integration.customer_id == customer_id,
+                Integration.service == "hubspot",
+                Integration.status == "connected",
+            )
+        )
+        if hs_row:
+            hs_integration = HubSpotIntegration(credentials=hs_row.credentials)
+    except Exception as exc:
+        logger.warning("Could not load HubSpot integration for chat tools: %s", exc)
+
     history_dicts = (
         [{"role": m.role, "content": m.content} for m in body.history]
         if body.history else None
     )
 
     try:
-        answer = await chat_with_pipeline(body.question, context, history_dicts)
+        answer = await chat_with_pipeline(
+            body.question, context, history_dicts,
+            hs_integration=hs_integration,
+        )
     except ValueError as e:
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:

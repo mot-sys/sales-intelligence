@@ -168,6 +168,7 @@ async def build_pipeline_context(db: AsyncSession, customer_id: str) -> Dict:
 _SYSTEM_PROMPT = """\
 You are an expert B2B sales intelligence assistant embedded in a revenue signal platform.
 You have real-time access to the user's CRM pipeline, scored leads, and active alerts.
+You also have tools to take real actions in HubSpot on behalf of the user.
 
 Today: {today}
 
@@ -182,7 +183,50 @@ Rules:
 - Use bullet points when listing 3 or more items.
 - Answer in the same language the user writes in (English or Danish).
 - Never make up data that isn't in the context above.
+- When creating tasks: use the create_hubspot_task tool to actually create them — never just describe what you would do.
+- After using a tool, confirm the result to the user clearly (e.g. "✅ Task created: ...").
+- If a tool returns an error, explain it clearly in the user's language.
 """
+
+# ─────────────────────────────────────────────
+# HUBSPOT TOOL DEFINITIONS
+# ─────────────────────────────────────────────
+
+HUBSPOT_TOOLS = [
+    {
+        "name": "create_hubspot_task",
+        "description": (
+            "Create a real task in HubSpot assigned to a specific person. "
+            "Use this whenever the user asks you to create a task, to-do, follow-up, or reminder. "
+            "The task will actually appear in HubSpot for the assignee."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "subject": {
+                    "type": "string",
+                    "description": "Task title, e.g. 'Follow up on Scandifinanceaps deal'",
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Detailed task description — what needs to be done and why.",
+                },
+                "owner_email": {
+                    "type": "string",
+                    "description": (
+                        "Email of the HubSpot user to assign the task to. "
+                        "Use the exact email shown in the pipeline data (e.g. 'ida.henriksen22@gmail.com')."
+                    ),
+                },
+                "due_date": {
+                    "type": "string",
+                    "description": "Due date in YYYY-MM-DD format. Use today's date if not specified.",
+                },
+            },
+            "required": ["subject", "body", "owner_email"],
+        },
+    },
+]
 
 SUGGESTED_QUESTIONS = [
     "Hvad skal jeg fokusere på denne uge?",
@@ -198,14 +242,19 @@ async def chat_with_pipeline(
     question: str,
     context: Dict,
     history: Optional[List[Dict]] = None,
+    hs_integration=None,
 ) -> str:
     """
     Send a question + full pipeline context to Claude and return the answer.
 
+    Supports tool use (function calling) for HubSpot actions.
+    Runs an agentic loop: if Claude calls a tool, executes it and continues.
+
     Args:
-        question:  The user's natural-language question.
-        context:   Output of build_pipeline_context().
-        history:   Optional prior messages [{role, content}, ...] for multi-turn.
+        question:        The user's natural-language question.
+        context:         Output of build_pipeline_context().
+        history:         Optional prior messages [{role, content}, ...] for multi-turn.
+        hs_integration:  Optional HubSpotIntegration instance for tool execution.
 
     Raises:
         ValueError  if ANTHROPIC_API_KEY is not set.
@@ -224,7 +273,7 @@ async def chat_with_pipeline(
     )
 
     # Build message list (Anthropic uses user/assistant roles only — system is separate)
-    messages = []
+    messages: List[Dict] = []
     if history:
         for m in history[-10:]:
             if m["role"] in ("user", "assistant"):
@@ -232,11 +281,86 @@ async def chat_with_pipeline(
 
     messages.append({"role": "user", "content": question})
 
-    response = await client.messages.create(
-        model=settings.ANTHROPIC_MODEL,
-        system=system_content,
-        messages=messages,
-        max_tokens=700,
-    )
+    # Only offer tools if HubSpot is connected
+    tools = HUBSPOT_TOOLS if hs_integration else []
 
-    return response.content[0].text.strip()
+    # ── Agentic loop — handles tool calls up to 3 rounds ──────────────────
+    for _round in range(3):
+        kwargs: Dict = dict(
+            model=settings.ANTHROPIC_MODEL,
+            system=system_content,
+            messages=messages,
+            max_tokens=1000,
+        )
+        if tools:
+            kwargs["tools"] = tools
+
+        response = await client.messages.create(**kwargs)
+
+        # If Claude produced a final text response, we're done
+        if response.stop_reason == "end_turn":
+            text_blocks = [b for b in response.content if b.type == "text"]
+            return text_blocks[0].text.strip() if text_blocks else ""
+
+        # If Claude wants to use a tool
+        if response.stop_reason == "tool_use":
+            # Add Claude's full response (with tool_use block) to message history
+            assistant_content = []
+            for block in response.content:
+                if block.type == "text":
+                    assistant_content.append({"type": "text", "text": block.text})
+                elif block.type == "tool_use":
+                    assistant_content.append({
+                        "type": "tool_use",
+                        "id": block.id,
+                        "name": block.name,
+                        "input": block.input,
+                    })
+            messages.append({"role": "assistant", "content": assistant_content})
+
+            # Execute each tool call and collect results
+            tool_results = []
+            for block in response.content:
+                if block.type != "tool_use":
+                    continue
+
+                tool_result = await _execute_tool(block.name, block.input, hs_integration)
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": json.dumps(tool_result, default=str),
+                })
+                logger.info("Tool %s executed: %s", block.name, tool_result)
+
+            # Add tool results back so Claude can continue
+            messages.append({"role": "user", "content": tool_results})
+            continue  # next round: Claude sees the tool results and gives final answer
+
+        # Any other stop reason — return whatever text we have
+        text_blocks = [b for b in response.content if b.type == "text"]
+        return text_blocks[0].text.strip() if text_blocks else ""
+
+    # Fallback if we somehow exceed the loop limit
+    return "Der opstod et problem med at behandle din forespørgsel. Prøv igen."
+
+
+async def _execute_tool(name: str, inputs: Dict, hs_integration) -> Dict:
+    """Dispatch a tool call to the appropriate backend function."""
+    if name == "create_hubspot_task":
+        if hs_integration is None:
+            return {
+                "error": "not_connected",
+                "message": "HubSpot er ikke forbundet. Gå til Connections og tilslut HubSpot.",
+            }
+        try:
+            return await hs_integration.create_task(
+                subject=inputs.get("subject", ""),
+                body=inputs.get("body", ""),
+                owner_email=inputs.get("owner_email"),
+                due_date=inputs.get("due_date"),
+            )
+        except Exception as exc:
+            logger.exception("HubSpot create_task failed: %s", exc)
+            return {"error": "api_error", "message": str(exc)}
+
+    return {"error": "unknown_tool", "message": f"Unknown tool: {name}"}
