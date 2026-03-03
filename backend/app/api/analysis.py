@@ -548,7 +548,8 @@ async def get_prioritised_accounts(
         company_alerts = alert_by_company.get(company_key, [])
 
         # Stage probability from matched deal
-        stage_prob = _stage_prob((deal.stage if deal else "").lower()) if deal else 0.30
+        # _stage_prob() handles None / empty string safely internally
+        stage_prob = _stage_prob(deal.stage if deal else None)
 
         # Recency bonus: deals with recent activity rank higher
         recency_bonus = 1.0
@@ -577,7 +578,9 @@ async def get_prioritised_accounts(
             days_inactive = (now - deal.last_activity_date).days if deal.last_activity_date else None
             if days_inactive is not None and days_inactive >= STALE_DAYS:
                 signals.append(f"Deal stalled {days_inactive}d")
-            if deal.close_date and deal.close_date <= (now + timedelta(days=14)).date():
+            # close_date is a datetime (TIMESTAMP column) — compare datetime to datetime
+            close_cutoff = now + timedelta(days=14)
+            if deal.close_date and deal.close_date <= close_cutoff:
                 signals.append(f"Closes {deal.close_date.strftime('%b %d')}")
         for a in company_alerts[:2]:
             signals.append(a.headline[:60] if a.headline else a.type)
