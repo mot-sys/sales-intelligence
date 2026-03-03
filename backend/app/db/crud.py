@@ -14,7 +14,7 @@ from sqlalchemy.orm import selectinload
 from app.db.models import (
     Lead, Signal, ScoringHistory, Customer, OutboundAction, Alert, AlertAction,
     SalesforceOpportunity, SalesforceAccount,
-    ChatSession, ChatMessage, AIAction, IntegrationSyncLog,
+    ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings,
 )
 
 
@@ -827,3 +827,47 @@ async def get_integration_sync_logs(
         query = query.where(IntegrationSyncLog.service == service)
     result = await db.execute(query)
     return result.scalars().all()
+
+
+# ─────────────────────────────────────────────
+# AI SETTINGS CRUD
+# ─────────────────────────────────────────────
+
+async def get_ai_settings(db: AsyncSession, customer_id: str) -> Optional[AISettings]:
+    """Return the AI settings row for this customer, or None if not configured yet."""
+    result = await db.execute(
+        select(AISettings).where(AISettings.customer_id == customer_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def upsert_ai_settings(
+    db: AsyncSession,
+    customer_id: str,
+    model: Optional[str] = None,
+    skills: Optional[list] = None,
+    company_context: Optional[str] = None,
+) -> AISettings:
+    """
+    Create or fully replace the AI settings for this customer.
+    All fields are replaced — pass existing values to keep them unchanged.
+    """
+    existing = await get_ai_settings(db, customer_id)
+    if existing:
+        existing.model = model
+        existing.skills = skills or []
+        existing.company_context = company_context
+        await db.commit()
+        await db.refresh(existing)
+        return existing
+    else:
+        row = AISettings(
+            customer_id=customer_id,
+            model=model,
+            skills=skills or [],
+            company_context=company_context,
+        )
+        db.add(row)
+        await db.commit()
+        await db.refresh(row)
+        return row

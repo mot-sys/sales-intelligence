@@ -128,10 +128,25 @@ async def chat(
         if body.history else None
     )
 
+    # ── Load customer AI settings (model override + skills) ───────────────
+    ai_settings_dict = None
+    try:
+        from app.db import crud as db_crud
+        ai_row = await db_crud.get_ai_settings(db, customer_id)
+        if ai_row:
+            ai_settings_dict = {
+                "model": ai_row.model,
+                "skills": ai_row.skills or [],
+                "company_context": ai_row.company_context,
+            }
+    except Exception as exc:
+        logger.warning("Could not load AI settings: %s", exc)
+
     try:
         result = await chat_with_pipeline(
             body.question, context, history_dicts,
             hs_integration=hs_integration,
+            ai_settings=ai_settings_dict,
         )
     except ValueError as e:
         raise HTTPException(status_code=503, detail=str(e))

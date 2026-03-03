@@ -167,6 +167,15 @@ const API = {
     if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
     return res.json();
   },
+  async put(path, body) {
+    const res = await fetch(`${API_BASE}/api${path}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
+    return res.json();
+  },
   async delete(path) {
     const res = await fetch(`${API_BASE}/api${path}`, { method: 'DELETE' });
     if (!res.ok) throw new Error(`API ${path}: ${res.status}`);
@@ -451,6 +460,12 @@ const SalesIntelligencePlatform = () => {
   const [chatContext, setChatContext] = useState(null);
   const [suggestedQuestions, setSuggestedQuestions] = useState([]);
   const chatBottomRef = React.useRef(null);
+  // AI Settings / Skills
+  const [aiSettings, setAiSettings] = useState(null);
+  const [skillsOpen, setSkillsOpen] = useState(false);
+  const [skillInput, setSkillInput] = useState('');
+  const [contextInput, setContextInput] = useState('');
+  const [settingsSaving, setSettingsSaving] = useState(false);
   // Pipeline Data tab
   const [pipelineData, setPipelineData] = useState(null);
   const [pipelineLoading, setPipelineLoading] = useState(false);
@@ -507,12 +522,15 @@ const SalesIntelligencePlatform = () => {
 
   const fetchChatContext = useCallback(async () => {
     try {
-      const [ctxData, sugData] = await Promise.all([
+      const [ctxData, sugData, settingsData] = await Promise.all([
         API.get('/chat/context'),
         API.get('/chat/suggested'),
+        API.get('/settings/ai'),
       ]);
       setChatContext(ctxData.pipeline_summary);
       setSuggestedQuestions(sugData.questions || []);
+      setAiSettings(settingsData);
+      setContextInput(settingsData.company_context || '');
     } catch {
       setSuggestedQuestions([
         'Hvad skal jeg fokusere på denne uge?',
@@ -522,6 +540,36 @@ const SalesIntelligencePlatform = () => {
       ]);
     }
   }, []);
+
+  const saveAiSettings = async (updates) => {
+    if (!aiSettings) return;
+    setSettingsSaving(true);
+    try {
+      const saved = await API.put('/settings/ai', {
+        model: updates.model ?? aiSettings.model,
+        skills: updates.skills ?? aiSettings.skills,
+        company_context: updates.company_context ?? aiSettings.company_context,
+      });
+      setAiSettings(saved);
+    } catch (e) {
+      console.error('Failed to save AI settings:', e);
+    } finally {
+      setSettingsSaving(false);
+    }
+  };
+
+  const addSkill = async () => {
+    if (!skillInput.trim() || !aiSettings) return;
+    const newSkills = [...(aiSettings.skills || []), skillInput.trim()];
+    setSkillInput('');
+    await saveAiSettings({ skills: newSkills });
+  };
+
+  const removeSkill = async (index) => {
+    if (!aiSettings) return;
+    const newSkills = aiSettings.skills.filter((_, i) => i !== index);
+    await saveAiSettings({ skills: newSkills });
+  };
 
   const fetchPipelineData = useCallback(async () => {
     setPipelineLoading(true);
@@ -1027,8 +1075,9 @@ const SalesIntelligencePlatform = () => {
                 </div>
               </div>
 
-              {/* Context sidebar */}
-              <div className="w-64 flex flex-col gap-4">
+              {/* Context + Skills sidebar */}
+              <div className="w-72 flex flex-col gap-4 overflow-y-auto">
+
                 {/* Pipeline snapshot */}
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Pipeline snapshot</p>
@@ -1049,6 +1098,132 @@ const SalesIntelligencePlatform = () => {
                     </div>
                   ) : (
                     <p className="text-sm text-gray-400">Indlæser...</p>
+                  )}
+                </div>
+
+                {/* Model selector */}
+                {aiSettings && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-4">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">AI Model</p>
+                    <div className="space-y-2">
+                      {(aiSettings.available_models || []).map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => saveAiSettings({ model: m.id })}
+                          disabled={settingsSaving}
+                          className={`w-full text-left px-3 py-2.5 rounded-lg border transition-colors ${
+                            aiSettings.model === m.id
+                              ? 'bg-purple-50 border-purple-300 text-purple-900'
+                              : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold">{m.label}</span>
+                            {m.tier === 'recommended' && (
+                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">✓ Best</span>
+                            )}
+                            {m.tier === 'powerful' && (
+                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">⚡ Max</span>
+                            )}
+                            {m.tier === 'fast' && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">🚀 Fast</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                    {settingsSaving && <p className="text-xs text-gray-400 mt-2 text-center">Gemmer...</p>}
+                  </div>
+                )}
+
+                {/* Skills panel */}
+                <div className="bg-white rounded-lg border border-gray-200">
+                  <button
+                    onClick={() => setSkillsOpen(o => !o)}
+                    className="w-full flex items-center justify-between p-4 text-left"
+                  >
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">AI Skills</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {aiSettings?.skills?.length > 0 ? `${aiSettings.skills.length} aktiv` : 'Ingen skills endnu'}
+                      </p>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${skillsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {skillsOpen && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-100 pt-3">
+                      {/* Existing skills */}
+                      {(aiSettings?.skills || []).map((skill, i) => (
+                        <div key={i} className="flex items-start gap-2 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2">
+                          <p className="flex-1 text-xs text-purple-800">{skill}</p>
+                          <button
+                            onClick={() => removeSkill(i)}
+                            className="text-purple-400 hover:text-red-500 flex-shrink-0 mt-0.5"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Add new skill */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Fx: Svar altid på dansk"
+                          value={skillInput}
+                          onChange={e => setSkillInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && addSkill()}
+                          className="flex-1 px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        />
+                        <button
+                          onClick={addSkill}
+                          disabled={!skillInput.trim() || settingsSaving}
+                          className="px-2.5 py-1.5 bg-purple-600 text-white text-xs rounded-lg hover:bg-purple-700 disabled:opacity-40 font-medium"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Company context */}
+                      <div className="pt-1">
+                        <p className="text-xs text-gray-500 font-medium mb-1.5">Virksomhedskontekst</p>
+                        <textarea
+                          rows={3}
+                          placeholder="Fx: Vi sælger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
+                          value={contextInput}
+                          onChange={e => setContextInput(e.target.value)}
+                          className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+                        />
+                        <button
+                          onClick={() => saveAiSettings({ company_context: contextInput })}
+                          disabled={settingsSaving}
+                          className="mt-1.5 w-full py-1.5 bg-gray-800 text-white text-xs rounded-lg hover:bg-gray-900 disabled:opacity-40 font-medium"
+                        >
+                          {settingsSaving ? 'Gemmer...' : 'Gem kontekst'}
+                        </button>
+                      </div>
+
+                      {/* Skill ideas */}
+                      <div className="pt-1 border-t border-gray-100">
+                        <p className="text-xs text-gray-400 mb-1.5">Forslag:</p>
+                        {[
+                          'Svar altid på dansk',
+                          'Fokusér på deals der lukker inden for 30 dage',
+                          'Brug MEDDIC salgsmøntoden',
+                          'Vores ICP: SaaS, 50-500 ansatte',
+                        ].map((s, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setSkillInput(s)}
+                            className="w-full text-left text-xs text-gray-500 hover:text-purple-700 hover:bg-purple-50 px-2 py-1 rounded transition-colors"
+                          >
+                            + {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
 

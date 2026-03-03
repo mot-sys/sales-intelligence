@@ -508,3 +508,39 @@ class AIAction(Base):
         Index("idx_ai_action_type", "customer_id", "action_type"),
         Index("idx_ai_action_session", "session_id"),
     )
+
+
+class AISettings(Base):
+    """
+    Per-customer AI configuration: model choice, custom skills/instructions,
+    and persona context injected into the system prompt on every chat turn.
+
+    One row per customer — upsert on save.
+    """
+    __tablename__ = "ai_settings"
+
+    customer_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    # Model selection — overrides ANTHROPIC_MODEL env var for this customer
+    # Accepted values: claude-3-5-sonnet-20241022 | claude-3-opus-20240229 |
+    #                  claude-3-5-haiku-20241022
+    model = Column(String(100), nullable=True)
+
+    # Skills: list of short instruction strings shown at top of system prompt
+    # e.g. ["Respond only in Danish", "Our ICP: B2B SaaS 50-500 employees"]
+    skills = Column(JSON, nullable=True, default=list)
+
+    # Freeform company/sales context paragraph added to every prompt
+    company_context = Column(Text, nullable=True)
+
+    # Timestamps
+    updated_at = Column(
+        TIMESTAMP,
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )

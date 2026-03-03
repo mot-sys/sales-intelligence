@@ -172,7 +172,7 @@ You also have tools to take real actions in HubSpot on behalf of the user.
 
 Today: {today}
 
-=== LIVE PIPELINE DATA ===
+{skills_block}=== LIVE PIPELINE DATA ===
 {context_json}
 =========================
 
@@ -308,6 +308,7 @@ async def chat_with_pipeline(
     context: Dict,
     history: Optional[List[Dict]] = None,
     hs_integration=None,
+    ai_settings: Optional[Dict] = None,
 ) -> Dict:
     """
     Send a question + full pipeline context to Claude and return the answer + any charts.
@@ -338,9 +339,27 @@ async def chat_with_pipeline(
 
     client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
 
+    # ── Resolve model: customer setting → env var → hardcoded default ──────
+    ai_cfg = ai_settings or {}
+    model_to_use = (
+        ai_cfg.get("model")
+        or settings.ANTHROPIC_MODEL
+        or "claude-3-5-sonnet-20241022"
+    )
+
+    # ── Build skills block injected at top of system prompt ────────────────
+    skills_lines = []
+    if ai_cfg.get("company_context"):
+        skills_lines.append(f"=== COMPANY CONTEXT ===\n{ai_cfg['company_context']}\n=======================\n\n")
+    if ai_cfg.get("skills"):
+        bullet_skills = "\n".join(f"- {s}" for s in ai_cfg["skills"])
+        skills_lines.append(f"=== CUSTOM INSTRUCTIONS (always follow these) ===\n{bullet_skills}\n=================================================\n\n")
+    skills_block = "".join(skills_lines)
+
     system_content = _SYSTEM_PROMPT.format(
         today=datetime.utcnow().strftime("%A, %B %d %Y"),
         context_json=json.dumps(context, indent=2, default=str),
+        skills_block=skills_block,
     )
 
     # Build message list (Anthropic uses user/assistant roles only — system is separate)
@@ -364,10 +383,10 @@ async def chat_with_pipeline(
     # ── Agentic loop — handles tool calls up to 5 rounds ──────────────────
     for _round in range(5):
         kwargs: Dict = dict(
-            model=settings.ANTHROPIC_MODEL,
+            model=model_to_use,
             system=system_content,
             messages=messages,
-            max_tokens=1500,
+            max_tokens=2048,
             tools=tools,
         )
 
