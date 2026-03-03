@@ -1,12 +1,147 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
 } from 'recharts';
 import {
   Activity, Database, Brain, Users, Send, CheckCircle, AlertCircle, Clock,
   TrendingUp, Zap, Settings, ExternalLink, RefreshCw, Bell, BellOff, X, ChevronDown,
   MessageSquare, Sparkles, CornerDownLeft,
 } from 'lucide-react';
+
+// ─────────────────────────────────────────────
+// CHAT CHART RENDERER
+// Renders AI-generated chart specs from render_chart tool calls
+// ─────────────────────────────────────────────
+
+const CHART_PALETTE = [
+  '#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626',
+  '#0891b2', '#9333ea', '#16a34a', '#ea580c', '#0284c7',
+];
+
+const formatChartValue = (value, prefix = '', suffix = '') => {
+  if (value === null || value === undefined) return '—';
+  if (typeof value === 'number' && value >= 1000) {
+    return `${prefix}${value >= 1000000
+      ? (value / 1000000).toFixed(1) + 'M'
+      : (value / 1000).toFixed(0) + 'k'
+    }${suffix}`;
+  }
+  return `${prefix}${value}${suffix}`;
+};
+
+const ChatChart = ({ spec }) => {
+  if (!spec || !spec.data || spec.data.length === 0) return null;
+  const { chart_type, title, data, value_prefix = '', value_suffix = '' } = spec;
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload || !payload.length) return null;
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-xs">
+        <p className="font-semibold text-gray-800 mb-1">{label || payload[0]?.name}</p>
+        <p className="text-purple-700 font-bold">
+          {formatChartValue(payload[0]?.value, value_prefix, value_suffix)}
+        </p>
+      </div>
+    );
+  };
+
+  return (
+    <div className="mt-3 bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+      {title && (
+        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">{title}</p>
+      )}
+
+      {/* ── Vertical bar chart ── */}
+      {chart_type === 'bar' && (
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 10, fill: '#6b7280' }}
+              angle={-35}
+              textAnchor="end"
+              interval={0}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: '#6b7280' }}
+              tickFormatter={v => formatChartValue(v, value_prefix, value_suffix)}
+              width={55}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              {data.map((_, i) => (
+                <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+
+      {/* ── Horizontal bar chart ── */}
+      {chart_type === 'horizontal_bar' && (
+        <div className="space-y-2">
+          {data.map((item, i) => {
+            const max = Math.max(...data.map(d => d.value || 0));
+            const pct = max > 0 ? Math.round((item.value / max) * 100) : 0;
+            return (
+              <div key={i}>
+                <div className="flex justify-between items-center mb-0.5">
+                  <span className="text-xs text-gray-700 truncate max-w-[60%]">{item.name}</span>
+                  <span className="text-xs font-semibold text-gray-900 ml-2">
+                    {formatChartValue(item.value, value_prefix, value_suffix)}
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: CHART_PALETTE[i % CHART_PALETTE.length],
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Pie chart ── */}
+      {chart_type === 'pie' && (
+        <ResponsiveContainer width="100%" height={200}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={80}
+              paddingAngle={2}
+              label={({ name, percent }) =>
+                percent > 0.04 ? `${name} (${(percent * 100).toFixed(0)}%)` : ''
+              }
+              labelLine={false}
+            >
+              {data.map((_, i) => (
+                <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(val) => [
+                formatChartValue(val, value_prefix, value_suffix),
+                'Værdi',
+              ]}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────
 // API HELPERS
@@ -387,7 +522,11 @@ const SalesIntelligencePlatform = () => {
     setChatLoading(true);
     try {
       const data = await API.post('/chat', { question, history });
-      setChatMessages(prev => [...prev, { role: 'assistant', content: data.answer }]);
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.answer,
+        charts: data.charts && data.charts.length > 0 ? data.charts : null,
+      }]);
       if (data.pipeline_summary) setChatContext(data.pipeline_summary);
     } catch (e) {
       setChatMessages(prev => [...prev, {
@@ -771,14 +910,22 @@ const SalesIntelligencePlatform = () => {
                       }`}>
                         {msg.role === 'user' ? 'U' : <Sparkles className="w-4 h-4" />}
                       </div>
-                      <div className={`max-w-[75%] rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+                      <div className={`rounded-xl px-4 py-3 text-sm leading-relaxed ${
                         msg.role === 'user'
-                          ? 'bg-blue-600 text-white'
+                          ? 'max-w-[75%] bg-blue-600 text-white'
                           : msg.isError
-                            ? 'bg-red-50 border border-red-200 text-red-700'
-                            : 'bg-gray-50 border border-gray-200 text-gray-800'
+                            ? 'max-w-[85%] bg-red-50 border border-red-200 text-red-700'
+                            : 'max-w-[85%] bg-gray-50 border border-gray-200 text-gray-800'
                       }`}>
-                        {msg.content}
+                        {/* Charts first, then text */}
+                        {msg.charts && msg.charts.length > 0 && (
+                          <div className="space-y-3 mb-3">
+                            {msg.charts.map((chart, ci) => (
+                              <ChatChart key={ci} spec={chart} />
+                            ))}
+                          </div>
+                        )}
+                        <span className="whitespace-pre-wrap">{msg.content}</span>
                       </div>
                     </div>
                   ))}

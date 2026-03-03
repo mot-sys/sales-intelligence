@@ -37,6 +37,7 @@ class ChatResponse(BaseModel):
     answer: str
     ai_configured: bool
     pipeline_summary: Optional[Dict] = None  # always returned for UI display
+    charts: Optional[List[Dict]] = None       # chart specs rendered by AI (render_chart tool)
 
 
 # ─────────────────────────────────────────────
@@ -128,7 +129,7 @@ async def chat(
     )
 
     try:
-        answer = await chat_with_pipeline(
+        result = await chat_with_pipeline(
             body.question, context, history_dicts,
             hs_integration=hs_integration,
         )
@@ -141,8 +142,25 @@ async def chat(
             detail=f"AI error: {type(e).__name__}: {e}",
         )
 
+    # Log any AI actions (tool calls) to the database
+    if result.get("tool_calls"):
+        try:
+            from app.db import crud as db_crud
+            for tc in result["tool_calls"]:
+                await db_crud.log_ai_action(
+                    db,
+                    customer_id=customer_id,
+                    action_type=tc["name"],
+                    inputs=tc.get("input"),
+                    status="success",
+                    integration="hubspot" if "hubspot" in tc["name"] else None,
+                )
+        except Exception as log_exc:
+            logger.warning("Failed to log AI actions: %s", log_exc)
+
     return ChatResponse(
-        answer=answer,
+        answer=result["answer"],
         ai_configured=True,
         pipeline_summary=context["pipeline_summary"],
+        charts=result.get("charts") or None,
     )

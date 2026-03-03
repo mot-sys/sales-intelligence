@@ -24,11 +24,11 @@ class Customer(Base):
     email = Column(String(255), unique=True, nullable=False, index=True)
     password_hash = Column(String(255), nullable=True)  # bcrypt hash
     plan = Column(String(50), nullable=False, default="starter")  # starter/pro/enterprise
-    
+
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
-    
+
     # Relationships
     integrations = relationship("Integration", back_populates="customer", cascade="all, delete-orphan")
     leads = relationship("Lead", back_populates="customer", cascade="all, delete-orphan")
@@ -36,45 +36,85 @@ class Customer(Base):
     alerts = relationship("Alert", back_populates="customer", cascade="all, delete-orphan")
     sf_opportunities = relationship("SalesforceOpportunity", back_populates="customer", cascade="all, delete-orphan")
     sf_accounts = relationship("SalesforceAccount", back_populates="customer", cascade="all, delete-orphan")
+    chat_sessions = relationship("ChatSession", back_populates="customer", cascade="all, delete-orphan")
+    ai_actions = relationship("AIAction", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
-    """External service connections"""
+    """External service connections (HubSpot, Salesforce, Clay, etc.)"""
     __tablename__ = "integrations"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    
+
     # Integration details
-    service = Column(String(50), nullable=False)  # clay/salesforce/snitcher/outreach
+    service = Column(String(50), nullable=False)  # clay/salesforce/snitcher/outreach/hubspot/linkedin/slack/apollo
     status = Column(String(20), nullable=False, default="disconnected")  # connected/error/disconnected
-    credentials = Column(JSON, nullable=False)  # Encrypted in production
-    config = Column(JSON, nullable=True)
-    
+    credentials = Column(JSON, nullable=False)  # API keys, tokens etc. (encrypt in production)
+    config = Column(JSON, nullable=True)         # Optional integration-specific config
+
     # Sync settings
     last_sync = Column(TIMESTAMP, nullable=True)
     sync_frequency = Column(String(20), nullable=False, default="2h")  # 2h/6h/daily
-    
+
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
-    
+
     # Relationships
     customer = relationship("Customer", back_populates="integrations")
-    
+    sync_logs = relationship("IntegrationSyncLog", back_populates="integration", cascade="all, delete-orphan")
+
     # Constraints
     __table_args__ = (
         Index("idx_customer_service", "customer_id", "service", unique=True),
+        Index("idx_integration_status", "customer_id", "status"),
+    )
+
+
+class IntegrationSyncLog(Base):
+    """
+    Per-sync log for every integration sync attempt.
+    Allows tracking of sync health, error patterns, and data volumes.
+    """
+    __tablename__ = "integration_sync_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    integration_id = Column(UUID(as_uuid=True), ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    service = Column(String(50), nullable=False)          # Denormalized for fast queries without join
+    status = Column(String(20), nullable=False)           # success/partial/failed
+
+    records_synced = Column(Integer, nullable=False, default=0)
+    records_created = Column(Integer, nullable=False, default=0)
+    records_updated = Column(Integer, nullable=False, default=0)
+    records_failed = Column(Integer, nullable=False, default=0)
+
+    duration_ms = Column(Integer, nullable=True)          # How long the sync took
+    error_summary = Column(Text, nullable=True)           # Short description of any errors
+    errors = Column(JSON, nullable=True)                  # Full list of error details
+
+    started_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
+    completed_at = Column(TIMESTAMP, nullable=True)
+
+    # Relationships
+    integration = relationship("Integration", back_populates="sync_logs")
+
+    __table_args__ = (
+        Index("idx_sync_log_customer", "customer_id", "started_at"),
+        Index("idx_sync_log_service", "customer_id", "service", "started_at"),
+        Index("idx_sync_log_integration", "integration_id", "started_at"),
     )
 
 
 class Lead(Base):
     """Lead/Company with scoring"""
     __tablename__ = "leads"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    
+
     # Company information
     company_name = Column(String(255), nullable=False)
     company_domain = Column(String(255), nullable=True)
@@ -82,30 +122,30 @@ class Lead(Base):
     employee_count = Column(Integer, nullable=True)
     revenue = Column(BigInteger, nullable=True)
     location = Column(String(255), nullable=True)
-    
+
     # Contact information
     contact_name = Column(String(255), nullable=True)
     contact_email = Column(String(255), nullable=True)
     contact_title = Column(String(255), nullable=True)
     contact_linkedin = Column(String(500), nullable=True)
-    
+
     # Scoring
     score = Column(Integer, default=0, nullable=False)
     priority = Column(String(20), nullable=True)  # hot/warm/cold
     recommendation = Column(Text, nullable=True)
-    
+
     # Ownership (internal sales rep responsible for this lead)
     owner_name = Column(String(255), nullable=True)
 
     # Metadata
-    source = Column(String(50), nullable=False)  # clay/salesforce/snitcher/outreach
+    source = Column(String(50), nullable=False)  # clay/salesforce/snitcher/outreach/hubspot
     external_id = Column(String(255), nullable=True)
     last_activity = Column(TIMESTAMP, nullable=True)
-    
+
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
-    
+
     # Relationships
     customer = relationship("Customer", back_populates="leads")
     signals = relationship("Signal", back_populates="lead", cascade="all, delete-orphan")
@@ -113,7 +153,7 @@ class Lead(Base):
     outbound_actions = relationship("OutboundAction", back_populates="lead", cascade="all, delete-orphan")
     conversion_data = relationship("ConversionData", back_populates="lead", cascade="all, delete-orphan")
     alerts = relationship("Alert", back_populates="lead", cascade="all, delete-orphan")
-    
+
     # Constraints
     __table_args__ = (
         CheckConstraint("score >= 0 AND score <= 100", name="check_score_range"),
@@ -121,38 +161,42 @@ class Lead(Base):
         Index("idx_customer_priority", "customer_id", "priority"),
         Index("idx_company_name", "customer_id", "company_name"),
         Index("idx_last_activity", "customer_id", "last_activity"),
+        # Dedup index — used by upsert_lead() to find existing records
+        Index("idx_lead_external_id", "customer_id", "source", "external_id"),
+        # Source filtering
+        Index("idx_lead_source", "customer_id", "source"),
     )
 
 
 class Signal(Base):
     """Signals detected for leads"""
     __tablename__ = "signals"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), nullable=False)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    
+
     # Signal details
     type = Column(String(50), nullable=False)  # funding/hiring/tech_change/intent/content
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     score_impact = Column(Integer, default=0, nullable=False)
-    
+
     # Source
     source = Column(String(50), nullable=False)
     external_url = Column(String(500), nullable=True)
     detected_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    
+
     # Flexible metadata — named extra_data because 'metadata' is reserved by SQLAlchemy
     extra_data = Column(JSON, nullable=True)
-    
+
     # Timestamp
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    
+
     # Relationships
     lead = relationship("Lead", back_populates="signals")
     customer = relationship("Customer", back_populates="signals")
-    
+
     # Constraints
     __table_args__ = (
         Index("idx_lead_signals", "lead_id", "detected_at"),
@@ -163,77 +207,80 @@ class Signal(Base):
 class ScoringHistory(Base):
     """Historical scores for ML training"""
     __tablename__ = "scoring_history"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), nullable=False)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    
+
     score = Column(Integer, nullable=False)
     signals_present = Column(JSON, nullable=True)  # Snapshot of signals at scoring time
     model_version = Column(String(50), nullable=True)
-    
+
     scored_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    
+
     # Relationships
     lead = relationship("Lead", back_populates="scoring_history")
-    
+
     # Constraints
     __table_args__ = (
         Index("idx_customer_scoring", "customer_id", "scored_at"),
+        Index("idx_scoring_lead_id", "lead_id"),
     )
 
 
 class OutboundAction(Base):
     """Actions taken on leads"""
     __tablename__ = "outbound_actions"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), nullable=False)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    
+
     action_type = Column(String(50), nullable=False)  # add_to_sequence/skip/manual_outreach
     sequence_id = Column(String(255), nullable=True)  # Outreach.io sequence ID
     status = Column(String(50), nullable=False, default="pending")  # pending/completed/failed
-    
+
     notes = Column(Text, nullable=True)
     performed_by = Column(UUID(as_uuid=True), nullable=True)  # User ID
-    
+
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     completed_at = Column(TIMESTAMP, nullable=True)
-    
+
     # Relationships
     lead = relationship("Lead", back_populates="outbound_actions")
-    
+
     # Constraints
     __table_args__ = (
         Index("idx_customer_actions", "customer_id", "created_at"),
+        Index("idx_outbound_lead_id", "lead_id"),
     )
 
 
 class ConversionData(Base):
     """Conversion outcomes for ML training"""
     __tablename__ = "conversion_data"
-    
+
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     lead_id = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="CASCADE"), nullable=False)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    
+
     outcome = Column(String(50), nullable=False)  # meeting_booked/deal_closed/lost/no_response
     revenue = Column(BigInteger, nullable=True)  # If deal closed
     days_to_conversion = Column(Integer, nullable=True)
-    
+
     signals_at_scoring = Column(JSON, nullable=True)  # Signals when lead was scored
     score_at_time = Column(Integer, nullable=True)
-    
+
     outcome_date = Column(TIMESTAMP, nullable=True)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
-    
+
     # Relationships
     lead = relationship("Lead", back_populates="conversion_data")
-    
+
     # Constraints
     __table_args__ = (
         Index("idx_customer_conversions", "customer_id", "outcome", "outcome_date"),
+        Index("idx_conversion_lead_id", "lead_id"),
     )
 
 
@@ -248,7 +295,7 @@ class Alert(Base):
     # Alert classification
     type = Column(String(50), nullable=False)      # stalled_deal|intent_spike|score_jump|daily_digest
     priority = Column(String(20), nullable=False)  # urgent|high|medium|low
-    source = Column(String(50), nullable=False)    # salesforce|snitcher|clay|scoring
+    source = Column(String(50), nullable=False)    # salesforce|snitcher|clay|scoring|hubspot
 
     # Content
     headline = Column(String(500), nullable=False)
@@ -274,6 +321,7 @@ class Alert(Base):
         Index("idx_alert_customer_status", "customer_id", "status", "created_at"),
         Index("idx_alert_customer_type", "customer_id", "type"),
         Index("idx_alert_customer_priority", "customer_id", "priority", "status"),
+        Index("idx_alert_lead_id", "lead_id"),
     )
 
 
@@ -298,16 +346,20 @@ class AlertAction(Base):
 
     __table_args__ = (
         Index("idx_alert_actions_customer", "customer_id", "created_at"),
+        Index("idx_alert_action_alert_id", "alert_id"),
     )
 
 
 class SalesforceOpportunity(Base):
-    """Synced Salesforce opportunities for stall detection"""
+    """
+    Synced CRM opportunities — used for pipeline view and AI context.
+    Stores both real Salesforce deals (sf_...) and HubSpot deals (hs_... prefix).
+    """
     __tablename__ = "salesforce_opportunities"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    sf_opportunity_id = Column(String(255), nullable=False)
+    sf_opportunity_id = Column(String(255), nullable=False)  # "hs_<id>" for HubSpot
 
     account_name = Column(String(255), nullable=True)
     amount = Column(BigInteger, nullable=True)
@@ -331,12 +383,12 @@ class SalesforceOpportunity(Base):
 
 
 class SalesforceAccount(Base):
-    """Synced Salesforce accounts for domain matching"""
+    """Synced Salesforce/HubSpot accounts for domain matching"""
     __tablename__ = "salesforce_accounts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
-    sf_account_id = Column(String(255), nullable=False)
+    sf_account_id = Column(String(255), nullable=False)  # "hs_<id>" for HubSpot companies
 
     name = Column(String(255), nullable=True)
     domain = Column(String(255), nullable=True)
@@ -352,4 +404,107 @@ class SalesforceAccount(Base):
     __table_args__ = (
         Index("idx_sf_acc_customer_id", "customer_id", "sf_account_id", unique=True),
         Index("idx_sf_acc_domain", "customer_id", "domain"),
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# AI / CHAT TABLES
+# ─────────────────────────────────────────────────────────
+
+class ChatSession(Base):
+    """
+    A single AI chat conversation.
+    Groups multiple messages into a named conversation thread.
+    Chat history is persisted so users can resume previous conversations.
+    """
+    __tablename__ = "chat_sessions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    title = Column(String(500), nullable=True)      # Auto-generated from first message
+    message_count = Column(Integer, nullable=False, default=0)
+    last_message_at = Column(TIMESTAMP, nullable=True)
+
+    # Timestamps
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="chat_sessions")
+    messages = relationship("ChatMessage", back_populates="session",
+                            cascade="all, delete-orphan",
+                            order_by="ChatMessage.created_at")
+
+    __table_args__ = (
+        Index("idx_chat_session_customer", "customer_id", "last_message_at"),
+    )
+
+
+class ChatMessage(Base):
+    """
+    A single message in a ChatSession.
+    Stores both user questions and AI responses, including tool calls.
+    """
+    __tablename__ = "chat_messages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    role = Column(String(20), nullable=False)       # user | assistant
+    content = Column(Text, nullable=False)          # Message text
+
+    # AI metadata (assistant messages only)
+    tool_calls = Column(JSON, nullable=True)        # Tools called by AI in this turn
+    tokens_used = Column(Integer, nullable=True)    # Token count for cost tracking
+    model = Column(String(100), nullable=True)      # e.g. claude-3-haiku-20240307
+
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Relationships
+    session = relationship("ChatSession", back_populates="messages")
+
+    __table_args__ = (
+        Index("idx_chat_message_session", "session_id", "created_at"),
+        Index("idx_chat_message_customer", "customer_id", "created_at"),
+    )
+
+
+class AIAction(Base):
+    """
+    Log of every real action the AI has taken on behalf of a user.
+    E.g. creating a HubSpot task, sending an email, updating a deal.
+    Provides full audit trail of AI-driven operations.
+    """
+    __tablename__ = "ai_actions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    # Which chat triggered this action (optional — could also come from automation)
+    session_id = Column(UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="SET NULL"), nullable=True)
+    message_id = Column(UUID(as_uuid=True), ForeignKey("chat_messages.id", ondelete="SET NULL"), nullable=True)
+
+    # What the AI did
+    action_type = Column(String(100), nullable=False)   # create_hubspot_task | send_email | update_deal | etc.
+    integration = Column(String(50), nullable=True)     # hubspot | salesforce | outreach | etc.
+
+    # Input + Output
+    inputs = Column(JSON, nullable=True)                # Parameters passed to the tool
+    result = Column(JSON, nullable=True)                # Response from the integration API
+    status = Column(String(20), nullable=False, default="success")  # success | failed | pending
+
+    error_message = Column(Text, nullable=True)
+
+    # Timestamps
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="ai_actions")
+
+    __table_args__ = (
+        Index("idx_ai_action_customer", "customer_id", "created_at"),
+        Index("idx_ai_action_type", "customer_id", "action_type"),
+        Index("idx_ai_action_session", "session_id"),
     )

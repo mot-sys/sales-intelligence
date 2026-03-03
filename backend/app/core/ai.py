@@ -186,6 +186,14 @@ Rules:
 - When creating tasks: use the create_hubspot_task tool to actually create them — never just describe what you would do.
 - After using a tool, confirm the result to the user clearly (e.g. "✅ Task created: ...").
 - If a tool returns an error, explain it clearly in the user's language.
+
+Chart guidelines (IMPORTANT):
+- ALWAYS use render_chart when showing multiple numbers, distributions, comparisons, or rankings.
+- For pipeline overviews: render a bar chart of deals by stage AND a horizontal_bar of value by stage.
+- For lead analysis: render a bar or horizontal_bar of top lead scores.
+- For deal lists: render a horizontal_bar with deal name vs. amount.
+- Call render_chart BEFORE writing the text summary — charts appear above your text.
+- You may call render_chart multiple times per response (e.g. one for count, one for value).
 """
 
 # ─────────────────────────────────────────────
@@ -228,6 +236,63 @@ HUBSPOT_TOOLS = [
     },
 ]
 
+# ─────────────────────────────────────────────
+# CHART / VISUALIZATION TOOL
+# Always available — no integration needed
+# ─────────────────────────────────────────────
+
+CHART_TOOL = {
+    "name": "render_chart",
+    "description": (
+        "Render a visual chart or graph in the chat interface. "
+        "Use this to visualize pipeline data, deal distributions, value by stage, "
+        "lead scores, or any comparison that would be clearer as a chart. "
+        "ALWAYS use this when the user asks for analysis, overview, or comparison of multiple values. "
+        "You can call this multiple times in one response to show several charts."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "chart_type": {
+                "type": "string",
+                "enum": ["bar", "horizontal_bar", "pie"],
+                "description": (
+                    "Chart type. "
+                    "'bar' = vertical bars (good for stage counts, scores). "
+                    "'horizontal_bar' = horizontal bars (good for deal names with long labels). "
+                    "'pie' = pie/donut (good for distribution percentages)."
+                ),
+            },
+            "title": {
+                "type": "string",
+                "description": "Short chart title shown above the chart, e.g. 'Pipeline Value by Stage'.",
+            },
+            "data": {
+                "type": "array",
+                "items": {"type": "object"},
+                "description": (
+                    "Array of data points. Each item must have: "
+                    "'name' (string label) and 'value' (number). "
+                    "Example: [{\"name\": \"Closed Won\", \"value\": 540000}, ...]"
+                ),
+            },
+            "value_prefix": {
+                "type": "string",
+                "description": "Prefix before values in tooltips, e.g. '€' for euro amounts. Optional.",
+            },
+            "value_suffix": {
+                "type": "string",
+                "description": "Suffix after values in tooltips, e.g. '%' for percentages. Optional.",
+            },
+            "color": {
+                "type": "string",
+                "description": "Bar color hex code, e.g. '#7c3aed'. Optional — uses default palette if omitted.",
+            },
+        },
+        "required": ["chart_type", "title", "data"],
+    },
+}
+
 SUGGESTED_QUESTIONS = [
     "Hvad skal jeg fokusere på denne uge?",
     "Hvilke deals er mest i fare for at gå tabt?",
@@ -243,11 +308,11 @@ async def chat_with_pipeline(
     context: Dict,
     history: Optional[List[Dict]] = None,
     hs_integration=None,
-) -> str:
+) -> Dict:
     """
-    Send a question + full pipeline context to Claude and return the answer.
+    Send a question + full pipeline context to Claude and return the answer + any charts.
 
-    Supports tool use (function calling) for HubSpot actions.
+    Supports tool use (function calling) for HubSpot actions and chart rendering.
     Runs an agentic loop: if Claude calls a tool, executes it and continues.
 
     Args:
@@ -255,6 +320,12 @@ async def chat_with_pipeline(
         context:         Output of build_pipeline_context().
         history:         Optional prior messages [{role, content}, ...] for multi-turn.
         hs_integration:  Optional HubSpotIntegration instance for tool execution.
+
+    Returns:
+        Dict with keys:
+            "answer"  — the AI's text response
+            "charts"  — list of chart specs rendered by render_chart tool calls
+            "tool_calls" — list of tool calls made (for logging)
 
     Raises:
         ValueError  if ANTHROPIC_API_KEY is not set.
@@ -281,26 +352,36 @@ async def chat_with_pipeline(
 
     messages.append({"role": "user", "content": question})
 
-    # Only offer tools if HubSpot is connected
-    tools = HUBSPOT_TOOLS if hs_integration else []
+    # Always include chart tool; add HubSpot tools only if connected
+    tools = [CHART_TOOL]
+    if hs_integration:
+        tools = tools + HUBSPOT_TOOLS
 
-    # ── Agentic loop — handles tool calls up to 3 rounds ──────────────────
-    for _round in range(3):
+    # Collected across all rounds
+    charts_collected: List[Dict] = []
+    tool_calls_log: List[Dict] = []
+
+    # ── Agentic loop — handles tool calls up to 5 rounds ──────────────────
+    for _round in range(5):
         kwargs: Dict = dict(
             model=settings.ANTHROPIC_MODEL,
             system=system_content,
             messages=messages,
-            max_tokens=1000,
+            max_tokens=1500,
+            tools=tools,
         )
-        if tools:
-            kwargs["tools"] = tools
 
         response = await client.messages.create(**kwargs)
 
         # If Claude produced a final text response, we're done
         if response.stop_reason == "end_turn":
             text_blocks = [b for b in response.content if b.type == "text"]
-            return text_blocks[0].text.strip() if text_blocks else ""
+            answer = text_blocks[0].text.strip() if text_blocks else ""
+            return {
+                "answer": answer,
+                "charts": charts_collected,
+                "tool_calls": tool_calls_log,
+            }
 
         # If Claude wants to use a tool
         if response.stop_reason == "tool_use":
@@ -324,13 +405,26 @@ async def chat_with_pipeline(
                 if block.type != "tool_use":
                     continue
 
-                tool_result = await _execute_tool(block.name, block.input, hs_integration)
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": block.id,
-                    "content": json.dumps(tool_result, default=str),
-                })
-                logger.info("Tool %s executed: %s", block.name, tool_result)
+                tool_calls_log.append({"name": block.name, "input": block.input})
+
+                if block.name == "render_chart":
+                    # Chart tool: just collect the spec and confirm to Claude
+                    charts_collected.append(block.input)
+                    logger.info("Chart rendered: %s (%d data points)",
+                                block.input.get("title"), len(block.input.get("data", [])))
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps({"success": True, "message": "Chart rendered in UI"}),
+                    })
+                else:
+                    tool_result = await _execute_tool(block.name, block.input, hs_integration)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": json.dumps(tool_result, default=str),
+                    })
+                    logger.info("Tool %s executed: %s", block.name, tool_result)
 
             # Add tool results back so Claude can continue
             messages.append({"role": "user", "content": tool_results})
@@ -338,10 +432,19 @@ async def chat_with_pipeline(
 
         # Any other stop reason — return whatever text we have
         text_blocks = [b for b in response.content if b.type == "text"]
-        return text_blocks[0].text.strip() if text_blocks else ""
+        answer = text_blocks[0].text.strip() if text_blocks else ""
+        return {
+            "answer": answer,
+            "charts": charts_collected,
+            "tool_calls": tool_calls_log,
+        }
 
     # Fallback if we somehow exceed the loop limit
-    return "Der opstod et problem med at behandle din forespørgsel. Prøv igen."
+    return {
+        "answer": "Der opstod et problem med at behandle din forespørgsel. Prøv igen.",
+        "charts": charts_collected,
+        "tool_calls": tool_calls_log,
+    }
 
 
 async def _execute_tool(name: str, inputs: Dict, hs_integration) -> Dict:

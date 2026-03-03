@@ -11,7 +11,11 @@ from sqlalchemy import select, func, update, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Lead, Signal, ScoringHistory, Customer, OutboundAction, Alert, AlertAction, SalesforceOpportunity, SalesforceAccount
+from app.db.models import (
+    Lead, Signal, ScoringHistory, Customer, OutboundAction, Alert, AlertAction,
+    SalesforceOpportunity, SalesforceAccount,
+    ChatSession, ChatMessage, AIAction, IntegrationSyncLog,
+)
 
 
 # ─────────────────────────────────────────────
@@ -584,4 +588,242 @@ async def get_customers_with_integration(
             Integration.status == "connected",
         ))
     )
+    return result.scalars().all()
+
+
+# ─────────────────────────────────────────────
+# CHAT SESSION & MESSAGE OPERATIONS
+# ─────────────────────────────────────────────
+
+async def create_chat_session(
+    db: AsyncSession,
+    customer_id: str,
+    title: Optional[str] = None,
+) -> ChatSession:
+    """Create a new chat session for a customer."""
+    session = ChatSession(
+        customer_id=customer_id,
+        title=title,
+        message_count=0,
+    )
+    db.add(session)
+    await db.flush()
+    await db.refresh(session)
+    return session
+
+
+async def get_chat_sessions(
+    db: AsyncSession,
+    customer_id: str,
+    limit: int = 20,
+) -> List[ChatSession]:
+    """Get recent chat sessions for a customer, newest first."""
+    result = await db.execute(
+        select(ChatSession)
+        .where(ChatSession.customer_id == customer_id)
+        .order_by(ChatSession.last_message_at.desc().nullslast())
+        .limit(limit)
+    )
+    return result.scalars().all()
+
+
+async def get_chat_session(
+    db: AsyncSession,
+    session_id: str,
+    customer_id: str,
+) -> Optional[ChatSession]:
+    """Get a single chat session by ID (scoped to customer)."""
+    result = await db.execute(
+        select(ChatSession)
+        .where(
+            ChatSession.id == session_id,
+            ChatSession.customer_id == customer_id,
+        )
+        .options(selectinload(ChatSession.messages))
+    )
+    return result.scalar_one_or_none()
+
+
+async def add_chat_message(
+    db: AsyncSession,
+    session_id: str,
+    customer_id: str,
+    role: str,
+    content: str,
+    tool_calls: Optional[List] = None,
+    tokens_used: Optional[int] = None,
+    model: Optional[str] = None,
+) -> ChatMessage:
+    """
+    Add a message to a chat session and update session metadata.
+    Also auto-generates a session title from the first user message.
+    """
+    msg = ChatMessage(
+        session_id=session_id,
+        customer_id=customer_id,
+        role=role,
+        content=content,
+        tool_calls=tool_calls,
+        tokens_used=tokens_used,
+        model=model,
+    )
+    db.add(msg)
+
+    # Update session metadata
+    await db.execute(
+        update(ChatSession)
+        .where(ChatSession.id == session_id)
+        .values(
+            message_count=ChatSession.message_count + 1,
+            last_message_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+    )
+
+    # Auto-title: use first user message (truncated)
+    if role == "user":
+        session = await db.scalar(select(ChatSession).where(ChatSession.id == session_id))
+        if session and not session.title:
+            title = content[:80] + ("…" if len(content) > 80 else "")
+            await db.execute(
+                update(ChatSession)
+                .where(ChatSession.id == session_id)
+                .values(title=title)
+            )
+
+    await db.flush()
+    await db.refresh(msg)
+    return msg
+
+
+async def get_chat_messages(
+    db: AsyncSession,
+    session_id: str,
+    customer_id: str,
+    limit: int = 50,
+) -> List[ChatMessage]:
+    """Get messages for a chat session, oldest first."""
+    result = await db.execute(
+        select(ChatMessage)
+        .where(
+            ChatMessage.session_id == session_id,
+            ChatMessage.customer_id == customer_id,
+        )
+        .order_by(ChatMessage.created_at.asc())
+        .limit(limit)
+    )
+    return result.scalars().all()
+
+
+# ─────────────────────────────────────────────
+# AI ACTION LOG
+# ─────────────────────────────────────────────
+
+async def log_ai_action(
+    db: AsyncSession,
+    customer_id: str,
+    action_type: str,
+    inputs: Optional[Dict] = None,
+    result: Optional[Dict] = None,
+    status: str = "success",
+    error_message: Optional[str] = None,
+    integration: Optional[str] = None,
+    session_id: Optional[str] = None,
+    message_id: Optional[str] = None,
+) -> AIAction:
+    """
+    Log an AI-executed action (e.g. creating a HubSpot task).
+    Call this whenever the AI uses a tool that takes a real-world action.
+    """
+    action = AIAction(
+        customer_id=customer_id,
+        action_type=action_type,
+        integration=integration,
+        inputs=inputs,
+        result=result,
+        status=status,
+        error_message=error_message,
+        session_id=session_id,
+        message_id=message_id,
+    )
+    db.add(action)
+    await db.flush()
+    await db.refresh(action)
+    return action
+
+
+async def get_ai_actions(
+    db: AsyncSession,
+    customer_id: str,
+    limit: int = 50,
+    action_type: Optional[str] = None,
+) -> List[AIAction]:
+    """Get recent AI actions for a customer."""
+    query = (
+        select(AIAction)
+        .where(AIAction.customer_id == customer_id)
+        .order_by(AIAction.created_at.desc())
+        .limit(limit)
+    )
+    if action_type:
+        query = query.where(AIAction.action_type == action_type)
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+# ─────────────────────────────────────────────
+# INTEGRATION SYNC LOGS
+# ─────────────────────────────────────────────
+
+async def log_integration_sync(
+    db: AsyncSession,
+    integration_id: str,
+    customer_id: str,
+    service: str,
+    status: str,
+    records_synced: int = 0,
+    records_created: int = 0,
+    records_updated: int = 0,
+    records_failed: int = 0,
+    duration_ms: Optional[int] = None,
+    error_summary: Optional[str] = None,
+    errors: Optional[List] = None,
+) -> IntegrationSyncLog:
+    """Record the outcome of an integration sync."""
+    log = IntegrationSyncLog(
+        integration_id=integration_id,
+        customer_id=customer_id,
+        service=service,
+        status=status,
+        records_synced=records_synced,
+        records_created=records_created,
+        records_updated=records_updated,
+        records_failed=records_failed,
+        duration_ms=duration_ms,
+        error_summary=error_summary,
+        errors=errors,
+        completed_at=datetime.utcnow(),
+    )
+    db.add(log)
+    await db.flush()
+    await db.refresh(log)
+    return log
+
+
+async def get_integration_sync_logs(
+    db: AsyncSession,
+    customer_id: str,
+    service: Optional[str] = None,
+    limit: int = 20,
+) -> List[IntegrationSyncLog]:
+    """Get recent sync logs, optionally filtered by service."""
+    query = (
+        select(IntegrationSyncLog)
+        .where(IntegrationSyncLog.customer_id == customer_id)
+        .order_by(IntegrationSyncLog.started_at.desc())
+        .limit(limit)
+    )
+    if service:
+        query = query.where(IntegrationSyncLog.service == service)
+    result = await db.execute(query)
     return result.scalars().all()
