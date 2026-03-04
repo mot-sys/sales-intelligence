@@ -905,7 +905,6 @@ async def save_weekly_report(
     Upsert the weekly report for a given week_start.
     If a report already exists for this customer+week_start, it is replaced.
     """
-    import uuid as _uuid
     existing = await db.scalar(
         select(WeeklyReport).where(
             WeeklyReport.customer_id == customer_id,

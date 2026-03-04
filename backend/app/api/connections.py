@@ -753,6 +753,11 @@ async def _sync_clay(db: AsyncSession, integration: Integration, customer_id: st
     for lead_data in rows:
         external_id = lead_data.pop("external_id", None)
 
+        # Check if lead already exists BEFORE upsert so we can count correctly
+        already_exists = bool(
+            external_id and await crud.get_lead_by_external_id(db, external_id, customer_id, "clay")
+        )
+
         lead = await crud.upsert_lead(
             db,
             lead_data=lead_data,
@@ -783,7 +788,7 @@ async def _sync_clay(db: AsyncSession, integration: Integration, customer_id: st
             recommendation=result["recommendation"],
         )
 
-        if external_id:
+        if already_exists:
             updated += 1
         else:
             created += 1

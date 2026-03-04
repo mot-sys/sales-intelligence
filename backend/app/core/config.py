@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     
     # Anthropic (Claude)
     ANTHROPIC_API_KEY: Optional[str] = None
-    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20240620"
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"
 
     # OpenAI (legacy — kept for backwards compat, prefer ANTHROPIC_API_KEY)
     OPENAI_API_KEY: Optional[str] = None
