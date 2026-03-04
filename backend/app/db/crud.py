@@ -15,6 +15,7 @@ from app.db.models import (
     Lead, Signal, ScoringHistory, Customer, OutboundAction, Alert, AlertAction,
     SalesforceOpportunity, SalesforceAccount,
     ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings, WeeklyReport,
+    NotionInitiative,
 )
 
 
@@ -935,3 +936,81 @@ async def save_weekly_report(
     await db.commit()
     await db.refresh(report)
     return report
+
+
+# ─────────────────────────────────────────────
+# NOTION / CMT CRUD
+# ─────────────────────────────────────────────
+
+async def upsert_notion_initiative(
+    db: AsyncSession,
+    customer_id: str,
+    data: Dict,
+) -> NotionInitiative:
+    """
+    Create or update a NotionInitiative by notion_page_id.
+    `data` should contain the mapped fields from NotionIntegration._map_page().
+    """
+    page_id = data.get("notion_page_id")
+    existing = await db.scalar(
+        select(NotionInitiative).where(
+            NotionInitiative.customer_id == customer_id,
+            NotionInitiative.notion_page_id == page_id,
+        )
+    )
+    if existing:
+        for k, v in data.items():
+            if hasattr(existing, k):
+                setattr(existing, k, v)
+        existing.synced_at = datetime.utcnow()
+        await db.flush()
+        await db.refresh(existing)
+        return existing
+
+    initiative = NotionInitiative(
+        customer_id=customer_id,
+        synced_at=datetime.utcnow(),
+        **{k: v for k, v in data.items() if hasattr(NotionInitiative, k)},
+    )
+    db.add(initiative)
+    await db.flush()
+    await db.refresh(initiative)
+    return initiative
+
+
+async def get_notion_initiatives(
+    db: AsyncSession,
+    customer_id: str,
+    department: Optional[str] = None,
+    status: Optional[str] = None,
+    limit: int = 200,
+) -> List[NotionInitiative]:
+    """Get notion initiatives for a customer, optionally filtered."""
+    query = (
+        select(NotionInitiative)
+        .where(NotionInitiative.customer_id == customer_id)
+        .order_by(NotionInitiative.due_date.asc().nullslast())
+        .limit(limit)
+    )
+    if department:
+        query = query.where(NotionInitiative.department.ilike(f"%{department}%"))
+    if status:
+        query = query.where(NotionInitiative.status.ilike(f"%{status}%"))
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+async def delete_notion_initiatives_for_database(
+    db: AsyncSession,
+    customer_id: str,
+    database_id: str,
+) -> int:
+    """Delete all initiatives for a specific Notion database (used before re-sync)."""
+    from sqlalchemy import delete as sa_delete
+    result = await db.execute(
+        sa_delete(NotionInitiative).where(
+            NotionInitiative.customer_id == customer_id,
+            NotionInitiative.database_id == database_id,
+        )
+    )
+    return result.rowcount

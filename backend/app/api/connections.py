@@ -856,3 +856,163 @@ async def disconnect_integration(
         "integration_id": str(integration_id),
         "service": integration.service,
     }
+
+
+# ─────────────────────────────────────────────────────────
+# NOTION — connect + sync + databases
+# ─────────────────────────────────────────────────────────
+
+@router.post("/notion")
+async def connect_notion(
+    api_key: str,
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Connect Notion via an Internal Integration Token (secret_...).
+    Verifies the token, then saves credentials.
+    """
+    from app.integrations.notion import NotionIntegration
+
+    notion = NotionIntegration(credentials={"api_key": api_key})
+    ok = await notion.test_connection()
+    if not ok:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Kunne ikke forbinde til Notion — tjek at token er korrekt "
+                "og at integrationen har adgang til mindst ét workspace."
+            ),
+        )
+
+    existing = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "notion",
+        )
+    )
+    if existing:
+        existing.credentials = {"api_key": api_key}
+        existing.status = "connected"
+        integration = existing
+    else:
+        integration = Integration(
+            customer_id=customer_id,
+            service="notion",
+            status="connected",
+            credentials={"api_key": api_key},
+        )
+        db.add(integration)
+
+    await db.flush()
+    await db.refresh(integration)
+    await db.commit()
+
+    logger.info("Notion connected for customer %s", customer_id)
+    return {
+        "message": "Notion connected successfully",
+        "integration_id": str(integration.id),
+        "service": "notion",
+        "status": "connected",
+    }
+
+
+@router.get("/notion/databases")
+async def list_notion_databases(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    List all Notion databases the integration has access to.
+    Use this to see which databases will be synced.
+    """
+    from app.integrations.notion import NotionIntegration
+
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "notion",
+            Integration.status == "connected",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="Notion not connected")
+
+    notion = NotionIntegration(
+        credentials=integration.credentials,
+        config=integration.config or {},
+    )
+    databases = await notion.get_databases()
+    return {"databases": databases, "total": len(databases)}
+
+
+@router.post("/notion/sync")
+async def sync_notion(
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Sync all Notion databases and upsert pages as NotionInitiatives.
+    Each database represents a department; each page is an initiative.
+    """
+    from app.integrations.notion import NotionIntegration
+    from sqlalchemy import update as sa_update
+    from datetime import datetime
+
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "notion",
+            Integration.status == "connected",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=404, detail="Notion not connected")
+
+    notion = NotionIntegration(
+        credentials=integration.credentials,
+        config=integration.config or {},
+    )
+
+    try:
+        items = await notion.sync_all()
+    except Exception as exc:
+        logger.exception("Notion sync failed for customer %s: %s", customer_id, exc)
+        raise HTTPException(status_code=502, detail=f"Notion sync fejlede: {exc}")
+
+    from app.db.models import NotionInitiative as _NI
+    created = 0
+    updated = 0
+    for item in items:
+        page_id = item.get("notion_page_id")
+        was_existing = bool(
+            page_id and await db.scalar(
+                select(_NI).where(
+                    _NI.customer_id == customer_id,
+                    _NI.notion_page_id == page_id,
+                )
+            )
+        )
+        await crud.upsert_notion_initiative(db, customer_id, item)
+        if was_existing:
+            updated += 1
+        else:
+            created += 1
+
+    await db.execute(
+        sa_update(Integration)
+        .where(Integration.id == integration.id)
+        .values(last_sync=datetime.utcnow())
+    )
+    await db.commit()
+
+    logger.info(
+        "Notion sync complete for customer %s: %d items (%d created, %d updated)",
+        customer_id, len(items), created, updated,
+    )
+    return {
+        "message": "Notion sync complete",
+        "initiatives_synced": len(items),
+        "created": created,
+        "updated": updated,
+    }

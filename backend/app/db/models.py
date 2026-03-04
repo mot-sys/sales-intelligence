@@ -39,6 +39,7 @@ class Customer(Base):
     chat_sessions = relationship("ChatSession", back_populates="customer", cascade="all, delete-orphan")
     ai_actions = relationship("AIAction", back_populates="customer", cascade="all, delete-orphan")
     weekly_reports = relationship("WeeklyReport", back_populates="customer", cascade="all, delete-orphan")
+    notion_initiatives = relationship("NotionInitiative", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -581,4 +582,54 @@ class AISettings(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# NOTION / CMT
+# ─────────────────────────────────────────────────────────
+
+class NotionInitiative(Base):
+    """
+    A single page/task synced from a Notion database.
+    Used to power the CMT (C-level Management Team) dashboard.
+    Each database represents a department; each page is an initiative/task.
+    """
+    __tablename__ = "notion_initiatives"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    # Notion identifiers
+    notion_page_id = Column(String(255), nullable=False)
+    database_id = Column(String(255), nullable=True)
+    database_name = Column(String(255), nullable=True)   # e.g. "Sales", "Marketing"
+
+    # Mapped fields (heuristically extracted from Notion properties)
+    title = Column(String(500), nullable=True)
+    department = Column(String(255), nullable=True)       # database name or explicit property
+    owner = Column(String(500), nullable=True)            # person name(s)
+    status = Column(String(100), nullable=True)           # e.g. "In Progress", "Done"
+    due_date = Column(TIMESTAMP, nullable=True)
+    progress = Column(Integer, nullable=True)             # 0–100
+    priority = Column(String(50), nullable=True)          # high / medium / low
+    description = Column(Text, nullable=True)
+    notion_url = Column(String(500), nullable=True)
+
+    # Full extracted properties for display/debugging
+    raw_properties = Column(JSON, nullable=True)
+
+    synced_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="notion_initiatives")
+
+    __table_args__ = (
+        Index("idx_notion_customer_sync", "customer_id", "synced_at"),
+        Index("idx_notion_page_unique", "customer_id", "notion_page_id", unique=True),
+        Index("idx_notion_department", "customer_id", "department"),
     )
