@@ -41,12 +41,11 @@ async def perform_outbound_action(
     Perform an outbound action on a lead.
     
     Actions:
-        - add_to_sequence: Add to Outreach.io sequence
+        - add_to_sequence: Add to email sequence
         - skip: Mark as skipped
         - manual_outreach: Flag for manual followup
     """
     # TODO: Create outbound_action record
-    # TODO: If add_to_sequence, push to Outreach.io API
     
     return {
         "message": f"Action '{action_type}' performed successfully",

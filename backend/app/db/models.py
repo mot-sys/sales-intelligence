@@ -50,7 +50,7 @@ class Integration(Base):
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
 
     # Integration details
-    service = Column(String(50), nullable=False)  # clay/salesforce/snitcher/outreach/hubspot/linkedin/slack/apollo
+    service = Column(String(50), nullable=False)  # clay/salesforce/snitcher/hubspot/notion
     status = Column(String(20), nullable=False, default="disconnected")  # connected/error/disconnected
     credentials = Column(JSON, nullable=False)  # API keys, tokens etc. (encrypt in production)
     config = Column(JSON, nullable=True)         # Optional integration-specific config
@@ -140,7 +140,7 @@ class Lead(Base):
     owner_name = Column(String(255), nullable=True)
 
     # Metadata
-    source = Column(String(50), nullable=False)  # clay/salesforce/snitcher/outreach/hubspot
+    source = Column(String(50), nullable=False)  # clay/salesforce/snitcher/hubspot
     external_id = Column(String(255), nullable=True)
     last_activity = Column(TIMESTAMP, nullable=True)
 
@@ -239,7 +239,7 @@ class OutboundAction(Base):
     customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
 
     action_type = Column(String(50), nullable=False)  # add_to_sequence/skip/manual_outreach
-    sequence_id = Column(String(255), nullable=True)  # Outreach.io sequence ID
+    sequence_id = Column(String(255), nullable=True)  # Email sequence ID
     status = Column(String(50), nullable=False, default="pending")  # pending/completed/failed
 
     notes = Column(Text, nullable=True)

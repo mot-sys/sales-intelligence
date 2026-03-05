@@ -152,7 +152,7 @@ async def action_alert(
 
         elif body.action_type in ("add_to_sequence", "mark_actioned"):
             # Read-only platform: we record the intent in our DB only.
-            # No calls are made to Outreach, Salesforce, HubSpot, or any other external service.
+            # No calls are made to Salesforce, HubSpot, or any other external service.
             await crud.update_alert_status(
                 db, alert_id, "actioned", actioned_at=datetime.utcnow()
             )

@@ -76,7 +76,7 @@ export default function GlobeDemo() {
 
           {/* Source badges */}
           <div className="mt-8 flex flex-wrap gap-2">
-            {["Salesforce", "Snitcher", "Clay", "HubSpot", "Outreach"].map(src => (
+            {["Salesforce", "Snitcher", "Clay", "HubSpot", "Notion"].map(src => (
               <span
                 key={src}
                 className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-full border border-blue-200 bg-blue-50 text-blue-700 font-medium"
