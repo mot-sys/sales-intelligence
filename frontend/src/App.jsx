@@ -276,7 +276,7 @@ const MOCK_LEADS = [
   { id: 2, company_name: 'Nordic Ventures', score: 87, priority: 'hot', industry: 'VC', employee_count: 12, contact_name: 'Sofia Andersen', contact_title: 'Partner', owner_name: 'Julie Frost', source: 'Clay' },
   { id: 3, company_name: 'GrowthLab', score: 73, priority: 'warm', industry: 'Marketing', employee_count: 28, contact_name: 'Michael Jensen', contact_title: 'CEO', owner_name: 'Mads Holm', source: 'Clay' },
   { id: 4, company_name: 'DataStream ApS', score: 68, priority: 'warm', industry: 'Analytics', employee_count: 67, contact_name: 'Anne Kristensen', contact_title: 'VP Sales', owner_name: 'Rasmus Bech', source: 'Snitcher' },
-  { id: 5, company_name: 'CloudFirst Denmark', score: 54, priority: 'cold', industry: 'Cloud', employee_count: 180, contact_name: 'Peter Madsen', contact_title: 'Director', owner_name: 'Julie Frost', source: 'Outreach.io' },
+  { id: 5, company_name: 'CloudFirst Denmark', score: 54, priority: 'cold', industry: 'Cloud', employee_count: 180, contact_name: 'Peter Madsen', contact_title: 'Director', owner_name: 'Julie Frost', source: 'HubSpot' },
 ];
 
 // ─────────────────────────────────────────────
@@ -789,15 +789,6 @@ const SalesIntelligencePlatform = () => {
       setConnectLoading(false);
     }
   };
-
-  // Detect ?outreach_connected=1 after OAuth callback redirect
-  React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('outreach_connected') === '1') {
-      fetchConnections();
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  }, []);
 
   const weekActivity = [
     { date: 'Mon', alerts: 8, actioned: 6 },
@@ -2257,16 +2248,6 @@ const SalesIntelligencePlatform = () => {
               fields: [{ key: 'api_key', label: 'API Key', type: 'password' }],
             },
             {
-              id: 'outreach', name: 'Outreach.io',
-              desc: 'Automated sequence enrollment + reply tracking',
-              icon: Send,
-              oauth: true,
-              fields: [
-                { key: 'client_id', label: 'OAuth Application ID', type: 'text', placeholder: 'Your Outreach App ID' },
-                { key: 'client_secret', label: 'Application Secret', type: 'password', placeholder: 'Your Outreach App Secret' },
-              ],
-            },
-            {
               id: 'notion', name: 'Notion',
               desc: 'Department initiative tracking for CMT Dashboard',
               icon: Layers,
@@ -2352,7 +2333,7 @@ const SalesIntelligencePlatform = () => {
                     <p className="font-medium text-blue-900">Webhook Endpoints</p>
                     <p className="text-sm text-blue-700 mt-1">Point your integrations at these for real-time event processing:</p>
                     <div className="mt-2 space-y-1">
-                      {['snitcher', 'salesforce', 'outreach'].map(svc => (
+                      {['snitcher', 'salesforce'].map(svc => (
                         <code key={svc} className="block text-xs bg-white border border-blue-100 text-blue-800 px-2 py-1 rounded font-mono">
                           POST /api/webhooks/{svc} &nbsp; X-Customer-Id: &lt;your-id&gt;
                         </code>

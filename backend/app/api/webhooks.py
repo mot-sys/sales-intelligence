@@ -148,31 +148,3 @@ async def salesforce_webhook(
     await db.commit()
     return {"status": "ok", "record_type": record_type}
 
-
-# ─────────────────────────────────────────────
-# OUTREACH.IO WEBHOOKS
-# ─────────────────────────────────────────────
-
-@router.post("/outreach")
-async def outreach_webhook(
-    request: Request,
-    db: AsyncSession = Depends(get_db),
-    x_customer_id: Optional[str] = Header(None),
-):
-    """
-    Receive Outreach.io events (sequence enrolled, reply received, bounced).
-    Updates OutboundAction status so the UI stays in sync.
-    """
-    if not x_customer_id:
-        raise HTTPException(status_code=400, detail="X-Customer-Id header required")
-
-    try:
-        payload = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
-
-    event_type = payload.get("event", "")
-    prospect_email = (payload.get("prospect") or {}).get("email")
-
-    # Basic logging — full implementation in Week 3
-    return {"status": "ok", "event": event_type, "prospect": prospect_email}
