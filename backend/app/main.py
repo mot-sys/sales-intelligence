@@ -14,7 +14,7 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 import uuid
 from app.core.config import settings, is_production
-from app.api import leads, analysis, outbound, connections, auth, alerts, webhooks, chat, reports, cmt
+from app.api import leads, analysis, outbound, connections, auth, alerts, webhooks, chat, reports, cmt, workflows
 from app.api import settings as settings_api
 from app.db.session import engine, Base, AsyncSessionLocal
 
@@ -180,6 +180,7 @@ app.include_router(chat.router, prefix="/api/chat", tags=["AI Chat"])
 app.include_router(settings_api.router, prefix="/api/settings", tags=["Settings"])
 app.include_router(reports.router, prefix="/api/reports/weekly", tags=["Reports"])
 app.include_router(cmt.router, prefix="/api/cmt", tags=["CMT"])
+app.include_router(workflows.router, prefix="/api/workflows", tags=["Workflows"])
 
 
 if __name__ == "__main__":

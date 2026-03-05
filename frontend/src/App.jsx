@@ -482,6 +482,21 @@ const SalesIntelligencePlatform = () => {
   const [weeklyReportLoading, setWeeklyReportLoading] = useState(false);
   const [weeklyReportGenerating, setWeeklyReportGenerating] = useState(false);
   const [weeklyReportError, setWeeklyReportError] = useState(null);
+  // Workflows tab
+  const [workflows, setWorkflows] = useState([]);
+  const [workflowsLoading, setWorkflowsLoading] = useState(false);
+  const [wfModal, setWfModal] = useState(null);        // null | 'create' | workflow-object
+  const [wfRunning, setWfRunning] = useState(null);    // workflow id being run
+  const [wfRunResult, setWfRunResult] = useState({});  // id → result
+  const [wfForm, setWfForm] = useState({ name: '', description: '', trigger_type: 'manual', conditions: [], actions: [] });
+  // Buyer Journey tab
+  const [journeyCompany, setJourneyCompany] = useState('');
+  const [journeyData, setJourneyData] = useState(null);
+  const [journeyAccounts, setJourneyAccounts] = useState([]);
+  const [journeyLoading, setJourneyLoading] = useState(false);
+  // Attribution
+  const [attributionData, setAttributionData] = useState(null);
+  const [attributionLoading, setAttributionLoading] = useState(false);
   // CMT Dashboard tab
   const [cmtOverview, setCmtOverview] = useState(null);
   const [cmtDepartments, setCmtDepartments] = useState([]);
@@ -669,6 +684,56 @@ const SalesIntelligencePlatform = () => {
     }
   }, []);
 
+  const fetchWorkflows = useCallback(async () => {
+    setWorkflowsLoading(true);
+    try {
+      const data = await API.get('/workflows');
+      setWorkflows(data.workflows || []);
+    } catch (e) {
+      console.error('Workflows fetch failed:', e);
+    } finally {
+      setWorkflowsLoading(false);
+    }
+  }, []);
+
+  const fetchJourneyAccounts = useCallback(async () => {
+    setJourneyLoading(true);
+    try {
+      const data = await API.get('/analysis/journey');
+      setJourneyAccounts(data.accounts || []);
+    } catch (e) {
+      console.error('Journey accounts fetch failed:', e);
+    } finally {
+      setJourneyLoading(false);
+    }
+  }, []);
+
+  const fetchJourney = async (company) => {
+    setJourneyLoading(true);
+    setJourneyData(null);
+    try {
+      const data = await API.get(`/analysis/journey?company=${encodeURIComponent(company)}`);
+      setJourneyData(data);
+      setJourneyCompany(company);
+    } catch (e) {
+      console.error('Journey fetch failed:', e);
+    } finally {
+      setJourneyLoading(false);
+    }
+  };
+
+  const fetchAttribution = useCallback(async () => {
+    setAttributionLoading(true);
+    try {
+      const data = await API.get('/analysis/attribution');
+      setAttributionData(data);
+    } catch (e) {
+      console.error('Attribution fetch failed:', e);
+    } finally {
+      setAttributionLoading(false);
+    }
+  }, []);
+
   const handleCmtSync = async () => {
     setCmtSyncing(true);
     setCmtSyncMsg(null);
@@ -718,7 +783,10 @@ const SalesIntelligencePlatform = () => {
     if (activeTab === 'analytics') fetchAnalytics();
     if (activeTab === 'report') fetchWeeklyReport();
     if (activeTab === 'cmt') fetchCmt();
-  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt]);
+    if (activeTab === 'workflows') fetchWorkflows();
+    if (activeTab === 'journey') fetchJourneyAccounts();
+    if (activeTab === 'analytics') fetchAttribution();
+  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -813,6 +881,8 @@ const SalesIntelligencePlatform = () => {
     { id: 'chat', label: 'AI Advisor', icon: Sparkles },
     { id: 'report', label: 'Ugerapport', icon: FileText },
     { id: 'cmt', label: 'CMT Dashboard', icon: Building2 },
+    { id: 'journey', label: 'Buyer Journey', icon: Target },
+    { id: 'workflows', label: 'Workflows', icon: Zap },
     { id: 'data', label: 'Pipeline Data', icon: TrendingUp },
     { id: 'analytics', label: 'Analytics', icon: BarChart2 },
     { id: 'connections', label: 'Connections', icon: Database },
@@ -1785,10 +1855,11 @@ const SalesIntelligencePlatform = () => {
           };
 
           const viewButtons = [
-            { id: 'forecast', label: 'Revenue Forecast', icon: Target },
-            { id: 'funnel',   label: 'Funnel',           icon: TrendingUp },
-            { id: 'health',   label: 'CRM Health',       icon: ShieldCheck },
-            { id: 'accounts', label: 'Top Accounts',     icon: Award },
+            { id: 'forecast',    label: 'Revenue Forecast', icon: Target },
+            { id: 'attribution', label: 'Attribution',      icon: BarChart2 },
+            { id: 'funnel',      label: 'Funnel',           icon: TrendingUp },
+            { id: 'health',      label: 'CRM Health',       icon: ShieldCheck },
+            { id: 'accounts',    label: 'Top Accounts',     icon: Award },
           ];
 
           return (
@@ -2212,6 +2283,538 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
+              {/* ── ATTRIBUTION VIEW ── */}
+              {analyticsView === 'attribution' && (() => {
+                const attr = attributionData;
+                if (attributionLoading) return (
+                  <div className="flex items-center justify-center py-16 text-gray-400">
+                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attribution…
+                  </div>
+                );
+                if (!attr) return (
+                  <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                    <BarChart2 className="w-10 h-10 mb-3 opacity-40" />
+                    <p>No attribution data yet — connect HubSpot or Salesforce.</p>
+                  </div>
+                );
+                const { summary, stage_breakdown, signal_attribution, owner_performance, forecast_narrative } = attr;
+                return (
+                  <div className="space-y-6">
+                    {/* Summary cards */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                      {[
+                        { label: 'Closed Won', value: summary.closed_won_display, sub: `${summary.closed_won_count} deals`, color: 'text-green-600' },
+                        { label: 'Weighted Pipeline', value: summary.weighted_pipeline_display, sub: `${summary.active_count} active deals`, color: 'text-blue-600' },
+                        { label: 'Win Rate', value: `${summary.win_rate}%`, sub: `${summary.closed_lost_count} lost`, color: summary.win_rate >= 30 ? 'text-green-600' : 'text-orange-600' },
+                        { label: 'Active Pipeline', value: summary.active_value ? `€${(summary.active_value/1000).toFixed(0)}k` : '€0', sub: 'total value', color: 'text-indigo-600' },
+                      ].map(({ label, value, sub, color }) => (
+                        <div key={label} className="bg-white rounded-lg border border-gray-200 p-4 text-center">
+                          <p className={`text-2xl font-bold ${color}`}>{value}</p>
+                          <p className="text-xs font-medium text-gray-700 mt-1">{label}</p>
+                          <p className="text-xs text-gray-400">{sub}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Stage attribution */}
+                      <div className="bg-white rounded-lg border border-gray-200 p-5">
+                        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-blue-500" />
+                          Pipeline by Stage
+                        </h3>
+                        <div className="space-y-3">
+                          {stage_breakdown.map(s => {
+                            const max = Math.max(...stage_breakdown.map(x => x.value || 0));
+                            const pct = max > 0 ? Math.round((s.value / max) * 100) : 0;
+                            return (
+                              <div key={s.stage}>
+                                <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                  <span className="font-medium truncate mr-2">{s.stage}</span>
+                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals · {s.value_display}</span>
+                                </div>
+                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Owner performance */}
+                      <div className="bg-white rounded-lg border border-gray-200 p-5">
+                        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <Users className="w-4 h-4 text-indigo-500" />
+                          Owner Performance
+                        </h3>
+                        <div className="space-y-3">
+                          {owner_performance.slice(0, 6).map(o => (
+                            <div key={o.owner} className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-gray-800 truncate mr-3">{o.owner}</span>
+                              <div className="flex items-center gap-3 flex-shrink-0 text-xs text-gray-500">
+                                <span className="text-green-600 font-semibold">{o.win_rate}% WR</span>
+                                <span>{o.total_deals} deals</span>
+                                <span className="text-blue-600 font-semibold">{o.pipeline_display}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Signal attribution */}
+                    {signal_attribution.length > 0 && (
+                      <div className="bg-white rounded-lg border border-gray-200 p-5">
+                        <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                          <Zap className="w-4 h-4 text-yellow-500" />
+                          Signal Attribution
+                        </h3>
+                        <div className="flex flex-wrap gap-3">
+                          {signal_attribution.map(s => (
+                            <div key={s.type} className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                              <span className="text-sm font-medium text-gray-800">{s.type}</span>
+                              <span className="text-xs bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 font-semibold">{s.count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI Forecast narrative */}
+                    {forecast_narrative && (
+                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border border-purple-200 p-5">
+                        <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-purple-600" />
+                          AI Attribution Forecast
+                        </h3>
+                        <div className="text-sm text-purple-800 space-y-2">
+                          {forecast_narrative.split('\n').filter(Boolean).map((line, i) => {
+                            if (line.startsWith('##')) return <p key={i} className="font-semibold text-purple-900 mt-3">{line.replace(/^##\s*/, '')}</p>;
+                            return <p key={i}>{line}</p>;
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+            </div>
+          );
+        })()}
+
+        {/* ── BUYER JOURNEY TAB ── */}
+        {activeTab === 'journey' && (() => {
+          const EVENT_COLORS = {
+            blue: 'border-blue-400 bg-blue-50',
+            orange: 'border-orange-400 bg-orange-50',
+            red: 'border-red-400 bg-red-50',
+            purple: 'border-purple-400 bg-purple-50',
+            green: 'border-green-400 bg-green-50',
+            indigo: 'border-indigo-400 bg-indigo-50',
+            yellow: 'border-yellow-400 bg-yellow-50',
+            gray: 'border-gray-300 bg-gray-50',
+          };
+          return (
+            <div className="space-y-5">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-xl font-semibold flex items-center gap-2 mb-1">
+                  <Target className="w-5 h-5 text-blue-600" />
+                  Buyer Journey
+                </h2>
+                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account — deals, signals, alerts in one view</p>
+                {/* Search */}
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    placeholder="Search account name…"
+                    value={journeyCompany}
+                    onChange={e => setJourneyCompany(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && journeyCompany.trim() && fetchJourney(journeyCompany.trim())}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={() => journeyCompany.trim() && fetchJourney(journeyCompany.trim())}
+                    disabled={journeyLoading}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {journeyLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'View Journey'}
+                  </button>
+                </div>
+
+                {/* Quick-select accounts */}
+                {!journeyData && journeyAccounts.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-xs text-gray-400 mb-2 uppercase tracking-wide">Recent accounts</p>
+                    <div className="flex flex-wrap gap-2">
+                      {journeyAccounts.slice(0, 10).map((acc, i) => (
+                        <button
+                          key={i}
+                          onClick={() => { setJourneyCompany(acc.name); fetchJourney(acc.name); }}
+                          className="px-3 py-1 text-xs bg-gray-100 hover:bg-blue-100 hover:text-blue-700 border border-gray-200 rounded-full transition-colors"
+                        >
+                          {acc.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Journey timeline */}
+              {journeyData && (
+                <div className="space-y-4">
+                  {/* Deal summary */}
+                  {journeyData.deal && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <p className="font-semibold text-blue-900 text-lg">{journeyData.deal.account_name}</p>
+                        <p className="text-sm text-blue-700">
+                          Stage: <strong>{journeyData.deal.stage}</strong>
+                          {journeyData.deal.amount ? ` · €${journeyData.deal.amount.toLocaleString()}` : ''}
+                          {journeyData.deal.owner ? ` · ${journeyData.deal.owner}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        {journeyData.deal.is_stalled && (
+                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">⚠️ Stalled</span>
+                        )}
+                        {journeyData.deal.close_date && (
+                          <span className="px-2 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-700">
+                            Closes: {new Date(journeyData.deal.close_date).toLocaleDateString('da-DK')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-white rounded-lg border border-gray-200 p-5">
+                    <p className="text-sm font-semibold text-gray-600 mb-4">
+                      {journeyData.total_events} events for <span className="text-blue-700">{journeyData.company}</span>
+                    </p>
+                    {journeyData.events.length === 0 ? (
+                      <div className="text-center py-10 text-gray-400">
+                        <Target className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                        No events found for this account.
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        {/* Vertical line */}
+                        <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
+                        <div className="space-y-4">
+                          {journeyData.events.map((evt, i) => {
+                            const colorClass = EVENT_COLORS[evt.color] || EVENT_COLORS.gray;
+                            return (
+                              <div key={i} className="relative flex gap-4 pl-12">
+                                {/* Icon bubble */}
+                                <div className={`absolute left-0 w-10 h-10 rounded-full border-2 flex items-center justify-center text-base flex-shrink-0 bg-white ${colorClass.split(' ')[0]}`}>
+                                  {evt.icon}
+                                </div>
+                                {/* Content */}
+                                <div className={`flex-1 rounded-lg border p-3 ${colorClass}`}>
+                                  <div className="flex items-start justify-between gap-2 flex-wrap">
+                                    <p className="font-medium text-gray-900 text-sm">{evt.title}</p>
+                                    <div className="flex items-center gap-2 flex-shrink-0">
+                                      {evt.priority && (
+                                        <span className="text-xs px-1.5 py-0.5 bg-white border rounded-full text-gray-600 capitalize">{evt.priority}</span>
+                                      )}
+                                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {evt.detail && <p className="text-xs text-gray-600 mt-1">{evt.detail}</p>}
+                                  <p className="text-xs text-gray-400 mt-1">via {evt.source}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* ── WORKFLOWS TAB ── */}
+        {activeTab === 'workflows' && (() => {
+          const TRIGGER_LABELS = {
+            manual: 'Manual only',
+            score_threshold: 'On lead scored',
+            alert_created: 'On alert created',
+          };
+          const ACTION_LABELS = {
+            create_alert: 'Create Alert',
+            update_priority: 'Update Priority',
+            log: 'Log message',
+          };
+          const FIELD_OPTIONS = ['score', 'priority', 'source', 'industry'];
+          const OP_OPTIONS = ['gt', 'lt', 'eq', 'neq', 'contains'];
+          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: '≠', contains: 'contains' };
+
+          const addCondition = () => setWfForm(f => ({ ...f, conditions: [...f.conditions, { field: 'score', op: 'gt', value: '' }] }));
+          const removeCondition = (i) => setWfForm(f => ({ ...f, conditions: f.conditions.filter((_, idx) => idx !== i) }));
+          const updateCondition = (i, key, val) => setWfForm(f => ({ ...f, conditions: f.conditions.map((c, idx) => idx === i ? { ...c, [key]: val } : c) }));
+          const addAction = () => setWfForm(f => ({ ...f, actions: [...f.actions, { type: 'create_alert', params: { priority: 'high', message: '' } }] }));
+          const removeAction = (i) => setWfForm(f => ({ ...f, actions: f.actions.filter((_, idx) => idx !== i) }));
+          const updateAction = (i, key, val) => setWfForm(f => ({ ...f, actions: f.actions.map((a, idx) => idx === i ? { ...a, [key]: val } : a) }));
+          const updateActionParam = (i, key, val) => setWfForm(f => ({ ...f, actions: f.actions.map((a, idx) => idx === i ? { ...a, params: { ...a.params, [key]: val } } : a) }));
+
+          const handleSaveWorkflow = async () => {
+            try {
+              if (wfModal === 'create') {
+                await API.post('/workflows', wfForm);
+              } else {
+                await API.put(`/workflows/${wfModal.id}`, wfForm);
+              }
+              setWfModal(null);
+              setWfForm({ name: '', description: '', trigger_type: 'manual', conditions: [], actions: [] });
+              await fetchWorkflows();
+            } catch (e) { alert(`Save failed: ${e.message}`); }
+          };
+
+          const handleRunWorkflow = async (wf) => {
+            setWfRunning(wf.id);
+            try {
+              const result = await API.post(`/workflows/${wf.id}/run`);
+              setWfRunResult(r => ({ ...r, [wf.id]: result }));
+              await fetchWorkflows();
+            } catch (e) { setWfRunResult(r => ({ ...r, [wf.id]: { error: e.message } })); }
+            finally { setWfRunning(null); }
+          };
+
+          const handleToggle = async (wf) => {
+            try {
+              await API.put(`/workflows/${wf.id}/toggle`);
+              await fetchWorkflows();
+            } catch (e) { console.error(e); }
+          };
+
+          const handleDelete = async (wf) => {
+            if (!window.confirm(`Delete workflow "${wf.name}"?`)) return;
+            try {
+              await API.delete(`/workflows/${wf.id}`);
+              await fetchWorkflows();
+            } catch (e) { console.error(e); }
+          };
+
+          const openCreate = () => {
+            setWfForm({ name: '', description: '', trigger_type: 'manual', conditions: [], actions: [] });
+            setWfModal('create');
+          };
+
+          const openEdit = (wf) => {
+            setWfForm({ name: wf.name, description: wf.description || '', trigger_type: wf.trigger_type, conditions: wf.conditions || [], actions: wf.actions || [] });
+            setWfModal(wf);
+          };
+
+          return (
+            <div className="space-y-5">
+              {/* Header */}
+              <div className="bg-white rounded-lg border border-gray-200 p-6 flex items-start justify-between flex-wrap gap-4">
+                <div>
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-yellow-500" />
+                    Workflow Automation
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules — automatically act on leads based on conditions</p>
+                </div>
+                <button
+                  onClick={openCreate}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                >
+                  + New Workflow
+                </button>
+              </div>
+
+              {/* Workflow list */}
+              {workflowsLoading ? (
+                <div className="flex items-center justify-center py-12 text-gray-400">
+                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading…
+                </div>
+              ) : workflows.length === 0 ? (
+                <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+                  <Zap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No workflows yet</h3>
+                  <p className="text-sm text-gray-400 mb-4">Create your first automation rule to act on signals automatically.</p>
+                  <button onClick={openCreate} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">
+                    Create Workflow
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {workflows.map(wf => {
+                    const result = wfRunResult[wf.id];
+                    return (
+                      <div key={wf.id} className="bg-white rounded-lg border border-gray-200 p-5">
+                        <div className="flex items-start justify-between gap-4 flex-wrap">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${wf.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                              <h3 className="font-semibold text-gray-900">{wf.name}</h3>
+                              <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full">{TRIGGER_LABELS[wf.trigger_type] || wf.trigger_type}</span>
+                            </div>
+                            {wf.description && <p className="text-sm text-gray-500 mb-2">{wf.description}</p>}
+                            <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-500">
+                              {(wf.conditions || []).map((c, i) => (
+                                <span key={i} className="bg-blue-50 border border-blue-100 text-blue-700 rounded px-2 py-0.5">
+                                  {c.field} {OP_LABELS[c.op] || c.op} {c.value}
+                                </span>
+                              ))}
+                              {wf.conditions?.length > 0 && <span className="text-gray-400">→</span>}
+                              {(wf.actions || []).map((a, i) => (
+                                <span key={i} className="bg-green-50 border border-green-100 text-green-700 rounded px-2 py-0.5">
+                                  {ACTION_LABELS[a.type] || a.type}
+                                </span>
+                              ))}
+                            </div>
+                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} · {wf.run_count} runs total</p>}
+                            {result && (
+                              <div className={`mt-2 text-xs rounded px-3 py-2 ${result.error ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
+                                {result.error ? `✗ ${result.error}` : `✓ ${result.leads_matched}/${result.leads_evaluated} leads matched · ${result.actions_fired} actions fired`}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => handleRunWorkflow(wf)}
+                              disabled={wfRunning === wf.id}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                            >
+                              <Zap className={`w-3 h-3 ${wfRunning === wf.id ? 'animate-pulse' : ''}`} />
+                              {wfRunning === wf.id ? 'Running…' : 'Run'}
+                            </button>
+                            <button
+                              onClick={() => handleToggle(wf)}
+                              className={`px-3 py-1.5 text-xs rounded-lg border ${wf.status === 'active' ? 'border-gray-300 text-gray-600 hover:bg-gray-50' : 'border-green-300 text-green-600 hover:bg-green-50'}`}
+                            >
+                              {wf.status === 'active' ? 'Pause' : 'Activate'}
+                            </button>
+                            <button onClick={() => openEdit(wf)} className="px-3 py-1.5 text-xs border border-gray-300 text-gray-600 rounded-lg hover:bg-gray-50">Edit</button>
+                            <button onClick={() => handleDelete(wf)} className="px-3 py-1.5 text-xs border border-red-200 text-red-600 rounded-lg hover:bg-red-50">Delete</button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* ── Create/Edit Modal ── */}
+              {wfModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white">
+                      <h2 className="text-xl font-bold">{wfModal === 'create' ? 'New Workflow' : 'Edit Workflow'}</h2>
+                      <button onClick={() => setWfModal(null)} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+                    </div>
+                    <div className="p-6 space-y-5">
+                      {/* Name + trigger */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Workflow name</label>
+                          <input value={wfForm.name} onChange={e => setWfForm(f => ({ ...f, name: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Hot lead alert" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-600 mb-1">Trigger</label>
+                          <select value={wfForm.trigger_type} onChange={e => setWfForm(f => ({ ...f, trigger_type: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="manual">Manual only</option>
+                            <option value="score_threshold">On lead scored</option>
+                            <option value="alert_created">On alert created</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1">Description (optional)</label>
+                        <input value={wfForm.description} onChange={e => setWfForm(f => ({ ...f, description: e.target.value }))} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none" placeholder="What does this workflow do?" />
+                      </div>
+
+                      {/* Conditions */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF — Conditions (all must match)</label>
+                          <button onClick={addCondition} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add condition</button>
+                        </div>
+                        {wfForm.conditions.length === 0 ? (
+                          <p className="text-xs text-gray-400 italic">No conditions — workflow runs on ALL leads</p>
+                        ) : (
+                          <div className="space-y-2">
+                            {wfForm.conditions.map((c, i) => (
+                              <div key={i} className="flex items-center gap-2">
+                                <select value={c.field} onChange={e => updateCondition(i, 'field', e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none">
+                                  {FIELD_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
+                                </select>
+                                <select value={c.op} onChange={e => updateCondition(i, 'op', e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none w-24">
+                                  {OP_OPTIONS.map(o => <option key={o} value={o}>{OP_LABELS[o]}</option>)}
+                                </select>
+                                <input value={c.value} onChange={e => updateCondition(i, 'value', e.target.value)} placeholder="value" className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
+                                <button onClick={() => removeCondition(i)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN — Actions</label>
+                          <button onClick={addAction} className="text-xs text-green-600 hover:text-green-800 font-medium">+ Add action</button>
+                        </div>
+                        {wfForm.actions.length === 0 ? (
+                          <p className="text-xs text-gray-400 italic">No actions — add at least one</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {wfForm.actions.map((a, i) => (
+                              <div key={i} className="border border-gray-200 rounded-lg p-3 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <select value={a.type} onChange={e => updateAction(i, 'type', e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none">
+                                    <option value="create_alert">Create Alert</option>
+                                    <option value="update_priority">Update Priority</option>
+                                    <option value="log">Log message</option>
+                                  </select>
+                                  <button onClick={() => removeAction(i)} className="text-red-400 hover:text-red-600"><X className="w-4 h-4" /></button>
+                                </div>
+                                {a.type === 'create_alert' && (
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <select value={a.params.priority || 'high'} onChange={e => updateActionParam(i, 'priority', e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white">
+                                      <option value="urgent">Urgent</option>
+                                      <option value="high">High</option>
+                                      <option value="medium">Medium</option>
+                                      <option value="low">Low</option>
+                                    </select>
+                                    <input value={a.params.message || ''} onChange={e => updateActionParam(i, 'message', e.target.value)} placeholder="Alert message" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
+                                  </div>
+                                )}
+                                {a.type === 'update_priority' && (
+                                  <select value={a.params.priority || 'warm'} onChange={e => updateActionParam(i, 'priority', e.target.value)} className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white w-full">
+                                    <option value="hot">Hot</option>
+                                    <option value="warm">Warm</option>
+                                    <option value="cold">Cold</option>
+                                  </select>
+                                )}
+                                {a.type === 'log' && (
+                                  <input value={a.params.message || ''} onChange={e => updateActionParam(i, 'message', e.target.value)} placeholder="Log message" className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none" />
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-2">
+                        <button onClick={() => setWfModal(null)} className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50">Cancel</button>
+                        <button onClick={handleSaveWorkflow} disabled={!wfForm.name.trim()} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50">Save Workflow</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
@@ -2802,6 +3405,37 @@ const SalesIntelligencePlatform = () => {
                   </div>
                 ))}
               </div>
+              {/* Score Breakdown — HockeyStack-style explainable scoring */}
+              {selectedLead.scoring_breakdown && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Score Breakdown</p>
+                  <div className="space-y-2">
+                    {[
+                      { label: 'Firmographics', key: 'firmographics', max: 20, color: 'bg-blue-500', desc: 'Company size + industry fit' },
+                      { label: 'Signals', key: 'signals', max: 40, color: 'bg-purple-500', desc: 'Funding, hiring, tech changes' },
+                      { label: 'Intent', key: 'intent', max: 30, color: 'bg-orange-500', desc: 'Website visits + engagement' },
+                      { label: 'Historical', key: 'historical', max: 10, color: 'bg-green-500', desc: 'Conversion patterns' },
+                    ].map(({ label, key, max, color, desc }) => {
+                      const val = selectedLead.scoring_breakdown[key] ?? 0;
+                      const pct = Math.round((val / max) * 100);
+                      return (
+                        <div key={key}>
+                          <div className="flex justify-between items-center mb-0.5">
+                            <div>
+                              <span className="text-xs font-medium text-gray-700">{label}</span>
+                              <span className="text-xs text-gray-400 ml-1">— {desc}</span>
+                            </div>
+                            <span className="text-xs font-bold text-gray-900">{val}/{max}</span>
+                          </div>
+                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-500 ${color}`} style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
               <div className="flex gap-3">
                 <button className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
                   <Send className="w-4 h-4" />Add to Sequence

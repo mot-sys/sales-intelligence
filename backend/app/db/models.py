@@ -40,6 +40,7 @@ class Customer(Base):
     ai_actions = relationship("AIAction", back_populates="customer", cascade="all, delete-orphan")
     weekly_reports = relationship("WeeklyReport", back_populates="customer", cascade="all, delete-orphan")
     notion_initiatives = relationship("NotionInitiative", back_populates="customer", cascade="all, delete-orphan")
+    workflows = relationship("Workflow", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -546,6 +547,57 @@ class WeeklyReport(Base):
 
     __table_args__ = (
         Index("idx_weekly_report_customer", "customer_id", "week_start"),
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# WORKFLOWS
+# ─────────────────────────────────────────────────────────
+
+class Workflow(Base):
+    """
+    If-this-then-that automation rules.
+    Each workflow has conditions (evaluated against leads/alerts)
+    and actions (what happens when conditions are met).
+    """
+    __tablename__ = "workflows"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String(20), nullable=False, default="active")  # active / paused
+
+    # Trigger type determines WHEN this workflow evaluates
+    # score_threshold  → runs after any lead is scored
+    # alert_created    → runs when a new alert is created
+    # manual           → run-on-demand only
+    trigger_type = Column(String(50), nullable=False, default="manual")
+
+    # Conditions: list of {field, op, value}
+    # Supported fields: score, priority, source, industry
+    # Supported ops: gt, lt, eq, neq, contains
+    conditions = Column(JSON, nullable=False, default=list)
+
+    # Actions: list of {type, params}
+    # Supported types: create_alert, update_priority, log
+    actions = Column(JSON, nullable=False, default=list)
+
+    last_run = Column(TIMESTAMP, nullable=True)
+    run_count = Column(Integer, nullable=False, default=0)
+
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    customer = relationship("Customer", back_populates="workflows")
+
+    __table_args__ = (
+        Index("idx_workflow_customer_status", "customer_id", "status"),
     )
 
 

@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import get_current_customer_id_dev as get_current_customer_id
-from app.db.models import Alert, Lead, SalesforceOpportunity
+from app.db.models import Alert, Lead, SalesforceOpportunity, Signal
 from app.db.session import get_db
 
 router = APIRouter()
@@ -639,3 +639,342 @@ async def get_signal_breakdown(db: AsyncSession = Depends(get_db)):
 @router.get("/patterns")
 async def get_conversion_patterns(db: AsyncSession = Depends(get_db)):
     return {"patterns": []}
+
+
+# ─────────────────────────────────────────────
+# 5. BUYER JOURNEY TIMELINE
+# ─────────────────────────────────────────────
+
+@router.get("/journey")
+async def get_buyer_journey(
+    company: Optional[str] = None,
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Returns a chronological timeline of all touchpoints for a company/account.
+    Aggregates deals, alerts, and signals into a unified buyer journey view.
+    """
+    events: List[Dict] = []
+
+    if not company:
+        # Return the top 5 most recently active deals as selectable accounts
+        result = await db.execute(
+            select(SalesforceOpportunity)
+            .where(SalesforceOpportunity.customer_id == customer_id)
+            .order_by(SalesforceOpportunity.last_activity_date.desc().nullslast())
+            .limit(20)
+        )
+        opps = result.scalars().all()
+        accounts = [
+            {
+                "name": o.account_name,
+                "stage": o.stage,
+                "amount": o.amount,
+                "owner": o.owner_name,
+            }
+            for o in opps if o.account_name
+        ]
+        return {"accounts": accounts, "events": []}
+
+    # ── Deals ──────────────────────────────────────────────
+    result = await db.execute(
+        select(SalesforceOpportunity)
+        .where(
+            SalesforceOpportunity.customer_id == customer_id,
+            SalesforceOpportunity.account_name.ilike(f"%{company}%"),
+        )
+    )
+    deals = result.scalars().all()
+
+    for deal in deals:
+        # Deal created event
+        if deal.synced_at:
+            events.append({
+                "timestamp": deal.synced_at.isoformat(),
+                "type": "deal_created",
+                "category": "deal",
+                "icon": "💼",
+                "title": f"Deal created: {deal.account_name}",
+                "detail": f"Stage: {deal.stage} · Value: €{deal.amount:,.0f}" if deal.amount else f"Stage: {deal.stage}",
+                "source": "CRM",
+                "color": "blue",
+            })
+        # Current stage
+        if deal.last_activity_date:
+            events.append({
+                "timestamp": deal.last_activity_date.isoformat(),
+                "type": "deal_activity",
+                "category": "deal",
+                "icon": "📋",
+                "title": f"Last CRM activity",
+                "detail": f"Deal currently in stage: {deal.stage or 'Unknown'}",
+                "source": "CRM",
+                "color": "blue",
+            })
+        # Stall warning
+        if deal.is_stalled:
+            now = datetime.utcnow()
+            events.append({
+                "timestamp": (deal.last_activity_date or now).isoformat(),
+                "type": "deal_stalled",
+                "category": "warning",
+                "icon": "⚠️",
+                "title": "Deal stalled",
+                "detail": f"No activity detected — deal may need attention",
+                "source": "Signal Intelligence",
+                "color": "red",
+            })
+
+    # ── Alerts ──────────────────────────────────────────────
+    alert_result = await db.execute(
+        select(Alert)
+        .where(
+            Alert.customer_id == customer_id,
+        )
+        .order_by(Alert.created_at.desc())
+        .limit(200)
+    )
+    all_alerts = alert_result.scalars().all()
+    company_lower = company.lower()
+    for alert in all_alerts:
+        ctx = alert.context or {}
+        match_fields = [
+            str(ctx.get("company_name", "")),
+            str(ctx.get("opportunity_name", "")),
+            str(alert.headline or ""),
+        ]
+        if any(company_lower in f.lower() for f in match_fields):
+            events.append({
+                "timestamp": alert.created_at.isoformat() if alert.created_at else None,
+                "type": f"alert_{alert.type}",
+                "category": "alert",
+                "icon": "🔔",
+                "title": alert.headline or alert.type,
+                "detail": alert.recommendation or "",
+                "source": alert.source or "Signal Intelligence",
+                "color": "orange" if alert.priority in ("urgent", "high") else "yellow",
+                "priority": alert.priority,
+            })
+
+    # ── Signals (from leads matching company) ──────────────
+    lead_result = await db.execute(
+        select(Lead)
+        .where(
+            Lead.customer_id == customer_id,
+            Lead.company_name.ilike(f"%{company}%"),
+        )
+    )
+    leads = lead_result.scalars().all()
+
+    for lead in leads:
+        # Lead score milestone
+        if lead.score and lead.score >= 60:
+            events.append({
+                "timestamp": lead.updated_at.isoformat() if lead.updated_at else None,
+                "type": "lead_scored",
+                "category": "intelligence",
+                "icon": "🎯",
+                "title": f"AI Score: {lead.score}/100 — {(lead.priority or 'cold').upper()}",
+                "detail": lead.recommendation or "Lead scored by Signal Intelligence",
+                "source": "AI Scoring",
+                "color": "purple",
+            })
+
+        # Signals for this lead
+        signal_result = await db.execute(
+            select(Signal)
+            .where(Signal.lead_id == lead.id)
+            .order_by(Signal.detected_at.desc())
+            .limit(20)
+        )
+        signals = signal_result.scalars().all()
+
+        signal_icons = {
+            "funding": "💰", "hiring": "👥", "tech_change": "🔧",
+            "intent": "👀", "content": "📄",
+        }
+        signal_colors = {
+            "funding": "green", "hiring": "blue", "tech_change": "indigo",
+            "intent": "red", "content": "gray",
+        }
+        for sig in signals:
+            events.append({
+                "timestamp": sig.detected_at.isoformat() if sig.detected_at else None,
+                "type": f"signal_{sig.type}",
+                "category": "signal",
+                "icon": signal_icons.get(sig.type, "📡"),
+                "title": sig.title or sig.type.replace("_", " ").title(),
+                "detail": sig.description or "",
+                "source": sig.source or "Signal Intelligence",
+                "color": signal_colors.get(sig.type, "gray"),
+                "score_impact": sig.score_impact,
+            })
+
+    # Sort all events by timestamp descending
+    events_with_ts = [e for e in events if e.get("timestamp")]
+    events_with_ts.sort(key=lambda e: e["timestamp"], reverse=True)
+
+    # Find matching deal summary
+    deal_summary = None
+    if deals:
+        d = deals[0]
+        deal_summary = {
+            "account_name": d.account_name,
+            "stage": d.stage,
+            "amount": d.amount,
+            "owner": d.owner_name,
+            "is_stalled": d.is_stalled,
+            "close_date": d.close_date.isoformat() if d.close_date else None,
+        }
+
+    return {
+        "company": company,
+        "deal": deal_summary,
+        "total_events": len(events_with_ts),
+        "events": events_with_ts[:100],
+    }
+
+
+# ─────────────────────────────────────────────
+# 6. ATTRIBUTION FORECASTING
+# ─────────────────────────────────────────────
+
+@router.get("/attribution")
+async def get_attribution(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Multi-touch attribution breakdown + 3-month pipeline forecast.
+    Analyses deal stage distribution, signal types, and uses Claude
+    to generate a narrative forecast.
+    """
+    import anthropic
+    import json as _json
+
+    # ── Gather pipeline data ────────────────────────────────
+    result = await db.execute(
+        select(SalesforceOpportunity)
+        .where(SalesforceOpportunity.customer_id == customer_id)
+    )
+    opps = result.scalars().all()
+
+    # Stage buckets with weighted value
+    won = [o for o in opps if (o.stage or "").lower() in ("closedwon", "closed won")]
+    lost = [o for o in opps if (o.stage or "").lower() in ("closedlost", "closed lost")]
+    active = [o for o in opps if o not in won and o not in lost]
+
+    won_value = sum(o.amount or 0 for o in won)
+    active_value = sum(o.amount or 0 for o in active)
+    weighted_pipeline = sum(
+        (o.amount or 0) * _stage_prob((o.stage or "").lower())
+        for o in active
+    )
+
+    # Stage breakdown for attribution chart
+    stage_breakdown: Dict[str, Dict] = {}
+    for o in opps:
+        stage = _label(o.stage or "Unknown")
+        if stage not in stage_breakdown:
+            stage_breakdown[stage] = {"count": 0, "value": 0, "probability": _stage_prob((o.stage or "").lower())}
+        stage_breakdown[stage]["count"] += 1
+        stage_breakdown[stage]["value"] += o.amount or 0
+
+    # Signal type breakdown (what signals correlate with active deals)
+    signal_result = await db.execute(
+        select(Signal)
+        .where(Signal.customer_id == customer_id)
+        .limit(500)
+    )
+    signals = signal_result.scalars().all()
+    signal_counts: Dict[str, int] = {}
+    for sig in signals:
+        signal_counts[sig.type] = signal_counts.get(sig.type, 0) + 1
+
+    # Owner performance
+    owner_perf: Dict[str, Dict] = {}
+    for o in opps:
+        owner = o.owner_name or "Unassigned"
+        if owner not in owner_perf:
+            owner_perf[owner] = {"deals": 0, "won": 0, "pipeline": 0}
+        owner_perf[owner]["deals"] += 1
+        if o in won:
+            owner_perf[owner]["won"] += 1
+        elif o in active:
+            owner_perf[owner]["pipeline"] += o.amount or 0
+
+    # ── Claude forecast narrative ───────────────────────────
+    forecast_narrative = None
+    try:
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        prompt = f"""You are a B2B revenue analyst. Based on this pipeline data, write a concise 3-month attribution forecast in Danish.
+
+Pipeline summary:
+- Closed Won: {len(won)} deals, total value €{won_value:,.0f}
+- Active pipeline: {len(active)} deals, total value €{active_value:,.0f}
+- Weighted forecast: €{weighted_pipeline:,.0f}
+- Closed Lost: {len(lost)} deals
+
+Stage breakdown: {_json.dumps({k: v['count'] for k, v in stage_breakdown.items()})}
+Signal types detected: {_json.dumps(signal_counts)}
+Owner deal counts: {_json.dumps({k: v['deals'] for k, v in owner_perf.items()})}
+
+Write 3 short paragraphs (max 60 words each):
+1. "Hvad driver pipeline nu" — which signals/stages are contributing most
+2. "3-måneders forecast" — projected revenue based on current weighted pipeline
+3. "Anbefalinger" — 2-3 concrete actions to improve attribution
+
+Use €-amounts and be specific. Format with markdown headers (##)."""
+
+        msg = client.messages.create(
+            model=settings.ANTHROPIC_MODEL,
+            max_tokens=600,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        forecast_narrative = msg.content[0].text if msg.content else None
+    except Exception as exc:
+        logger.warning("Claude attribution forecast failed: %s", exc)
+        forecast_narrative = None
+
+    return {
+        "summary": {
+            "closed_won_count": len(won),
+            "closed_won_value": won_value,
+            "closed_won_display": f"€{won_value:,.0f}",
+            "active_count": len(active),
+            "active_value": active_value,
+            "weighted_pipeline": round(weighted_pipeline),
+            "weighted_pipeline_display": f"€{weighted_pipeline:,.0f}",
+            "closed_lost_count": len(lost),
+            "win_rate": round(len(won) / max(len(won) + len(lost), 1) * 100, 1),
+        },
+        "stage_breakdown": [
+            {
+                "stage": stage,
+                "count": data["count"],
+                "value": data["value"],
+                "value_display": f"€{data['value']:,.0f}",
+                "probability": data["probability"],
+                "weighted_value": round(data["value"] * data["probability"]),
+            }
+            for stage, data in stage_breakdown.items()
+        ],
+        "signal_attribution": [
+            {"type": t.replace("_", " ").title(), "count": c}
+            for t, c in sorted(signal_counts.items(), key=lambda x: -x[1])
+        ],
+        "owner_performance": [
+            {
+                "owner": owner,
+                "total_deals": data["deals"],
+                "won": data["won"],
+                "pipeline_value": data["pipeline"],
+                "pipeline_display": f"€{data['pipeline']:,.0f}",
+                "win_rate": round(data["won"] / max(data["deals"], 1) * 100, 1),
+            }
+            for owner, data in sorted(owner_perf.items(), key=lambda x: -x[1]["pipeline"])
+        ],
+        "forecast_narrative": forecast_narrative,
+        "generated_at": datetime.utcnow().isoformat(),
+    }
