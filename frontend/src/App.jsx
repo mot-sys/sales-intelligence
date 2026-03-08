@@ -7,7 +7,7 @@ import {
   Activity, Database, Brain, Users, Send, CheckCircle, AlertCircle, Clock,
   TrendingUp, Zap, Settings, ExternalLink, RefreshCw, Bell, BellOff, X, ChevronDown,
   MessageSquare, Sparkles, CornerDownLeft, BarChart2, Target, Award, ShieldCheck, FileText,
-  Building2, Layers, Filter,
+  Building2, Layers, Filter, Compass, Archive, Radio, Plus, Trash2, Save,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -438,7 +438,7 @@ function AlertCard({ alert, onAction, isActioning }) {
 // ─────────────────────────────────────────────
 
 const SalesIntelligencePlatform = () => {
-  const [activeTab, setActiveTab] = useState('alerts');
+  const [activeTab, setActiveTab] = useState('gtm-setup');
   const [alerts, setAlerts] = useState([]);
   const [alertStats, setAlertStats] = useState(MOCK_STATS);
   const [leads, setLeads] = useState([]);
@@ -506,6 +506,39 @@ const SalesIntelligencePlatform = () => {
   const [cmtSyncMsg, setCmtSyncMsg] = useState(null);
   const [cmtStatusFilter, setCmtStatusFilter] = useState('all');
   const [cmtDeptFilter, setCmtDeptFilter] = useState('all');
+
+  // ── GTM Setup state ──────────────────────────────────────────────────────
+  const [gtmTab, setGtmTab] = useState('strategy');
+  const [gtmConfig, setGtmConfig] = useState(null);
+  const [gtmSaving, setGtmSaving] = useState(false);
+  const [gtmSaved, setGtmSaved] = useState(false);
+  const [strategyForm, setStrategyForm] = useState({
+    company_description: '', value_proposition: '', competitors: [], offerings: [],
+  });
+  const [icpForm, setIcpForm] = useState({
+    personas: [],
+    company_filters: { industries: [], employee_min: 1, employee_max: 5000, geographies: [], technologies: [] },
+    tam_total: 0, tam_notes: '',
+  });
+  const [goalsForm, setGoalsForm] = useState({
+    period: 'annual', revenue_target: 0, acv: 0,
+    win_rate_pct: 25, opp_to_meeting_rate_pct: 30, outreach_response_rate_pct: 10,
+    current_arr: 0,
+  });
+  // Industry/geo chip input helpers
+  const [industryInput, setIndustryInput] = useState('');
+  const [geoInput, setGeoInput] = useState('');
+
+  // ── Intelligence state ───────────────────────────────────────────────────
+  const [intelligenceData, setIntelligenceData] = useState(null);
+  const [intelligenceLoading, setIntelligenceLoading] = useState(false);
+
+  // ── New sub-tab state ────────────────────────────────────────────────────
+  const [pipelineSubTab, setPipelineSubTab] = useState('deals');
+  const [signalsSubTab, setSignalsSubTab] = useState('alerts');
+
+  // ── Legacy dropdown state ────────────────────────────────────────────────
+  const [legacyOpen, setLegacyOpen] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
     setLoading(true);
@@ -774,19 +807,76 @@ const SalesIntelligencePlatform = () => {
     }
   };
 
+  const fetchGtmConfig = useCallback(async () => {
+    try {
+      const data = await API.get('/gtm/config');
+      setGtmConfig(data);
+      if (data.company_description !== undefined) {
+        setStrategyForm({
+          company_description: data.company_description || '',
+          value_proposition:   data.value_proposition   || '',
+          competitors:         data.competitors         || [],
+          offerings:           data.offerings           || [],
+        });
+      }
+      if (data.icp && Object.keys(data.icp).length) {
+        setIcpForm(prev => ({ ...prev, ...data.icp }));
+      }
+      if (data.goals && Object.keys(data.goals).length) {
+        setGoalsForm(prev => ({ ...prev, ...data.goals }));
+      }
+    } catch { /* silent — use form defaults */ }
+  }, []);
+
+  const saveGtmConfig = async (section, formData) => {
+    setGtmSaving(true);
+    try {
+      const payload = section === 'strategy'
+        ? { company_description: formData.company_description, value_proposition: formData.value_proposition, competitors: formData.competitors, offerings: formData.offerings }
+        : section === 'icp'
+        ? { icp: formData }
+        : { goals: formData };
+      const updated = await API.put('/gtm/config', payload);
+      setGtmConfig(updated);
+      setGtmSaved(true);
+      setTimeout(() => setGtmSaved(false), 2500);
+    } catch (e) {
+      alert('Save failed: ' + e.message);
+    } finally {
+      setGtmSaving(false);
+    }
+  };
+
+  const fetchIntelligence = useCallback(async () => {
+    setIntelligenceLoading(true);
+    try {
+      const data = await API.get('/gtm/intelligence');
+      setIntelligenceData(data);
+    } catch {
+      setIntelligenceData(null);
+    } finally {
+      setIntelligenceLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
+    // Legacy tab triggers (unchanged)
     if (activeTab === 'alerts' || activeTab === 'dashboard') fetchAlerts();
     if (activeTab === 'leads') fetchLeads();
     if (activeTab === 'connections') fetchConnections();
     if (activeTab === 'chat') fetchChatContext();
     if (activeTab === 'data') fetchPipelineData();
-    if (activeTab === 'analytics') fetchAnalytics();
+    if (activeTab === 'analytics') { fetchAnalytics(); fetchAttribution(); }
     if (activeTab === 'report') fetchWeeklyReport();
     if (activeTab === 'cmt') fetchCmt();
     if (activeTab === 'workflows') fetchWorkflows();
     if (activeTab === 'journey') fetchJourneyAccounts();
-    if (activeTab === 'analytics') fetchAttribution();
-  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution]);
+    // New primary tab triggers
+    if (activeTab === 'gtm-setup')    fetchGtmConfig();
+    if (activeTab === 'intelligence') fetchIntelligence();
+    if (activeTab === 'pipeline')     { fetchPipelineData(); fetchAnalytics(); fetchLeads(); }
+    if (activeTab === 'signals')      { fetchAlerts(); fetchJourneyAccounts(); fetchLeads(); }
+  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution, fetchGtmConfig, fetchIntelligence]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -875,18 +965,25 @@ const SalesIntelligencePlatform = () => {
     { name: 'Actioned', value: alertStats.actioned, color: '#10b981' },
   ];
 
-  const tabs = [
-    { id: 'dashboard', label: 'Dashboard', icon: Activity },
-    { id: 'alerts', label: 'Alerts', icon: Bell, badge: alertStats.urgent_high_pending },
-    { id: 'chat', label: 'AI Advisor', icon: Sparkles },
-    { id: 'report', label: 'Ugerapport', icon: FileText },
-    { id: 'cmt', label: 'CMT Dashboard', icon: Building2 },
-    { id: 'journey', label: 'Buyer Journey', icon: Target },
-    { id: 'workflows', label: 'Workflows', icon: Zap },
-    { id: 'data', label: 'Pipeline Data', icon: TrendingUp },
-    { id: 'analytics', label: 'Analytics', icon: BarChart2 },
-    { id: 'connections', label: 'Connections', icon: Database },
-    { id: 'leads', label: 'Lead Intel', icon: Users },
+  const PRIMARY_TABS = [
+    { id: 'gtm-setup',    label: 'GTM Setup',    icon: Compass },
+    { id: 'intelligence', label: 'Intelligence', icon: Brain },
+    { id: 'pipeline',     label: 'Pipeline',     icon: TrendingUp },
+    { id: 'signals',      label: 'Signals',      icon: Radio, badge: alertStats.urgent_high_pending },
+  ];
+
+  const LEGACY_TABS = [
+    { id: 'dashboard',   label: 'Dashboard',     icon: Activity },
+    { id: 'alerts',      label: 'Alerts',        icon: Bell },
+    { id: 'chat',        label: 'AI Advisor',    icon: Sparkles },
+    { id: 'report',      label: 'Ugerapport',    icon: FileText },
+    { id: 'cmt',         label: 'CMT Dashboard', icon: Building2 },
+    { id: 'journey',     label: 'Buyer Journey', icon: Target },
+    { id: 'workflows',   label: 'Workflows',     icon: Zap },
+    { id: 'data',        label: 'Pipeline Data', icon: TrendingUp },
+    { id: 'analytics',   label: 'Analytics',     icon: BarChart2 },
+    { id: 'connections', label: 'Connections',   icon: Database },
+    { id: 'leads',       label: 'Lead Intel',    icon: Users },
   ];
 
   return (
@@ -898,7 +995,7 @@ const SalesIntelligencePlatform = () => {
             <Zap className="w-8 h-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Signal Intelligence</h1>
-              <p className="text-sm text-gray-500">Continuous monitoring · Event-driven alerts</p>
+              <p className="text-sm text-gray-500">GTM Intelligence Platform · Board-level insights</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -917,14 +1014,14 @@ const SalesIntelligencePlatform = () => {
           </div>
         </div>
 
-        {/* Nav tabs */}
-        <div className="flex space-x-1 px-6">
-          {tabs.map(tab => {
+        {/* ── Primary Nav ── */}
+        <div className="flex items-center space-x-1 px-6">
+          {PRIMARY_TABS.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => { setActiveTab(tab.id); setLegacyOpen(false); }}
                 className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-blue-600 text-blue-600'
@@ -941,6 +1038,44 @@ const SalesIntelligencePlatform = () => {
               </button>
             );
           })}
+
+          {/* Legacy dropdown */}
+          <div className="relative ml-2">
+            <button
+              onClick={() => setLegacyOpen(o => !o)}
+              className={`flex items-center space-x-1.5 px-3 py-3 border-b-2 transition-colors ${
+                LEGACY_TABS.some(t => t.id === activeTab)
+                  ? 'border-gray-400 text-gray-700'
+                  : 'border-transparent text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              <Archive className="w-4 h-4" />
+              <span className="text-sm font-medium">Legacy</span>
+              <ChevronDown className={`w-3 h-3 transition-transform ${legacyOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {legacyOpen && (
+              <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                {LEGACY_TABS.map(tab => {
+                  const Icon = tab.icon;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setActiveTab(tab.id); setLegacyOpen(false); }}
+                      className={`w-full flex items-center space-x-2 px-4 py-2 text-sm transition-colors text-left ${
+                        activeTab === tab.id
+                          ? 'bg-blue-50 text-blue-600'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -3365,6 +3500,933 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
+        {/* ─────────────────────────────────────────────────────── */}
+        {/* ── GTM SETUP TAB ───────────────────────────────────── */}
+        {/* ─────────────────────────────────────────────────────── */}
+        {activeTab === 'gtm-setup' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">GTM Setup</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Konfigurer din go-to-market strategi, ICP og målsætninger</p>
+              </div>
+              {gtmSaved && (
+                <span className="flex items-center gap-1.5 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-lg">
+                  <CheckCircle className="w-4 h-4" /> Gemt
+                </span>
+              )}
+            </div>
+
+            {/* Sub-tab pills */}
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+              {[
+                { id: 'strategy',     label: 'Strategi',     icon: Target },
+                { id: 'icp',          label: 'ICP & TAM',    icon: Users },
+                { id: 'goals',        label: 'Målsætninger', icon: TrendingUp },
+                { id: 'integrations', label: 'Integrationer', icon: Database },
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  onClick={() => setGtmTab(id)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    gtmTab === id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* ── Strategy ── */}
+            {gtmTab === 'strategy' && (
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Virksomhedsbeskrivelse</label>
+                    <p className="text-xs text-gray-400 mb-3">Hvad gør I? Elevator pitch til AI-analysen.</p>
+                    <textarea
+                      rows={4}
+                      value={strategyForm.company_description}
+                      onChange={e => setStrategyForm(f => ({ ...f, company_description: e.target.value }))}
+                      placeholder="Vi tilbyder en SaaS-platform der hjælper B2B-salgshold med at..."
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Value Proposition</label>
+                    <p className="text-xs text-gray-400 mb-3">Hvad differentiere jer fra konkurrenterne?</p>
+                    <textarea
+                      rows={3}
+                      value={strategyForm.value_proposition}
+                      onChange={e => setStrategyForm(f => ({ ...f, value_proposition: e.target.value }))}
+                      placeholder="Vi er de eneste der kombinerer realtids intent signals med CRM-data og..."
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-sm font-semibold text-gray-700">Konkurrenter</label>
+                      <button
+                        onClick={() => setStrategyForm(f => ({ ...f, competitors: [...f.competitors, { name: '', weakness: '', how_we_win: '' }] }))}
+                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Tilføj
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {(strategyForm.competitors || []).map((c, i) => (
+                        <div key={i} className="grid grid-cols-3 gap-2 items-start">
+                          <input value={c.name || ''} onChange={e => { const arr = [...strategyForm.competitors]; arr[i] = { ...arr[i], name: e.target.value }; setStrategyForm(f => ({ ...f, competitors: arr })); }} placeholder="Navn" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                          <input value={c.weakness || ''} onChange={e => { const arr = [...strategyForm.competitors]; arr[i] = { ...arr[i], weakness: e.target.value }; setStrategyForm(f => ({ ...f, competitors: arr })); }} placeholder="Svaghed" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                          <div className="flex gap-1">
+                            <input value={c.how_we_win || ''} onChange={e => { const arr = [...strategyForm.competitors]; arr[i] = { ...arr[i], how_we_win: e.target.value }; setStrategyForm(f => ({ ...f, competitors: arr })); }} placeholder="Hvorfor vi vinder" className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                            <button onClick={() => setStrategyForm(f => ({ ...f, competitors: f.competitors.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      ))}
+                      {!strategyForm.competitors?.length && <p className="text-xs text-gray-400 italic">Ingen konkurrenter tilføjet endnu.</p>}
+                    </div>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-sm font-semibold text-gray-700">Produkter / Services</label>
+                      <button
+                        onClick={() => setStrategyForm(f => ({ ...f, offerings: [...f.offerings, { name: '', description: '', price_range: '' }] }))}
+                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Tilføj
+                      </button>
+                    </div>
+                    <div className="space-y-2">
+                      {(strategyForm.offerings || []).map((o, i) => (
+                        <div key={i} className="grid grid-cols-3 gap-2">
+                          <input value={o.name || ''} onChange={e => { const arr = [...strategyForm.offerings]; arr[i] = { ...arr[i], name: e.target.value }; setStrategyForm(f => ({ ...f, offerings: arr })); }} placeholder="Navn" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
+                          <input value={o.description || ''} onChange={e => { const arr = [...strategyForm.offerings]; arr[i] = { ...arr[i], description: e.target.value }; setStrategyForm(f => ({ ...f, offerings: arr })); }} placeholder="Beskrivelse" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
+                          <div className="flex gap-1">
+                            <input value={o.price_range || ''} onChange={e => { const arr = [...strategyForm.offerings]; arr[i] = { ...arr[i], price_range: e.target.value }; setStrategyForm(f => ({ ...f, offerings: arr })); }} placeholder="Pris" className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
+                            <button onClick={() => setStrategyForm(f => ({ ...f, offerings: f.offerings.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      ))}
+                      {!strategyForm.offerings?.length && <p className="text-xs text-gray-400 italic">Ingen produkter tilføjet endnu.</p>}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-2 flex justify-end">
+                  <button
+                    onClick={() => saveGtmConfig('strategy', strategyForm)}
+                    disabled={gtmSaving}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
+                  >
+                    <Save className="w-4 h-4" />
+                    {gtmSaving ? 'Gemmer...' : 'Gem Strategi'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── ICP & TAM ── */}
+            {gtmTab === 'icp' && (
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Industrier</label>
+                    <p className="text-xs text-gray-400 mb-3">Tryk Enter for at tilføje en industri</p>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(icpForm.company_filters?.industries || []).map((ind, i) => (
+                        <span key={i} className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                          {ind}
+                          <button onClick={() => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, industries: f.company_filters.industries.filter((_, j) => j !== i) } }))}><X className="w-3 h-3" /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <input
+                      value={industryInput}
+                      onChange={e => setIndustryInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && industryInput.trim()) { setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, industries: [...(f.company_filters?.industries || []), industryInput.trim()] } })); setIndustryInput(''); e.preventDefault(); }}}
+                      placeholder="SaaS, Fintech, Logistik..."
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Virksomhedsstørrelse (antal ansatte)</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Min</label>
+                        <input type="number" value={icpForm.company_filters?.employee_min || ''} onChange={e => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, employee_min: parseInt(e.target.value) || 0 } }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 mb-1 block">Max</label>
+                        <input type="number" value={icpForm.company_filters?.employee_max || ''} onChange={e => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, employee_max: parseInt(e.target.value) || 5000 } }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Geografi</label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {(icpForm.company_filters?.geographies || []).map((g, i) => (
+                        <span key={i} className="flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
+                          {g}
+                          <button onClick={() => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, geographies: f.company_filters.geographies.filter((_, j) => j !== i) } }))}><X className="w-3 h-3" /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <input
+                      value={geoInput}
+                      onChange={e => setGeoInput(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter' && geoInput.trim()) { setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, geographies: [...(f.company_filters?.geographies || []), geoInput.trim()] } })); setGeoInput(''); e.preventDefault(); }}}
+                      placeholder="Danmark, Sverige, DACH..."
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">TAM — Total Addressable Market</label>
+                    <p className="text-xs text-gray-400 mb-3">Hvor mange virksomheder matcher jeres ICP i alt (eksternt estimat)?</p>
+                    <input
+                      type="number"
+                      value={icpForm.tam_total || ''}
+                      onChange={e => setIcpForm(f => ({ ...f, tam_total: parseInt(e.target.value) || 0 }))}
+                      placeholder="F.eks. 1200"
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <textarea
+                      rows={2}
+                      value={icpForm.tam_notes || ''}
+                      onChange={e => setIcpForm(f => ({ ...f, tam_notes: e.target.value }))}
+                      placeholder="Kilde eller noter til TAM-estimatet..."
+                      className="mt-2 w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none resize-none"
+                    />
+                  </div>
+                  <div className="bg-white p-6 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="text-sm font-semibold text-gray-700">Buyer Personas</label>
+                      <button onClick={() => setIcpForm(f => ({ ...f, personas: [...(f.personas || []), { title: '', department: '', pain_points: '' }] }))} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"><Plus className="w-3 h-3" /> Tilføj</button>
+                    </div>
+                    <div className="space-y-3">
+                      {(icpForm.personas || []).map((p, i) => (
+                        <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2">
+                          <div className="grid grid-cols-2 gap-2">
+                            <input value={p.title || ''} onChange={e => { const arr = [...icpForm.personas]; arr[i] = { ...arr[i], title: e.target.value }; setIcpForm(f => ({ ...f, personas: arr })); }} placeholder="Titel (f.eks. VP Sales)" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
+                            <input value={p.department || ''} onChange={e => { const arr = [...icpForm.personas]; arr[i] = { ...arr[i], department: e.target.value }; setIcpForm(f => ({ ...f, personas: arr })); }} placeholder="Afdeling" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
+                          </div>
+                          <div className="flex gap-1">
+                            <input value={p.pain_points || ''} onChange={e => { const arr = [...icpForm.personas]; arr[i] = { ...arr[i], pain_points: e.target.value }; setIcpForm(f => ({ ...f, personas: arr })); }} placeholder="Pain points" className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
+                            <button onClick={() => setIcpForm(f => ({ ...f, personas: f.personas.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      ))}
+                      {!icpForm.personas?.length && <p className="text-xs text-gray-400 italic">Ingen personas tilføjet endnu.</p>}
+                    </div>
+                  </div>
+                </div>
+                <div className="col-span-2 flex justify-end">
+                  <button onClick={() => saveGtmConfig('icp', icpForm)} disabled={gtmSaving} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
+                    <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem ICP'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ── Goals / Activity Calculator ── */}
+            {gtmTab === 'goals' && (() => {
+              const g = goalsForm;
+              const rev  = parseFloat(g.revenue_target) || 0;
+              const acv  = parseFloat(g.acv) || 0;
+              const wr   = parseFloat(g.win_rate_pct) / 100 || 0.01;
+              const omr  = parseFloat(g.opp_to_meeting_rate_pct) / 100 || 0.01;
+              const rr   = parseFloat(g.outreach_response_rate_pct) / 100 || 0.01;
+              const weeks = g.period === 'quarterly' ? 13 : 52;
+              const deals = acv > 0 ? Math.ceil(rev / acv) : 0;
+              const opps  = wr > 0 ? Math.ceil(deals / wr) : 0;
+              const mtgs  = omr > 0 ? Math.ceil(opps / omr) : 0;
+              const accts = rr > 0 ? Math.ceil(mtgs / rr) : 0;
+              return (
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-4">
+                    <h3 className="text-sm font-semibold text-gray-700">Indstillinger</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-1">Periode</label>
+                        <select value={g.period} onChange={e => setGoalsForm(f => ({ ...f, period: e.target.value }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none">
+                          <option value="annual">Årlig</option>
+                          <option value="quarterly">Kvartal</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-500 block mb-1">Nuværende ARR</label>
+                        <input type="number" value={g.current_arr || ''} onChange={e => setGoalsForm(f => ({ ...f, current_arr: parseFloat(e.target.value) || 0 }))} placeholder="0" className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none" />
+                      </div>
+                    </div>
+                    {[
+                      { key: 'revenue_target', label: 'Omsætningsmål', placeholder: '1.000.000', suffix: 'kr' },
+                      { key: 'acv', label: 'Gns. kontraktværdi (ACV)', placeholder: '50.000', suffix: 'kr' },
+                      { key: 'win_rate_pct', label: 'Win rate', placeholder: '25', suffix: '%' },
+                      { key: 'opp_to_meeting_rate_pct', label: 'Opportunity → møde rate', placeholder: '30', suffix: '%' },
+                      { key: 'outreach_response_rate_pct', label: 'Outreach svar-rate', placeholder: '10', suffix: '%' },
+                    ].map(({ key, label, placeholder, suffix }) => (
+                      <div key={key}>
+                        <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                        <div className="flex items-center">
+                          <input type="number" value={g[key] || ''} onChange={e => setGoalsForm(f => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))} placeholder={placeholder} className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                          <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500">{suffix}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <button onClick={() => saveGtmConfig('goals', goalsForm)} disabled={gtmSaving} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
+                      <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem Målsætninger'}
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="bg-white p-5 rounded-lg border border-gray-200">
+                      <h3 className="text-sm font-semibold text-gray-700 mb-4">Aktivitetsformlen</h3>
+                      {deals > 0 ? (
+                        <div className="space-y-2">
+                          {[
+                            { label: 'Omsætningsmål', value: `${(rev/1000).toFixed(0)}k kr`, color: 'bg-blue-100 text-blue-800', desc: '' },
+                            { label: `÷ ACV (${(acv/1000).toFixed(0)}k kr)`, value: `${deals} deals`, color: 'bg-purple-100 text-purple-800', desc: 'Deals der skal lukkes' },
+                            { label: `÷ Win rate (${g.win_rate_pct}%)`, value: `${opps} opportunities`, color: 'bg-orange-100 text-orange-800', desc: 'Opportunities der skal åbnes' },
+                            { label: `÷ Opp→møde (${g.opp_to_meeting_rate_pct}%)`, value: `${mtgs} møder`, color: 'bg-yellow-100 text-yellow-800', desc: 'Møder der skal bookes' },
+                            { label: `÷ Svar-rate (${g.outreach_response_rate_pct}%)`, value: `${accts} accounts`, color: 'bg-green-100 text-green-800', desc: 'Accounts der skal kontaktes' },
+                          ].map(({ label, value, color, desc }, idx, arr) => (
+                            <div key={label}>
+                              <div className={`flex items-center justify-between p-3 rounded-lg ${color}`}>
+                                <div>
+                                  <span className="text-xs opacity-70">{label}</span>
+                                  <div className="font-bold text-sm">{value}</div>
+                                  {desc && <span className="text-xs opacity-60">{desc}</span>}
+                                </div>
+                              </div>
+                              {idx < arr.length - 1 && <div className="text-center text-gray-400 text-xs my-1">↓</div>}
+                            </div>
+                          ))}
+                          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <p className="text-xs font-semibold text-gray-600 mb-2">Ugentlige mål ({g.period === 'quarterly' ? '13 uger' : '52 uger'})</p>
+                            <div className="grid grid-cols-3 gap-2 text-center">
+                              <div className="bg-white rounded p-2 border border-gray-200">
+                                <div className="text-lg font-bold text-blue-600">{(accts/weeks).toFixed(1)}</div>
+                                <div className="text-xs text-gray-500">accounts/uge</div>
+                              </div>
+                              <div className="bg-white rounded p-2 border border-gray-200">
+                                <div className="text-lg font-bold text-purple-600">{(mtgs/weeks).toFixed(1)}</div>
+                                <div className="text-xs text-gray-500">møder/uge</div>
+                              </div>
+                              <div className="bg-white rounded p-2 border border-gray-200">
+                                <div className="text-lg font-bold text-orange-600">{(opps/weeks).toFixed(1)}</div>
+                                <div className="text-xs text-gray-500">opps/uge</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-400">
+                          <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm">Udfyld omsætningsmål og ACV for at se aktivitetsformlen</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ── Integrations (reuse connections content) ── */}
+            {gtmTab === 'integrations' && (() => {
+              // Inline the connections tab content (same logic, different entry point)
+              const INTEGRATION_DEFS = [
+                { id: 'salesforce', name: 'Salesforce', icon: '☁️', desc: 'CRM deals, accounts, contacts', color: 'bg-blue-50 border-blue-200' },
+                { id: 'hubspot', name: 'HubSpot', icon: '🟠', desc: 'Deals, companies, contacts', color: 'bg-orange-50 border-orange-200' },
+                { id: 'clay', name: 'Clay', icon: '🧱', desc: 'Lead enrichment & signals', color: 'bg-purple-50 border-purple-200' },
+                { id: 'snitcher', name: 'Snitcher', icon: '👁️', desc: 'Website visitor intent', color: 'bg-green-50 border-green-200' },
+                { id: 'notion', name: 'Notion', icon: '📓', desc: 'Project & initiative tracking', color: 'bg-gray-50 border-gray-200' },
+              ];
+              return (
+                <div>
+                  <p className="text-sm text-gray-500 mb-4">Forbind din GTM tech-stack. Data fra disse integrationer bruges i alle analyser.</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    {INTEGRATION_DEFS.map(def => {
+                      const conn = connections.find(c => c.service === def.id);
+                      return (
+                        <div key={def.id} className={`p-5 rounded-lg border-2 ${def.color}`}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-2xl">{def.icon}</span>
+                              <div>
+                                <div className="font-semibold text-gray-900 text-sm">{def.name}</div>
+                                <div className="text-xs text-gray-500">{def.desc}</div>
+                              </div>
+                            </div>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${conn?.status === 'connected' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                              {conn?.status === 'connected' ? '● Forbundet' : '○ Ikke forbundet'}
+                            </span>
+                          </div>
+                          {conn?.status === 'connected' ? (
+                            <div className="flex gap-2">
+                              <button onClick={() => handleSync(def.id, conn.id)} disabled={syncingId === conn.id} className="flex-1 text-xs py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
+                                {syncingId === conn.id ? 'Synkroniserer...' : '↻ Sync'}
+                              </button>
+                              <button onClick={() => handleDisconnect(conn.id)} className="text-xs py-1.5 px-3 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
+                                Fjern
+                              </button>
+                            </div>
+                          ) : (
+                            <button onClick={() => { setConnectModal(def.id); setConnectForm({}); setConnectError(null); }} className="w-full text-xs py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                              Forbind
+                            </button>
+                          )}
+                          {syncResult[conn?.id]?.msg && (
+                            <p className={`text-xs mt-2 ${syncResult[conn.id].ok ? 'text-green-600' : 'text-red-600'}`}>{syncResult[conn.id].msg}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────── */}
+        {/* ── INTELLIGENCE TAB ────────────────────────────────── */}
+        {/* ─────────────────────────────────────────────────────── */}
+        {activeTab === 'intelligence' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Intelligence</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Board-level GTM indsigter baseret på din strategi, ICP og CRM-data</p>
+              </div>
+              <button onClick={fetchIntelligence} disabled={intelligenceLoading} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm">
+                <RefreshCw className={`w-4 h-4 ${intelligenceLoading ? 'animate-spin' : ''}`} /> Opdater
+              </button>
+            </div>
+
+            {intelligenceLoading && !intelligenceData && (
+              <div className="flex items-center justify-center py-20 text-gray-400">
+                <RefreshCw className="w-6 h-6 animate-spin mr-2" /> Beregner indsigter...
+              </div>
+            )}
+
+            {intelligenceData && (() => {
+              const intel = intelligenceData;
+              const tam   = intel.tam_coverage       || {};
+              const act   = intel.account_activation || {};
+              const icp   = intel.icp_match          || {};
+              const pipe  = intel.pipeline_coverage  || {};
+              const wl    = intel.win_loss           || {};
+              const actReq = intel.activity_requirements || {};
+              const patterns = intel.win_patterns   || [];
+              const boardAlerts = intel.board_alerts || [];
+
+              const statusColor = (s) => ({
+                strong: 'text-green-700 bg-green-50 border-green-200',
+                ok:     'text-blue-700 bg-blue-50 border-blue-200',
+                low:    'text-amber-700 bg-amber-50 border-amber-200',
+                critical: 'text-red-700 bg-red-50 border-red-200',
+              }[s] || 'text-gray-700 bg-gray-50 border-gray-200');
+
+              const kpiCards = [
+                {
+                  label: 'TAM Dækning',
+                  value: `${tam.pct || 0}%`,
+                  sub: `${tam.crm_icp_accounts || 0} af ${tam.tam_total || 0} ICP-virksomheder i CRM`,
+                  status: tam.status,
+                  icon: Target,
+                  detail: tam.gap > 0 ? `Mangler ${tam.gap} virksomheder` : 'Komplet dækning',
+                },
+                {
+                  label: 'Account Aktivering',
+                  value: `${act.pct || 0}%`,
+                  sub: `${act.activated || 0} af ${act.target || 0} accounts aktiveret`,
+                  status: act.status,
+                  icon: Zap,
+                  detail: act.gap > 0 ? `${act.gap} accounts mangler aktivering` : 'Mål nået',
+                },
+                {
+                  label: 'ICP Match Rate',
+                  value: `${icp.pct || 0}%`,
+                  sub: `${icp.icp_deals || 0} af ${icp.total_deals || 0} åbne deals er ICP`,
+                  status: icp.pct >= 70 ? 'ok' : icp.pct >= 40 ? 'low' : 'critical',
+                  icon: Users,
+                  detail: `${icp.non_icp_deals || 0} non-ICP deals i pipeline`,
+                },
+                {
+                  label: 'Pipeline Dækning',
+                  value: `${pipe.pct || 0}%`,
+                  sub: `${(pipe.weighted_pipeline/1000 || 0).toFixed(0)}k af ${(pipe.revenue_target/1000 || 0).toFixed(0)}k mål`,
+                  status: pipe.status,
+                  icon: TrendingUp,
+                  detail: pipe.gap > 0 ? `Mangler ${(pipe.gap/1000).toFixed(0)}k i pipeline` : 'Over mål',
+                },
+              ];
+
+              return (
+                <div className="space-y-6">
+                  {/* Board alerts */}
+                  {boardAlerts.length > 0 && (
+                    <div className="space-y-2">
+                      {boardAlerts.map((msg, i) => (
+                        <div key={i} className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                          <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                          <p className="text-sm text-amber-800">{msg}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* 4 KPI cards */}
+                  <div className="grid grid-cols-4 gap-4">
+                    {kpiCards.map(({ label, value, sub, status, icon: Icon, detail }) => (
+                      <div key={label} className={`p-5 rounded-lg border-2 ${statusColor(status)}`}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Icon className="w-5 h-5 opacity-70" />
+                            <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</span>
+                          </div>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${statusColor(status)}`}>
+                            {{ strong: '✓ Stærk', ok: '✓ OK', low: '⚠ Lav', critical: '✗ Kritisk' }[status] || status}
+                          </span>
+                        </div>
+                        <div className="text-3xl font-bold mb-1">{value}</div>
+                        <p className="text-xs opacity-70 mb-1">{sub}</p>
+                        <p className="text-xs font-medium opacity-80">{detail}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Activity requirements */}
+                    {actReq.deals_needed > 0 && (
+                      <div className="bg-white p-6 rounded-lg border border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4 text-blue-500" /> Aktivitetskrav ({actReq.period === 'quarterly' ? 'kvartal' : 'år'})
+                        </h3>
+                        <div className="space-y-3">
+                          {[
+                            { label: 'Deals der skal lukkes', value: actReq.deals_needed, weekly: actReq.weekly_opps, color: 'bg-blue-500' },
+                            { label: 'Opportunities der skal åbnes', value: actReq.opps_needed, weekly: actReq.weekly_opps, color: 'bg-purple-500' },
+                            { label: 'Møder der skal bookes', value: actReq.meetings_needed, weekly: actReq.weekly_meetings, color: 'bg-orange-500' },
+                            { label: 'Accounts der skal kontaktes', value: actReq.accounts_to_contact, weekly: actReq.weekly_accounts, color: 'bg-green-500' },
+                          ].map(({ label, value, weekly, color }) => (
+                            <div key={label} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-2.5 h-2.5 rounded-full ${color}`} />
+                                <span className="text-sm text-gray-600">{label}</span>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-sm font-bold text-gray-900">{value?.toLocaleString()}</span>
+                                <span className="text-xs text-gray-400 ml-1">({weekly}/uge)</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Win/Loss + win patterns */}
+                    <div className="space-y-4">
+                      <div className="bg-white p-5 rounded-lg border border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Win / Loss</h3>
+                        <div className="flex items-center gap-6">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">{wl.won || 0}</div>
+                            <div className="text-xs text-gray-500">Vundne</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-red-500">{wl.lost || 0}</div>
+                            <div className="text-xs text-gray-500">Tabte</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-blue-600">{wl.win_rate_actual || 0}%</div>
+                            <div className="text-xs text-gray-500">Win rate</div>
+                          </div>
+                        </div>
+                      </div>
+                      {patterns.length > 0 && (
+                        <div className="bg-white p-5 rounded-lg border border-gray-200">
+                          <h3 className="text-sm font-semibold text-gray-700 mb-3">Win Signal Mønstre</h3>
+                          <div className="space-y-2">
+                            {patterns.map(p => (
+                              <div key={p.signal_type} className="flex items-center gap-3">
+                                <span className="text-xs text-gray-500 w-20 capitalize">{p.signal_type}</span>
+                                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                  <div className="h-full bg-green-500 rounded-full" style={{ width: `${p.correlation_pct}%` }} />
+                                </div>
+                                <span className="text-xs font-medium text-gray-700 w-10 text-right">{p.correlation_pct}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* By-rep activation */}
+                  {(act.by_rep || []).length > 0 && (
+                    <div className="bg-white rounded-lg border border-gray-200">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h3 className="text-sm font-semibold text-gray-700">Sælger Aktivering</h3>
+                      </div>
+                      <table className="w-full">
+                        <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                          <tr>
+                            <th className="px-6 py-3 text-left">Sælger</th>
+                            <th className="px-6 py-3 text-right">Aktive deals</th>
+                            <th className="px-6 py-3 text-right">Total deals</th>
+                            <th className="px-6 py-3 text-right">Pipeline værdi</th>
+                            <th className="px-6 py-3 text-right">Aktivering %</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {act.by_rep.map(rep => (
+                            <tr key={rep.name} className="hover:bg-gray-50">
+                              <td className="px-6 py-3 text-sm font-medium text-gray-900">{rep.name}</td>
+                              <td className="px-6 py-3 text-sm text-right text-gray-700">{rep.activated}</td>
+                              <td className="px-6 py-3 text-sm text-right text-gray-500">{rep.total_deals}</td>
+                              <td className="px-6 py-3 text-sm text-right text-gray-700">{(rep.pipeline_value/1000).toFixed(0)}k</td>
+                              <td className="px-6 py-3 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div className={`h-full rounded-full ${rep.pct >= 75 ? 'bg-green-500' : rep.pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${rep.pct}%` }} />
+                                  </div>
+                                  <span className="text-sm font-medium text-gray-700 w-10 text-right">{rep.pct}%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {!actReq.deals_needed && patterns.length === 0 && boardAlerts.length === 0 && (
+                    <div className="text-center py-12 text-gray-400">
+                      <Brain className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">Gå til <strong>GTM Setup → Målsætninger</strong> og udfyld dine mål for at se aktivitetsanalysen</p>
+                      <p className="text-xs mt-1">ICP-data bruges til at beregne TAM-dækning og pipeline kvalitet</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────── */}
+        {/* ── PIPELINE TAB ────────────────────────────────────── */}
+        {/* ─────────────────────────────────────────────────────── */}
+        {activeTab === 'pipeline' && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Pipeline</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Deals, accounts og prospects fra din CRM</p>
+            </div>
+            {/* Sub-tab pills */}
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+              {[
+                { id: 'deals',     label: 'Deals',     icon: TrendingUp },
+                { id: 'accounts',  label: 'Accounts',  icon: Building2 },
+                { id: 'prospects', label: 'Prospects', icon: Users },
+              ].map(({ id, label, icon: Icon }) => (
+                <button key={id} onClick={() => setPipelineSubTab(id)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${pipelineSubTab === id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}>
+                  <Icon className="w-3.5 h-3.5" />{label}
+                </button>
+              ))}
+            </div>
+
+            {/* Deals — reuse Pipeline Data content */}
+            {pipelineSubTab === 'deals' && (() => {
+              const deals = (pipelineData?.pipeline || []).filter(d =>
+                !pipelineSearch || d.name?.toLowerCase().includes(pipelineSearch.toLowerCase())
+              );
+              return (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <input value={pipelineSearch} onChange={e => setPipelineSearch(e.target.value)} placeholder="Søg deals..." className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-72" />
+                    <span className="text-sm text-gray-500">{deals.length} deals</span>
+                  </div>
+                  {pipelineLoading ? (
+                    <div className="text-center py-10 text-gray-400">Indlæser pipeline...</div>
+                  ) : (
+                    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                          <tr>
+                            <th className="px-6 py-3 text-left">Virksomhed</th>
+                            <th className="px-6 py-3 text-right">Beløb</th>
+                            <th className="px-6 py-3 text-left">Stage</th>
+                            <th className="px-6 py-3 text-left">Ejer</th>
+                            <th className="px-6 py-3 text-left">Lukkdato</th>
+                            <th className="px-6 py-3 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {deals.slice(0, 30).map((d, i) => (
+                            <tr key={i} className="hover:bg-gray-50">
+                              <td className="px-6 py-3 text-sm font-medium text-gray-900">{d.name || d.account_name || '—'}</td>
+                              <td className="px-6 py-3 text-sm text-right text-gray-700">{d.amount ? `${(d.amount/1000).toFixed(0)}k` : '—'}</td>
+                              <td className="px-6 py-3 text-sm text-gray-600">{d.stage || '—'}</td>
+                              <td className="px-6 py-3 text-sm text-gray-600">{d.owner || d.owner_name || '—'}</td>
+                              <td className="px-6 py-3 text-sm text-gray-500">{d.close_date ? new Date(d.close_date).toLocaleDateString('da-DK') : '—'}</td>
+                              <td className="px-6 py-3 text-center">
+                                {d.is_stalled ? <span className="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full">Stalled</span> : <span className="text-xs px-2 py-0.5 bg-green-100 text-green-600 rounded-full">Aktiv</span>}
+                              </td>
+                            </tr>
+                          ))}
+                          {deals.length === 0 && <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Ingen deals fundet. Sync din CRM under Integrationer.</td></tr>}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* Accounts */}
+            {pipelineSubTab === 'accounts' && (
+              <div className="bg-white rounded-lg border border-gray-200">
+                {analyticsLoading ? (
+                  <div className="text-center py-10 text-gray-400">Indlæser accounts...</div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                      <tr>
+                        <th className="px-6 py-3 text-left">Virksomhed</th>
+                        <th className="px-6 py-3 text-left">Industri</th>
+                        <th className="px-6 py-3 text-right">Ansatte</th>
+                        <th className="px-6 py-3 text-right">Prioritetsscore</th>
+                        <th className="px-6 py-3 text-left">Stage</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {(analyticsData?.accounts?.accounts || []).slice(0, 25).map((a, i) => (
+                        <tr key={i} className="hover:bg-gray-50">
+                          <td className="px-6 py-3 text-sm font-medium text-gray-900">{a.account_name || a.company_name || '—'}</td>
+                          <td className="px-6 py-3 text-sm text-gray-600">{a.industry || '—'}</td>
+                          <td className="px-6 py-3 text-sm text-right text-gray-600">{a.employee_count?.toLocaleString() || '—'}</td>
+                          <td className="px-6 py-3 text-right">
+                            <span className="text-sm font-bold text-blue-600">{Math.round(a.priority_score || a.score || 0)}</span>
+                          </td>
+                          <td className="px-6 py-3 text-sm text-gray-500">{a.stage || a.current_stage || '—'}</td>
+                        </tr>
+                      ))}
+                      {!(analyticsData?.accounts?.accounts?.length) && <tr><td colSpan={5} className="px-6 py-10 text-center text-gray-400 text-sm">Sync HubSpot eller Salesforce for at se accounts.</td></tr>}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
+
+            {/* Prospects */}
+            {pipelineSubTab === 'prospects' && (
+              <div className="space-y-4">
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                      <tr>
+                        <th className="px-6 py-3 text-left">Virksomhed</th>
+                        <th className="px-6 py-3 text-left">Industri</th>
+                        <th className="px-6 py-3 text-right">Score</th>
+                        <th className="px-6 py-3 text-left">Prioritet</th>
+                        <th className="px-6 py-3 text-left">Ejer</th>
+                        <th className="px-6 py-3 text-left">Kilde</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {leads.slice(0, 25).map(lead => (
+                        <tr key={lead.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedLead(lead)}>
+                          <td className="px-6 py-3 text-sm font-medium text-gray-900">{lead.company_name}</td>
+                          <td className="px-6 py-3 text-sm text-gray-600">{lead.industry || '—'}</td>
+                          <td className="px-6 py-3 text-right">
+                            <span className={`text-sm font-bold ${lead.score >= 70 ? 'text-green-600' : lead.score >= 40 ? 'text-amber-600' : 'text-gray-500'}`}>{lead.score}</span>
+                          </td>
+                          <td className="px-6 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${lead.priority === 'hot' ? 'bg-red-100 text-red-700' : lead.priority === 'warm' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>{lead.priority || 'cold'}</span></td>
+                          <td className="px-6 py-3 text-sm text-gray-600">{lead.owner_name || '—'}</td>
+                          <td className="px-6 py-3 text-sm text-gray-500">{lead.source}</td>
+                        </tr>
+                      ))}
+                      {leads.length === 0 && <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Ingen prospects. Sync din CRM eller Clay.</td></tr>}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─────────────────────────────────────────────────────── */}
+        {/* ── SIGNALS TAB ─────────────────────────────────────── */}
+        {/* ─────────────────────────────────────────────────────── */}
+        {activeTab === 'signals' && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Signals</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Intent signals, alerts og kunderejser</p>
+            </div>
+            {/* Sub-tab pills */}
+            <div className="flex items-center justify-between">
+              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
+                {[
+                  { id: 'alerts',  label: 'Alerts',       icon: Bell, badge: alertStats.urgent_high_pending },
+                  { id: 'journey', label: 'Buyer Journey', icon: Target },
+                  { id: 'leads',   label: 'Lead Intel',    icon: Users },
+                ].map(({ id, label, icon: Icon, badge }) => (
+                  <button key={id} onClick={() => setSignalsSubTab(id)}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${signalsSubTab === id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'}`}>
+                    <Icon className="w-3.5 h-3.5" />{label}
+                    {badge > 0 && <span className="ml-1 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full leading-none">{badge}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Alerts sub-tab */}
+            {signalsSubTab === 'alerts' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {['pending','snoozed','actioned','dismissed'].map(s => (
+                    <button key={s} onClick={() => setFilterStatus(s)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${filterStatus === s ? 'bg-blue-600 text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}>
+                      {s.charAt(0).toUpperCase() + s.slice(1)}
+                      {s === 'pending' && alertStats.pending > 0 && <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">{alertStats.pending}</span>}
+                    </button>
+                  ))}
+                </div>
+                {loading ? (
+                  <div className="text-center py-10 text-gray-400">Indlæser alerts...</div>
+                ) : alerts.length === 0 ? (
+                  <div className="text-center py-10 text-gray-400 bg-white rounded-lg border border-gray-200">
+                    <Bell className="w-10 h-10 mx-auto mb-2 opacity-30" />
+                    <p className="text-sm">Ingen {filterStatus} alerts</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {alerts.slice(0, 20).map(alert => (
+                      <div key={alert.id} className="bg-white rounded-lg border border-gray-200 p-5">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${alert.priority === 'urgent' ? 'bg-red-100 text-red-700' : alert.priority === 'high' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>{alert.priority}</span>
+                              <span className="text-xs text-gray-400">{alert.type?.replace(/_/g, ' ')}</span>
+                            </div>
+                            <p className="text-sm font-semibold text-gray-900">{alert.headline}</p>
+                            {alert.recommendation && <p className="text-xs text-gray-500 mt-1">{alert.recommendation}</p>}
+                          </div>
+                          {filterStatus === 'pending' && (
+                            <div className="flex gap-2 ml-4">
+                              <button onClick={() => handleAlertAction(alert.id, 'mark_actioned')} disabled={actioningId === alert.id} className="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">Handl</button>
+                              <button onClick={() => handleAlertAction(alert.id, 'snooze', { hours: 24 })} disabled={actioningId === alert.id} className="text-xs px-3 py-1.5 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">Snooz</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Journey sub-tab */}
+            {signalsSubTab === 'journey' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    value={journeyCompany}
+                    onChange={e => setJourneyCompany(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && journeyCompany.trim() && (async () => { setJourneyLoading(true); try { const d = await API.get(`/analysis/journey?company=${encodeURIComponent(journeyCompany)}`); setJourneyData(d); } catch { setJourneyData(null); } finally { setJourneyLoading(false); }})() }
+                    placeholder="Søg virksomhedsnavn..."
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-80"
+                  />
+                  <button
+                    onClick={async () => { if (!journeyCompany.trim()) return; setJourneyLoading(true); try { const d = await API.get(`/analysis/journey?company=${encodeURIComponent(journeyCompany)}`); setJourneyData(d); } catch { setJourneyData(null); } finally { setJourneyLoading(false); }}}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+                  >
+                    Søg
+                  </button>
+                </div>
+                {journeyAccounts.length > 0 && !journeyData && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-2">Seneste accounts:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {journeyAccounts.slice(0, 12).map(a => (
+                        <button key={a.name} onClick={async () => { setJourneyCompany(a.name); setJourneyLoading(true); try { const d = await API.get(`/analysis/journey?company=${encodeURIComponent(a.name)}`); setJourneyData(d); } catch { setJourneyData(null); } finally { setJourneyLoading(false); }}} className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors">
+                          {a.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {journeyLoading && <div className="text-center py-10 text-gray-400">Indlæser kunderejse...</div>}
+                {journeyData && !journeyLoading && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-bold text-gray-900">{journeyData.company}</h3>
+                      <span className="text-sm text-gray-500">{journeyData.total_events} events</span>
+                    </div>
+                    <div className="relative">
+                      <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-gray-200" />
+                      <div className="space-y-3">
+                        {(journeyData.events || []).map((ev, i) => (
+                          <div key={i} className="flex items-start gap-4 pl-4">
+                            <div className={`w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs z-10 ${ev.color?.includes('red') ? 'bg-red-500' : ev.color?.includes('blue') ? 'bg-blue-500' : ev.color?.includes('green') ? 'bg-green-500' : ev.color?.includes('purple') ? 'bg-purple-500' : 'bg-gray-400'}`}>{ev.icon || '•'}</div>
+                            <div className="flex-1 bg-white rounded-lg border border-gray-200 p-3">
+                              <div className="flex items-start justify-between">
+                                <p className="text-sm font-medium text-gray-900">{ev.title}</p>
+                                <span className="text-xs text-gray-400 ml-2 flex-shrink-0">{ev.timestamp ? new Date(ev.timestamp).toLocaleDateString('da-DK') : ''}</span>
+                              </div>
+                              {ev.detail && <p className="text-xs text-gray-500 mt-0.5">{ev.detail}</p>}
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">{ev.category}</span>
+                                <span className="text-xs text-gray-400">{ev.source}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Leads sub-tab */}
+            {signalsSubTab === 'leads' && (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <tr>
+                      <th className="px-6 py-3 text-left">Virksomhed</th>
+                      <th className="px-6 py-3 text-left">Industri</th>
+                      <th className="px-6 py-3 text-right">Score</th>
+                      <th className="px-6 py-3 text-left">Prioritet</th>
+                      <th className="px-6 py-3 text-left">Seneste aktivitet</th>
+                      <th className="px-6 py-3 text-left">Kilde</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {leads.map(lead => (
+                      <tr key={lead.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => setSelectedLead(lead)}>
+                        <td className="px-6 py-3 text-sm font-medium text-gray-900">{lead.company_name}</td>
+                        <td className="px-6 py-3 text-sm text-gray-600">{lead.industry || '—'}</td>
+                        <td className="px-6 py-3 text-right"><span className={`text-sm font-bold ${lead.score >= 70 ? 'text-green-600' : lead.score >= 40 ? 'text-amber-600' : 'text-gray-500'}`}>{lead.score}</span></td>
+                        <td className="px-6 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${lead.priority === 'hot' ? 'bg-red-100 text-red-700' : lead.priority === 'warm' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>{lead.priority || 'cold'}</span></td>
+                        <td className="px-6 py-3 text-sm text-gray-500">{lead.last_activity ? new Date(lead.last_activity).toLocaleDateString('da-DK') : '—'}</td>
+                        <td className="px-6 py-3 text-sm text-gray-500">{lead.source}</td>
+                      </tr>
+                    ))}
+                    {leads.length === 0 && <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400 text-sm">Ingen leads fundet.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
 </div>
 

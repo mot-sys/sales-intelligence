@@ -41,6 +41,7 @@ class Customer(Base):
     weekly_reports = relationship("WeeklyReport", back_populates="customer", cascade="all, delete-orphan")
     notion_initiatives = relationship("NotionInitiative", back_populates="customer", cascade="all, delete-orphan")
     workflows = relationship("Workflow", back_populates="customer", cascade="all, delete-orphan")
+    gtm_config = relationship("GTMConfig", back_populates="customer", uselist=False, cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -685,3 +686,61 @@ class NotionInitiative(Base):
         Index("idx_notion_page_unique", "customer_id", "notion_page_id", unique=True),
         Index("idx_notion_department", "customer_id", "department"),
     )
+
+
+# ─────────────────────────────────────────────────────────
+# GTM CONFIGURATION
+# ─────────────────────────────────────────────────────────
+
+class GTMConfig(Base):
+    """
+    Per-customer GTM (Go-To-Market) configuration.
+    Stores sales strategy, ICP definition, and revenue goals.
+    One row per customer — upsert on save (like AISettings).
+    """
+    __tablename__ = "gtm_configs"
+
+    customer_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("customers.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    # ── Strategy ───────────────────────────────────────────
+    company_description = Column(Text, nullable=True)     # Elevator pitch / what we do
+    value_proposition   = Column(Text, nullable=True)     # Core differentiation
+    # [{name, weakness, how_we_win}]
+    competitors         = Column(JSON, nullable=True)
+    # [{name, description, price_range}]
+    offerings           = Column(JSON, nullable=True)
+
+    # ── ICP ────────────────────────────────────────────────
+    # {
+    #   personas: [{title, department, pain_points}],
+    #   company_filters: {
+    #     industries: [str], employee_min: int, employee_max: int,
+    #     geographies: [str], technologies: [str]
+    #   },
+    #   tam_total: int,
+    #   tam_notes: str
+    # }
+    icp = Column(JSON, nullable=True)
+
+    # ── Goals ──────────────────────────────────────────────
+    # {
+    #   period: "annual"|"quarterly",
+    #   revenue_target: int,          # € / DKK amount
+    #   acv: int,                     # average contract value
+    #   win_rate_pct: float,          # 0–100
+    #   opp_to_meeting_rate_pct: float,
+    #   outreach_response_rate_pct: float,
+    #   current_arr: int
+    # }
+    goals = Column(JSON, nullable=True)
+
+    # Timestamps
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="gtm_config")
