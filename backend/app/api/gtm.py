@@ -442,6 +442,23 @@ async def get_intelligence(
     if total_open > 0 and icp_match_pct < 60 and icp_industries:
         board_alerts.append(f"Kun {icp_match_pct}% af åbne deals matcher ICP — tjek om vi booker møder med de rette virksomheder")
 
+    # ── YTD closed-won (for intelligence view) ────────────────
+    ytd_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+
+    def _naive(dt):
+        if dt is None:
+            return None
+        return dt.replace(tzinfo=None) if getattr(dt, "tzinfo", None) else dt
+
+    ytd_start_naive = _naive(ytd_start)
+    won_ytd = [
+        o for o in opps
+        if _is_closed_won(o.stage)
+        and o.close_date is not None
+        and _naive(o.close_date) >= ytd_start_naive
+    ]
+    revenue_won_ytd = sum(int(o.amount or 0) for o in won_ytd)
+
     return {
         "tam_coverage": {
             "pct":               tam_pct,
@@ -472,12 +489,187 @@ async def get_intelligence(
             "status":           pipe_status,
         },
         "win_loss": {
-            "won":            won_deals,
-            "lost":           lost_deals,
+            "won":             won_deals,
+            "lost":            lost_deals,
             "win_rate_actual": win_rate_actual,
+            "revenue_won_ytd": revenue_won_ytd,
+            "won_ytd_count":   len(won_ytd),
         },
         "activity_requirements": activity_req,
         "win_patterns":          win_patterns,
         "board_alerts":          board_alerts,
         "generated_at":          now.isoformat(),
+    }
+
+
+# ─────────────────────────────────────────────────────────
+# GET /api/gtm/progress
+# ─────────────────────────────────────────────────────────
+
+@router.get("/progress")
+async def get_gtm_progress(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Compare actual YTD / QTD CRM performance against prorated targets.
+    Returns gap analysis: how many deals / revenue still needed and at what weekly pace.
+    """
+    from uuid import UUID
+    cid = UUID(customer_id)
+    now = datetime.now(timezone.utc)
+
+    # ── Load GTM config ──────────────────────────────────
+    cfg_result = await db.execute(select(GTMConfig).where(GTMConfig.customer_id == cid))
+    cfg = cfg_result.scalar_one_or_none()
+    goals = (cfg.goals or {}) if cfg else {}
+
+    revenue_target = float(goals.get("revenue_target", 0) or 0)
+    acv            = float(goals.get("acv", 0) or 0)
+    win_rate       = float(goals.get("win_rate_pct", 25) or 25) / 100
+    opp_to_meeting = float(goals.get("opp_to_meeting_rate_pct", 30) or 30) / 100
+    response_rate  = float(goals.get("outreach_response_rate_pct", 10) or 10) / 100
+    period         = goals.get("period", "annual")
+
+    # ── Period boundaries ────────────────────────────────
+    if period == "quarterly":
+        quarter       = (now.month - 1) // 3        # 0-3
+        q_start_month = quarter * 3 + 1
+        q_end_month   = q_start_month + 3
+        p_start = datetime(now.year, q_start_month, 1, tzinfo=timezone.utc)
+        if q_end_month > 12:
+            p_end = datetime(now.year + 1, q_end_month - 12, 1, tzinfo=timezone.utc)
+        else:
+            p_end = datetime(now.year, q_end_month, 1, tzinfo=timezone.utc)
+    else:
+        p_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
+        p_end   = datetime(now.year + 1, 1, 1, tzinfo=timezone.utc)
+
+    total_days   = (p_end - p_start).days
+    elapsed_days = min((now - p_start).days, total_days)
+    elapsed_pct  = round(elapsed_days / total_days * 100, 1) if total_days > 0 else 0
+    weeks_remaining = max((p_end - now).days / 7, 0.5)
+
+    # ── Helper: strip timezone for naive DB comparison ───
+    def _naive(dt):
+        if dt is None:
+            return None
+        return dt.replace(tzinfo=None) if getattr(dt, "tzinfo", None) else dt
+
+    p_start_naive = _naive(p_start)
+
+    # ── Fetch CRM data ───────────────────────────────────
+    opps_result = await db.execute(
+        select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
+    )
+    all_opps = opps_result.scalars().all()
+
+    # Closed-won within period
+    won_period = [
+        o for o in all_opps
+        if _is_closed_won(o.stage)
+        and o.close_date is not None
+        and _naive(o.close_date) >= p_start_naive
+    ]
+    open_opps = [o for o in all_opps if _is_open(o.stage)]
+
+    # Active leads (last 30 days)
+    leads_result = await db.execute(
+        select(Lead).where(Lead.customer_id == cid)
+    )
+    all_leads = leads_result.scalars().all()
+    thirty_days_ago_naive = _naive(now - timedelta(days=30))
+    active_leads = [
+        l for l in all_leads
+        if l.last_activity is not None
+        and _naive(l.last_activity) >= thirty_days_ago_naive
+    ]
+
+    # ── Revenue metrics ──────────────────────────────────
+    revenue_won         = sum(int(o.amount or 0) for o in won_period)
+    revenue_remaining   = max(revenue_target - revenue_won, 0)
+    revenue_prorated    = round(revenue_target * elapsed_pct / 100, 0) if revenue_target > 0 else 0
+
+    # ── Deal metrics ─────────────────────────────────────
+    deals_needed_total  = math.ceil(revenue_target / acv) if acv > 0 else 0
+    deals_won           = len(won_period)
+    deals_prorated      = deals_needed_total * elapsed_pct / 100
+    deals_remaining     = max(deals_needed_total - deals_won, 0)
+    weekly_deals_needed = round(deals_remaining / weeks_remaining, 1) if weeks_remaining > 0 else 0
+
+    # ── Open pipeline ────────────────────────────────────
+    open_count        = len(open_opps)
+    weighted_pipeline = sum((o.amount or 0) * _stage_prob(o.stage) for o in open_opps)
+    pipeline_covers   = round(weighted_pipeline / revenue_remaining * 100, 1) if revenue_remaining > 0 else 100.0
+
+    # ── Remaining activity needed ────────────────────────
+    mtgs_remaining  = math.ceil(deals_remaining / (win_rate * opp_to_meeting)) \
+                      if win_rate > 0 and opp_to_meeting > 0 else 0
+    accts_remaining = math.ceil(mtgs_remaining / response_rate) if response_rate > 0 else 0
+    weekly_accts    = round(accts_remaining / weeks_remaining, 1) if weeks_remaining > 0 else 0
+
+    # ── On-track (actual >= 85% of prorated) ────────────
+    on_track_revenue = revenue_won >= revenue_prorated * 0.85 if revenue_prorated > 0 else True
+    on_track_deals   = deals_won   >= deals_prorated   * 0.85 if deals_prorated   > 0 else True
+
+    # ── Achievement % ────────────────────────────────────
+    achieved_pct = round(revenue_won / revenue_target * 100, 1) if revenue_target > 0 else 0
+    pace_pct     = round(revenue_won / revenue_prorated * 100, 1) if revenue_prorated > 0 else 0
+
+    # ── Alert strings ────────────────────────────────────
+    alerts = []
+    if revenue_target > 0:
+        if revenue_remaining > 0 and weeks_remaining > 0:
+            wkly = revenue_remaining / weeks_remaining
+            alerts.append(
+                f"Du mangler {revenue_remaining/1000:.0f}k kr de næste "
+                f"{weeks_remaining:.0f} uger ({wkly/1000:.0f}k/uge)"
+            )
+        if not on_track_deals and deals_prorated > 0:
+            behind = round((1 - deals_won / deals_prorated) * 100, 0)
+            alerts.append(
+                f"Deal-tempo er {behind:.0f}% bagud — du har lukket "
+                f"{deals_won} af {deals_prorated:.0f} deals forventet til nu"
+            )
+        if pipeline_covers < 100 and revenue_remaining > 0:
+            alerts.append(
+                f"Vægtet pipeline dækker kun {pipeline_covers:.0f}% af det resterende salgsmål"
+            )
+
+    return {
+        "period":           period,
+        "period_start":     p_start.isoformat(),
+        "period_end":       p_end.isoformat(),
+        "elapsed_pct":      elapsed_pct,
+        "weeks_remaining":  round(weeks_remaining, 1),
+        "revenue": {
+            "target":          round(revenue_target),
+            "won":             round(revenue_won),
+            "remaining":       round(revenue_remaining),
+            "prorated_target": round(revenue_prorated),
+            "achieved_pct":    achieved_pct,
+            "pace_pct":        pace_pct,
+            "on_track":        on_track_revenue,
+        },
+        "deals": {
+            "needed_total":   deals_needed_total,
+            "won":            deals_won,
+            "remaining":      deals_remaining,
+            "prorated_needed": round(deals_prorated, 1),
+            "weekly_needed":  weekly_deals_needed,
+            "on_track":       on_track_deals,
+        },
+        "pipeline": {
+            "open_count":     open_count,
+            "weighted_value": round(weighted_pipeline),
+            "covers_gap_pct": pipeline_covers,
+        },
+        "active_accounts": len(active_leads),
+        "activity_remaining": {
+            "meetings_needed":  mtgs_remaining,
+            "accounts_needed":  accts_remaining,
+            "weekly_accounts":  weekly_accts,
+        },
+        "alerts":        alerts,
+        "generated_at":  now.isoformat(),
     }

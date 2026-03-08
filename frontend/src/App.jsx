@@ -531,6 +531,14 @@ const SalesIntelligencePlatform = () => {
   // Bottom-up calculator
   const [bottomUpPerDay, setBottomUpPerDay] = useState(5);
 
+  // Goals input mode: 'absolute' = enter kr amount, 'percent' = enter % growth of current ARR
+  const [goalsInputMode, setGoalsInputMode] = useState('absolute');
+  const [growthPct, setGrowthPct] = useState(0);
+
+  // CRM progress / gap analysis
+  const [progressData, setProgressData] = useState(null);
+  const [progressLoading, setProgressLoading] = useState(false);
+
   // ── Intelligence state ───────────────────────────────────────────────────
   const [intelligenceData, setIntelligenceData] = useState(null);
   const [intelligenceLoading, setIntelligenceLoading] = useState(false);
@@ -826,6 +834,14 @@ const SalesIntelligencePlatform = () => {
       }
       if (data.goals && Object.keys(data.goals).length) {
         setGoalsForm(prev => ({ ...prev, ...data.goals }));
+        // Restore % growth mode if it was saved
+        if (data.goals.input_mode === 'percent') {
+          setGoalsInputMode('percent');
+          setGrowthPct(data.goals.growth_pct || 0);
+        } else {
+          setGoalsInputMode('absolute');
+          setGrowthPct(0);
+        }
       }
     } catch { /* silent — use form defaults */ }
   }, []);
@@ -861,6 +877,18 @@ const SalesIntelligencePlatform = () => {
     }
   }, []);
 
+  const fetchGtmProgress = useCallback(async () => {
+    setProgressLoading(true);
+    try {
+      const data = await API.get('/gtm/progress');
+      setProgressData(data);
+    } catch {
+      setProgressData(null);
+    } finally {
+      setProgressLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     // Legacy tab triggers (unchanged)
     if (activeTab === 'alerts' || activeTab === 'dashboard') fetchAlerts();
@@ -874,11 +902,11 @@ const SalesIntelligencePlatform = () => {
     if (activeTab === 'workflows') fetchWorkflows();
     if (activeTab === 'journey') fetchJourneyAccounts();
     // New primary tab triggers
-    if (activeTab === 'gtm-setup')    fetchGtmConfig();
+    if (activeTab === 'gtm-setup')    { fetchGtmConfig(); fetchGtmProgress(); }
     if (activeTab === 'intelligence') fetchIntelligence();
     if (activeTab === 'pipeline')     { fetchPipelineData(); fetchAnalytics(); fetchLeads(); }
     if (activeTab === 'signals')      { fetchAlerts(); fetchJourneyAccounts(); fetchLeads(); }
-  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution, fetchGtmConfig, fetchIntelligence]);
+  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution, fetchGtmConfig, fetchIntelligence, fetchGtmProgress]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -3737,7 +3765,10 @@ const SalesIntelligencePlatform = () => {
             {/* ── Goals / Activity Calculator ── */}
             {gtmTab === 'goals' && (() => {
               const g = goalsForm;
-              const rev  = parseFloat(g.revenue_target) || 0;
+              // Effective revenue target: either absolute amount or % growth of current ARR
+              const rev  = goalsInputMode === 'percent'
+                ? Math.round((parseFloat(g.current_arr) || 0) * (parseFloat(growthPct) || 0) / 100)
+                : parseFloat(g.revenue_target) || 0;
               const acv  = parseFloat(g.acv) || 0;
               const wr   = parseFloat(g.win_rate_pct) / 100 || 0.01;
               // meeting_to_opp_rate: % af møder der kvalificerer som opportunity
@@ -3792,18 +3823,61 @@ const SalesIntelligencePlatform = () => {
                       </div>
                     </div>
 
+                    {/* ── Revenue target: toggle absolute / % growth ── */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-medium text-gray-700">Omsætningsmål (ny ARR)</label>
+                        <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
+                          <button
+                            onClick={() => setGoalsInputMode('absolute')}
+                            className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${goalsInputMode === 'absolute' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          >Beløb</button>
+                          <button
+                            onClick={() => setGoalsInputMode('percent')}
+                            className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${goalsInputMode === 'percent' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                          >% vækst</button>
+                        </div>
+                      </div>
+
+                      {goalsInputMode === 'absolute' ? (
+                        <>
+                          <p className="text-xs text-gray-400 mb-1">Ny omsætning der skal genereres i perioden</p>
+                          <div className="flex items-center">
+                            <input type="number" value={g.revenue_target || ''} onChange={e => setGoalsForm(f => ({ ...f, revenue_target: parseFloat(e.target.value) || 0 }))} placeholder="5000000" className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500 font-medium">kr</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-gray-400 mb-1">Vækst ift. nuværende ARR ({fmtKr(parseFloat(g.current_arr) || 0)})</p>
+                          <div className="flex gap-2 items-stretch">
+                            <div className="flex items-center flex-1">
+                              <input
+                                type="number" value={growthPct || ''} min={0} max={999}
+                                onChange={e => setGrowthPct(parseFloat(e.target.value) || 0)}
+                                placeholder="40"
+                                className="flex-1 text-base font-bold border-2 border-blue-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-700"
+                              />
+                              <span className="px-3 py-2.5 bg-blue-50 border-2 border-l-0 border-blue-300 rounded-r-lg text-sm text-blue-600 font-bold">%</span>
+                            </div>
+                            <div className="flex items-center flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                              <div>
+                                <div className="text-xs text-gray-400 mb-0.5">= nyt mål</div>
+                                <div className="text-sm font-bold text-gray-800">{fmtKr(rev)}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* ── Other conversion rate inputs ── */}
                     {[
-                      {
-                        key: 'revenue_target',
-                        label: 'Omsætningsmål (ny ARR)',
-                        hint: 'Ny omsætning der skal genereres i perioden',
-                        placeholder: '5.000.000', suffix: 'kr',
-                      },
                       {
                         key: 'acv',
                         label: 'Gns. kontraktværdi (ACV)',
                         hint: 'Gennemsnitlig årlig kontraktværdi pr. ny kunde',
-                        placeholder: '250.000', suffix: 'kr',
+                        placeholder: '250000', suffix: 'kr',
                       },
                       {
                         key: 'win_rate_pct',
@@ -3834,7 +3908,18 @@ const SalesIntelligencePlatform = () => {
                       </div>
                     ))}
 
-                    <button onClick={() => saveGtmConfig('goals', goalsForm)} disabled={gtmSaving} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
+                    <button onClick={() => {
+                      const payload = { ...goalsForm };
+                      if (goalsInputMode === 'percent') {
+                        payload.revenue_target = rev; // computed value
+                        payload.input_mode = 'percent';
+                        payload.growth_pct = parseFloat(growthPct) || 0;
+                      } else {
+                        payload.input_mode = 'absolute';
+                        payload.growth_pct = 0;
+                      }
+                      saveGtmConfig('goals', payload);
+                    }} disabled={gtmSaving} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
                       <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem Målsætninger'}
                     </button>
                   </div>
@@ -3995,6 +4080,104 @@ const SalesIntelligencePlatform = () => {
                       ) : (
                         <div className="text-center py-6 text-gray-400">
                           <p className="text-sm">Udfyld konverteringsraterne til venstre og angiv accounts/dag for at se projekteringen</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* ── CRM Fremdrift panel ── */}
+                    <div className="bg-white p-5 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-gray-700">📊 CRM Fremdrift — er vi på sporet?</h3>
+                        {progressData && progressData.revenue?.target > 0 && (
+                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${progressData.revenue.on_track ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                            {progressData.revenue.on_track ? '✓ På sporet' : '⚠ Bagud'}
+                          </span>
+                        )}
+                      </div>
+
+                      {progressLoading ? (
+                        <div className="text-center py-6 text-gray-400 text-sm">Henter CRM data...</div>
+                      ) : progressData && progressData.revenue?.target > 0 ? (() => {
+                        const pr = progressData;
+                        const fmtK = (n) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n/1000)}k` : `${n}`;
+                        return (
+                          <>
+                            {/* Period progress bar */}
+                            <div className="mb-4">
+                              <div className="flex justify-between text-xs text-gray-500 mb-1">
+                                <span>Tid brugt: <strong>{pr.elapsed_pct}%</strong> af {pr.period === 'quarterly' ? 'kvartalet' : 'året'}</span>
+                                <span><strong>{pr.weeks_remaining}</strong> uger tilbage</span>
+                              </div>
+                              <div className="h-4 bg-gray-100 rounded-full overflow-hidden relative">
+                                <div className="h-full bg-gray-200 rounded-full absolute inset-0" style={{ width: `${pr.elapsed_pct}%` }} />
+                                <div className={`h-full rounded-full absolute inset-0 transition-all ${pr.revenue.on_track ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${Math.min(pr.revenue.achieved_pct, 100)}%` }} />
+                              </div>
+                              <div className="flex justify-between text-xs mt-1">
+                                <span className={`font-semibold ${pr.revenue.on_track ? 'text-green-600' : 'text-amber-600'}`}>{pr.revenue.achieved_pct}% af mål nået</span>
+                                <span className="text-gray-400">{pr.elapsed_pct}% forventet nu</span>
+                              </div>
+                            </div>
+
+                            {/* 3 metric cards */}
+                            <div className="grid grid-cols-3 gap-2 mb-4">
+                              {[
+                                { label: 'Deals lukket', display: String(pr.deals.won), sub: `/ ${pr.deals.needed_total} mål`, ok: pr.deals.on_track },
+                                { label: 'Omsætning vundet', display: `${fmtK(pr.revenue.won)}kr`, sub: `/ ${fmtK(pr.revenue.target)}kr mål`, ok: pr.revenue.on_track },
+                                { label: 'Pipeline (vægtet)', display: `${fmtK(pr.pipeline.weighted_value)}kr`, sub: `dækker ${pr.pipeline.covers_gap_pct}%`, ok: pr.pipeline.covers_gap_pct >= 100 },
+                              ].map(({ label, display, sub, ok }) => (
+                                <div key={label} className={`p-3 rounded-lg border text-center ${ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                                  <div className="text-xs text-gray-500 mb-1">{label}</div>
+                                  <div className={`text-base font-bold leading-tight ${ok ? 'text-green-700' : 'text-red-600'}`}>{display}</div>
+                                  <div className="text-xs text-gray-400 mt-0.5">{sub}</div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* What's still needed */}
+                            {pr.deals.remaining > 0 && (
+                              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-3">
+                                <p className="text-xs font-semibold text-amber-800 mb-2">Hvad mangler du de næste {pr.weeks_remaining} uger?</p>
+                                <div className="grid grid-cols-3 gap-2 text-center">
+                                  <div className="bg-white rounded-lg p-2 border border-amber-100">
+                                    <div className="text-lg font-black text-amber-700">{pr.deals.remaining}</div>
+                                    <div className="text-xs text-amber-600">deals ({pr.deals.weekly_needed}/uge)</div>
+                                  </div>
+                                  <div className="bg-white rounded-lg p-2 border border-amber-100">
+                                    <div className="text-lg font-black text-amber-700">{pr.activity_remaining.meetings_needed}</div>
+                                    <div className="text-xs text-amber-600">møder</div>
+                                  </div>
+                                  <div className="bg-white rounded-lg p-2 border border-amber-100">
+                                    <div className="text-lg font-black text-amber-700">{pr.activity_remaining.accounts_needed}</div>
+                                    <div className="text-xs text-amber-600">accounts ({pr.activity_remaining.weekly_accounts}/uge)</div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Alert strings from backend */}
+                            {pr.alerts.length > 0 && (
+                              <div className="space-y-1.5">
+                                {pr.alerts.map((a, i) => (
+                                  <div key={i} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                                    <span className="text-gray-400 text-xs mt-0.5">•</span>
+                                    <p className="text-xs text-gray-600">{a}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {pr.deals.remaining === 0 && (
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                                <p className="text-xs font-semibold text-green-700">✓ Du har nået dit omsætningsmål for perioden!</p>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })() : (
+                        <div className="text-center py-8 text-gray-400">
+                          <p className="text-sm font-medium mb-1">Gem dine målsætninger</p>
+                          <p className="text-xs">Forbind dit CRM (HubSpot/Salesforce) for at se fremdriften automatisk</p>
+                          <button onClick={fetchGtmProgress} className="mt-3 text-xs text-blue-500 hover:text-blue-700 underline">Genindlæs</button>
                         </div>
                       )}
                     </div>
