@@ -8,6 +8,8 @@ Endpoints:
   GET  /api/gtm/progress           — YTD gap analysis vs prorated target
   GET  /api/gtm/daily-report       — weekly scorekort (7 KPIs vs pace)
   GET  /api/gtm/forecast           — monthly pipeline forecast (3 scenarios)
+  POST /api/gtm/forecast/snapshot  — save forecast snapshot for accuracy tracking
+  GET  /api/gtm/forecast/history   — historical snapshots + actuals + accuracy stats
   GET  /api/gtm/learnings          — CRM win/loss pattern cards
   GET  /api/gtm/management-tasks   — auto-generated management action items
   POST /api/gtm/agent/analyze      — AI agent pipeline analysis (Anthropic)
@@ -18,12 +20,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func as sql_func
 from pydantic import BaseModel
 from typing import Optional, List, Any
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date
 import math
 
 from app.db.session import get_db
 from app.db.models import (
     GTMConfig,
+    ForecastSnapshot,
     SalesforceOpportunity,
     SalesforceAccount,
     Lead,
@@ -864,22 +867,15 @@ async def get_daily_report(
 # GET /api/gtm/forecast
 # ─────────────────────────────────────────────────────────
 
-@router.get("/forecast")
-async def get_forecast(
-    customer_id: str = Depends(get_current_customer_id),
-    db: AsyncSession = Depends(get_db),
-):
-    """Pipeline forecast: monthly breakdown + 3 scenarios (base / conservative / optimistic)."""
-    from uuid import UUID
+async def _compute_forecast(db: AsyncSession, cid) -> dict:
+    """Shared forecast computation used by GET /forecast and POST /forecast/snapshot."""
     from collections import defaultdict
-    cid = UUID(customer_id)
     now = datetime.now(timezone.utc)
 
     cfg_result = await db.execute(select(GTMConfig).where(GTMConfig.customer_id == cid))
     cfg = cfg_result.scalar_one_or_none()
     goals = (cfg.goals or {}) if cfg else {}
     revenue_target = float(goals.get("revenue_target", 0) or 0)
-    period = goals.get("period", "annual")
 
     opps_result = await db.execute(
         select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
@@ -946,6 +942,7 @@ async def get_forecast(
         d     = monthly.get(key, {"base": 0, "conservative": 0, "optimistic": 0, "count": 0, "top_opps": []})
         months.append({
             "key":          key,
+            "month":        key,   # alias used by snapshot history
             "label":        label,
             "base":         round(d["base"]),
             "conservative": round(d["conservative"]),
@@ -969,7 +966,133 @@ async def get_forecast(
             "won_ytd":        round(revenue_won_ytd),
         },
         "no_close_date": no_date,
-        "generated_at":  now.isoformat(),
+        "generated_at":  datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.get("/forecast")
+async def get_forecast(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Pipeline forecast: monthly breakdown + 3 scenarios (base / conservative / optimistic)."""
+    from uuid import UUID
+    cid = UUID(customer_id)
+    return await _compute_forecast(db, cid)
+
+
+# ─────────────────────────────────────────────────────────
+# POST /api/gtm/forecast/snapshot
+# ─────────────────────────────────────────────────────────
+
+@router.post("/forecast/snapshot")
+async def save_forecast_snapshot(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Save a snapshot of today's forecast for later accuracy tracking."""
+    from uuid import UUID
+    cid = UUID(customer_id)
+    data = await _compute_forecast(db, cid)
+
+    # Grab current revenue target for context
+    cfg_row = await db.scalar(select(GTMConfig).where(GTMConfig.customer_id == cid))
+    rev_target = (cfg_row.goals or {}).get("revenue_target") if cfg_row else None
+
+    snap = ForecastSnapshot(
+        customer_id=cid,
+        snapshot_date=date.today(),
+        revenue_target=float(rev_target) if rev_target else None,
+        months_data=data["months"],
+    )
+    db.add(snap)
+    await db.commit()
+    return {
+        "id":           str(snap.id),
+        "snapshot_date": str(snap.snapshot_date),
+        "month_count":  len(data["months"]),
+    }
+
+
+# ─────────────────────────────────────────────────────────
+# GET /api/gtm/forecast/history
+# ─────────────────────────────────────────────────────────
+
+@router.get("/forecast/history")
+async def get_forecast_history(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return all forecast snapshots enriched with actuals + accuracy stats."""
+    from uuid import UUID
+    cid = UUID(customer_id)
+
+    snaps = (await db.execute(
+        select(ForecastSnapshot)
+        .where(ForecastSnapshot.customer_id == cid)
+        .order_by(ForecastSnapshot.snapshot_date.desc())
+    )).scalars().all()
+
+    # Fetch all opps once — compute actuals by closed month
+    all_opps = (await db.execute(
+        select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
+    )).scalars().all()
+
+    actuals: dict[str, float] = {}
+    for o in all_opps:
+        if _is_closed_won(o.stage) and o.close_date and o.amount:
+            cd = o.close_date.replace(tzinfo=None) if getattr(o.close_date, "tzinfo", None) else o.close_date
+            key = f"{cd.year}-{cd.month:02d}"
+            actuals[key] = actuals.get(key, 0.0) + float(o.amount or 0)
+
+    now = datetime.now()
+    result = []
+    all_errors: list[float] = []
+
+    for snap in snaps:
+        enriched = []
+        for m in (snap.months_data or []):
+            month_key = m.get("month") or m.get("key", "")
+            try:
+                yr, mo = int(month_key[:4]), int(month_key[5:7])
+                is_complete = (yr < now.year) or (yr == now.year and mo < now.month)
+            except Exception:
+                is_complete = False
+
+            actual = actuals.get(month_key) if is_complete else None
+            base   = float(m.get("base", 0) or 0)
+            err    = round((base - actual) / actual * 100, 1) if (actual and actual > 0) else None
+            if err is not None:
+                all_errors.append(err)
+
+            enriched.append({
+                **m,
+                "actual":      round(actual) if actual is not None else None,
+                "error_pct":   err,
+                "is_complete": is_complete,
+            })
+
+        result.append({
+            "id":            str(snap.id),
+            "snapshot_date": str(snap.snapshot_date),
+            "revenue_target": float(snap.revenue_target) if snap.revenue_target else None,
+            "months_data":   enriched,
+        })
+
+    # Summary accuracy stats
+    n = len(all_errors)
+    mae   = round(sum(abs(e) for e in all_errors) / n, 1) if n else None
+    bias  = round(sum(all_errors) / n, 1) if n else None
+    direction = "over" if (bias or 0) > 5 else "under" if (bias or 0) < -5 else "accurate"
+
+    return {
+        "snapshots": result,
+        "summary": {
+            "mae_pct":        mae,
+            "bias_pct":       bias,
+            "bias_direction": direction,
+            "n_months":       n,
+        },
     }
 
 

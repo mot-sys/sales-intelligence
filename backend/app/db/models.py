@@ -5,7 +5,7 @@ SQLAlchemy ORM models for all database tables.
 
 from sqlalchemy import (
     Column, String, Integer, BigInteger, Text, Boolean,
-    ForeignKey, Index, CheckConstraint, TIMESTAMP, JSON
+    ForeignKey, Index, CheckConstraint, TIMESTAMP, JSON, Date, Numeric
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -42,6 +42,7 @@ class Customer(Base):
     notion_initiatives = relationship("NotionInitiative", back_populates="customer", cascade="all, delete-orphan")
     workflows = relationship("Workflow", back_populates="customer", cascade="all, delete-orphan")
     gtm_config = relationship("GTMConfig", back_populates="customer", uselist=False, cascade="all, delete-orphan")
+    forecast_snapshots = relationship("ForecastSnapshot", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -744,3 +745,25 @@ class GTMConfig(Base):
 
     # Relationships
     customer = relationship("Customer", back_populates="gtm_config")
+
+
+class ForecastSnapshot(Base):
+    """Saved forecast snapshot for accuracy tracking.
+    One row per manual snapshot save. months_data is a JSON array of
+    { month, label, conservative, base, optimistic, count } dicts.
+    Actuals are computed at query time from SalesforceOpportunity data.
+    """
+    __tablename__ = "forecast_snapshots"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    snapshot_date  = Column(Date, nullable=False)          # date snapshot was saved (today)
+    revenue_target = Column(Numeric(15, 2), nullable=True) # target at time of snapshot (context)
+    months_data    = Column(JSON, nullable=False)
+    # [{ month:"2025-03", label:"Mar 25", conservative:X, base:Y, optimistic:Z, count:N }]
+
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="forecast_snapshots")

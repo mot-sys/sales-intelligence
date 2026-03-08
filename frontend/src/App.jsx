@@ -8,6 +8,7 @@ import {
   TrendingUp, Zap, Settings, ExternalLink, RefreshCw, Bell, BellOff, X, ChevronDown,
   MessageSquare, Sparkles, CornerDownLeft, BarChart2, Target, Award, ShieldCheck, FileText,
   Building2, Layers, Filter, Compass, Archive, Radio, Plus, Trash2, Save,
+  Camera, History,
 } from 'lucide-react';
 
 // ─────────────────────────────────────────────
@@ -551,6 +552,10 @@ const SalesIntelligencePlatform = () => {
   // ── Forecast ─────────────────────────────────────────────────────────────
   const [forecast, setForecast] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
+  const [forecastHistory, setForecastHistory] = useState(null);
+  const [forecastHistoryLoading, setForecastHistoryLoading] = useState(false);
+  const [snapshotSaving, setSnapshotSaving] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
   // ── Learnings ────────────────────────────────────────────────────────────
   const [learnings, setLearnings] = useState(null);
@@ -929,6 +934,24 @@ const SalesIntelligencePlatform = () => {
     finally { setForecastLoading(false); }
   }, []);
 
+  const fetchForecastHistory = useCallback(async () => {
+    setForecastHistoryLoading(true);
+    try {
+      const data = await API.get('/gtm/forecast/history');
+      setForecastHistory(data);
+    } catch { setForecastHistory(null); }
+    finally { setForecastHistoryLoading(false); }
+  }, []);
+
+  const saveSnapshot = useCallback(async () => {
+    setSnapshotSaving(true);
+    try {
+      await API.post('/gtm/forecast/snapshot', {});
+      await fetchForecastHistory();
+    } catch(e) { console.error(e); }
+    finally { setSnapshotSaving(false); }
+  }, [fetchForecastHistory]);
+
   const fetchLearnings = useCallback(async () => {
     setLearningsLoading(true);
     try {
@@ -976,12 +999,13 @@ const SalesIntelligencePlatform = () => {
       fetchIntelligence();
       fetchDailyReport();
       fetchForecast();
+      fetchForecastHistory();
       fetchLearnings();
       fetchMgmtTasks();
     }
     if (activeTab === 'pipeline')     { fetchPipelineData(); fetchAnalytics(); fetchLeads(); }
     if (activeTab === 'signals')      { fetchAlerts(); fetchJourneyAccounts(); fetchLeads(); }
-  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution, fetchGtmConfig, fetchIntelligence, fetchGtmProgress, fetchDailyReport, fetchForecast, fetchLearnings, fetchMgmtTasks]);
+  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution, fetchGtmConfig, fetchIntelligence, fetchGtmProgress, fetchDailyReport, fetchForecast, fetchForecastHistory, fetchLearnings, fetchMgmtTasks]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -4534,10 +4558,20 @@ const SalesIntelligencePlatform = () => {
               if (forecastLoading && !forecast) return <div className="flex items-center justify-center py-20 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mr-2" /> Beregner forecast...</div>;
               if (!forecast) return null;
               const fc = forecast;
+              const fh = forecastHistory;
               const maxVal = Math.max(...fc.months.map(m => m.optimistic), 1);
               const fmtKr = (n) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n/1000)}k` : `${n}`;
+              const formatCurrency = (n) => n != null ? `${fmtKr(n)} kr` : '—';
               return (
                 <div className="space-y-6">
+                  {/* Action bar */}
+                  <div className="flex items-center justify-end">
+                    <button onClick={saveSnapshot} disabled={snapshotSaving}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium transition-colors">
+                      <Camera className="w-4 h-4" />
+                      {snapshotSaving ? 'Gemmer...' : 'Gem Snapshot'}
+                    </button>
+                  </div>
                   {/* Scenario summary */}
                   <div className="grid grid-cols-3 gap-4">
                     {[
@@ -4591,6 +4625,109 @@ const SalesIntelligencePlatform = () => {
                     </div>
                     {fc.no_close_date?.count > 0 && (
                       <p className="text-xs text-amber-600 mt-3">⚠ {fc.no_close_date.count} deals mangler close dato — ikke inkluderet i månedlig fordeling</p>
+                    )}
+                  </div>
+
+                  {/* ── Forecast Historik & Nøjagtighed ─────────────── */}
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    {/* Collapsible header */}
+                    <button onClick={() => setShowHistory(h => !h)}
+                      className="w-full flex items-center justify-between px-5 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left">
+                      <span className="font-medium text-sm text-gray-700 flex items-center gap-2">
+                        <History className="w-4 h-4 text-gray-500" />
+                        Forecast Historik &amp; Nøjagtighed
+                        {(fh?.summary?.n_months || 0) > 0 && (
+                          <span className="text-xs text-gray-400">({fh.summary.n_months} afsluttede måneder)</span>
+                        )}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {/* MAE badge */}
+                        {fh?.summary?.mae_pct != null && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            fh.summary.mae_pct < 10 ? 'bg-green-100 text-green-700'
+                            : fh.summary.mae_pct < 25 ? 'bg-amber-100 text-amber-700'
+                            : 'bg-red-100 text-red-700'}`}>
+                            Ø {fh.summary.mae_pct}% afvigelse
+                          </span>
+                        )}
+                        {/* Bias badge */}
+                        {fh?.summary?.bias_pct != null && fh.summary.bias_direction !== 'accurate' && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
+                            {fh.summary.bias_direction === 'over' ? '↑ Over' : '↓ Under'}-forecast {fh.summary.bias_pct > 0 ? '+' : ''}{fh.summary.bias_pct}%
+                          </span>
+                        )}
+                        {fh?.summary?.bias_direction === 'accurate' && (fh?.summary?.n_months || 0) > 0 && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">✓ Kalibreret</span>
+                        )}
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+
+                    {/* Expanded content */}
+                    {showHistory && (
+                      <div className="divide-y divide-gray-100">
+                        {forecastHistoryLoading && (
+                          <div className="py-8 text-center text-gray-400 text-sm flex items-center justify-center gap-2">
+                            <RefreshCw className="w-4 h-4 animate-spin" /> Henter historik...
+                          </div>
+                        )}
+                        {!forecastHistoryLoading && (!fh?.snapshots?.length) && (
+                          <div className="py-10 text-center text-gray-400">
+                            <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                            <p className="text-sm font-medium">Ingen snapshots gemt endnu</p>
+                            <p className="text-xs mt-1">Klik "Gem Snapshot" for at starte tracking af forecast-nøjagtighed</p>
+                          </div>
+                        )}
+                        {(fh?.snapshots || []).map(snap => (
+                          <div key={snap.id} className="px-5 py-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-xs font-semibold text-gray-600">
+                                Snapshot: {snap.snapshot_date}
+                              </span>
+                              {snap.revenue_target && (
+                                <span className="text-xs text-gray-400">Mål på tidspunktet: {formatCurrency(snap.revenue_target)}</span>
+                              )}
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="text-gray-400 border-b border-gray-100">
+                                    <th className="text-left py-1.5 pr-4 font-medium">Måned</th>
+                                    <th className="text-right pr-4 font-medium">Forecast (base)</th>
+                                    <th className="text-right pr-4 font-medium">Faktisk</th>
+                                    <th className="text-right pr-4 font-medium">Afvigelse</th>
+                                    <th className="text-right font-medium">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {snap.months_data.map(m => {
+                                    const errAbs = m.error_pct != null ? Math.abs(m.error_pct) : null;
+                                    const color = !m.is_complete ? 'text-gray-400'
+                                      : errAbs == null ? 'text-gray-400'
+                                      : errAbs < 10 ? 'text-green-600'
+                                      : errAbs < 25 ? 'text-amber-600' : 'text-red-600';
+                                    const statusIcon = !m.is_complete ? '⏳'
+                                      : m.error_pct == null ? '—'
+                                      : errAbs < 10 ? '✓'
+                                      : errAbs < 25 ? '⚠' : '✗';
+                                    return (
+                                      <tr key={m.month || m.key} className="border-b border-gray-50 last:border-0">
+                                        <td className="py-1.5 pr-4 text-gray-700">{m.label}</td>
+                                        <td className="text-right pr-4 text-gray-700">{formatCurrency(m.base)}</td>
+                                        <td className="text-right pr-4 text-gray-700">{m.actual != null ? formatCurrency(m.actual) : '—'}</td>
+                                        <td className={`text-right pr-4 font-medium ${color}`}>
+                                          {m.error_pct != null ? `${m.error_pct > 0 ? '+' : ''}${m.error_pct}%` : '—'}
+                                        </td>
+                                        <td className={`text-right font-medium ${color}`}>{statusIcon}</td>
+                                      </tr>
+                                    );
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
