@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.core.security import get_current_customer_id
 from app.db.models import Alert, Lead, Workflow
 from app.db.session import get_db
 

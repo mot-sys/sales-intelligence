@@ -4,22 +4,55 @@ Manage integrations with external services (Clay, Salesforce, Snitcher, Outreach
 """
 
 import logging
+import time
+from datetime import datetime
 from typing import Optional
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.db.models import Integration
-from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.db.models import Integration, IntegrationSyncLog
+from app.core.security import get_current_customer_id
+from app.core.encryption import encrypt_credentials, decrypt_credentials
 from app.integrations.clay import ClayIntegration
 from app.db import crud
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+async def _write_sync_log(
+    db: AsyncSession,
+    integration: Integration,
+    *,
+    status: str,
+    records_created: int = 0,
+    records_updated: int = 0,
+    records_failed: int = 0,
+    duration_ms: int | None = None,
+    error_summary: str | None = None,
+    errors: list | None = None,
+) -> None:
+    """Persist a sync log row for every sync attempt (success or failure)."""
+    log = IntegrationSyncLog(
+        integration_id=integration.id,
+        customer_id=integration.customer_id,
+        service=integration.service,
+        status=status,
+        records_synced=records_created + records_updated,
+        records_created=records_created,
+        records_updated=records_updated,
+        records_failed=records_failed,
+        duration_ms=duration_ms,
+        error_summary=error_summary,
+        errors=errors,
+        completed_at=datetime.utcnow(),
+    )
+    db.add(log)
 
 
 def _integration_to_dict(integration: Integration) -> dict:
@@ -92,8 +125,9 @@ async def connect_clay(
         )
     )
 
+    encrypted = encrypt_credentials({"api_key": api_key})
     if existing:
-        existing.credentials = {"api_key": api_key}
+        existing.credentials = encrypted
         existing.status = "connected"
         existing.config = config
         integration = existing
@@ -102,7 +136,7 @@ async def connect_clay(
             customer_id=customer_id,
             service="clay",
             status="connected",
-            credentials={"api_key": api_key},
+            credentials=encrypted,
             config=config,
         )
         db.add(integration)
@@ -161,7 +195,7 @@ async def connect_salesforce(
         )
     )
     if existing:
-        existing.credentials = credentials
+        existing.credentials = encrypt_credentials(credentials)
         existing.status = "connected"
         integration = existing
     else:
@@ -169,7 +203,7 @@ async def connect_salesforce(
             customer_id=customer_id,
             service="salesforce",
             status="connected",
-            credentials=credentials,
+            credentials=encrypt_credentials(credentials),
         )
         db.add(integration)
 
@@ -196,8 +230,6 @@ async def sync_salesforce(
     upsert them to the DB, and run stall detection.
     """
     from app.integrations.salesforce import SalesforceIntegration
-    from datetime import datetime
-    from sqlalchemy import update as sa_update
 
     integration = await db.scalar(
         select(Integration).where(
@@ -209,21 +241,38 @@ async def sync_salesforce(
     if not integration:
         raise HTTPException(status_code=404, detail="Salesforce not connected")
 
-    sf = SalesforceIntegration(integration.credentials)
-    opps = await sf.sync_opportunities()
-    accs = await sf.sync_accounts()
+    t0 = time.monotonic()
+    try:
+        sf = SalesforceIntegration(decrypt_credentials(integration.credentials))
+        opps = await sf.sync_opportunities()
+        accs = await sf.sync_accounts()
 
-    opps_upserted = 0
-    for opp in opps:
-        sf_id = opp.pop("sf_opportunity_id")
-        await crud.upsert_sf_opportunity(db, customer_id, sf_id, opp)
-        opps_upserted += 1
+        opps_upserted = 0
+        for opp in opps:
+            sf_id = opp.pop("sf_opportunity_id")
+            await crud.upsert_sf_opportunity(db, customer_id, sf_id, opp)
+            opps_upserted += 1
 
-    accs_upserted = 0
-    for acc in accs:
-        sf_id = acc.pop("sf_account_id")
-        await crud.upsert_sf_account(db, customer_id, sf_id, acc)
-        accs_upserted += 1
+        accs_upserted = 0
+        for acc in accs:
+            sf_id = acc.pop("sf_account_id")
+            await crud.upsert_sf_account(db, customer_id, sf_id, acc)
+            accs_upserted += 1
+
+        await _write_sync_log(
+            db, integration,
+            status="success",
+            records_created=opps_upserted + accs_upserted,
+            duration_ms=int((time.monotonic() - t0) * 1000),
+        )
+    except Exception as exc:
+        await _write_sync_log(
+            db, integration,
+            status="failed",
+            duration_ms=int((time.monotonic() - t0) * 1000),
+            error_summary=str(exc),
+        )
+        raise
 
     await db.execute(
         sa_update(Integration)
@@ -257,8 +306,9 @@ async def connect_snitcher(
             Integration.service == "snitcher",
         )
     )
+    encrypted = encrypt_credentials({"api_key": api_key})
     if existing:
-        existing.credentials = {"api_key": api_key}
+        existing.credentials = encrypted
         existing.status = "connected"
         integration = existing
     else:
@@ -266,7 +316,7 @@ async def connect_snitcher(
             customer_id=customer_id,
             service="snitcher",
             status="connected",
-            credentials={"api_key": api_key},
+            credentials=encrypted,
         )
         db.add(integration)
 
@@ -279,53 +329,6 @@ async def connect_snitcher(
         "service": "snitcher",
         "status": "connected",
     }
-
-
-# ─────────────────────────────────────────────
-# GET /connections/hubspot/owners-debug
-# ─────────────────────────────────────────────
-
-@router.get("/hubspot/owners-debug")
-async def debug_hubspot_owners(
-    db: AsyncSession = Depends(get_db),
-    customer_id: str = Depends(get_current_customer_id),
-):
-    """
-    Debug endpoint: returns raw /crm/v3/owners response from HubSpot.
-    Use this to check if crm.objects.owners.read scope is configured.
-    """
-    from app.integrations.hubspot import HubSpotIntegration, HUBSPOT_BASE
-    import httpx
-
-    integration = await db.scalar(
-        select(Integration).where(
-            Integration.customer_id == customer_id,
-            Integration.service == "hubspot",
-            Integration.status == "connected",
-        )
-    )
-    if not integration:
-        raise HTTPException(status_code=404, detail="HubSpot not connected")
-
-    hs = HubSpotIntegration(credentials=integration.credentials)
-    owner_map = await hs._fetch_owners()
-
-    # Also fetch the raw response for debugging
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r = await client.get(
-                f"{HUBSPOT_BASE}/crm/v3/owners",
-                headers=hs._headers,
-                params={"limit": 100},
-            )
-        return {
-            "status_code": r.status_code,
-            "owner_map": owner_map,
-            "owner_count": len(owner_map),
-            "raw_preview": r.json() if r.status_code == 200 else r.text[:300],
-        }
-    except Exception as exc:
-        return {"error": str(exc), "owner_map": owner_map}
 
 
 # ─────────────────────────────────────────────
@@ -358,8 +361,9 @@ async def connect_hubspot(
             Integration.service == "hubspot",
         )
     )
+    encrypted = encrypt_credentials({"access_token": access_token})
     if existing:
-        existing.credentials = {"access_token": access_token}
+        existing.credentials = encrypted
         existing.status = "connected"
         integration = existing
     else:
@@ -367,7 +371,7 @@ async def connect_hubspot(
             customer_id=customer_id,
             service="hubspot",
             status="connected",
-            credentials={"access_token": access_token},
+            credentials=encrypted,
         )
         db.add(integration)
 
@@ -396,8 +400,6 @@ async def sync_hubspot(
     Also upserts deals into the leads table so Lead Intel is populated.
     """
     from app.integrations.hubspot import HubSpotIntegration
-    from datetime import datetime
-    from sqlalchemy import update as sa_update
 
     integration = await db.scalar(
         select(Integration).where(
@@ -409,59 +411,83 @@ async def sync_hubspot(
     if not integration:
         raise HTTPException(status_code=404, detail="HubSpot not connected")
 
-    hs = HubSpotIntegration(credentials=integration.credentials)
-    deals = await hs.sync_deals()
-    companies = await hs.sync_companies()
+    # Load incremental sync cursor (ISO timestamp of last successful sync)
+    deals_cursor = await crud.get_sync_cursor(db, str(integration.id), "deals")
+    sync_start_ts = datetime.utcnow().isoformat()
 
-    # Stage → score mapping for Lead Intel scoring
-    _STAGE_SCORES: dict = {
-        "appointmentscheduled": 40,
-        "qualifiedtobuy": 55,
-        "presentationscheduled": 65,
-        "decisionmakerboughtin": 75,
-        "contractsent": 85,
-        "closedwon": 95,
-        "closedlost": 5,
-    }
+    t0 = time.monotonic()
+    try:
+        hs = HubSpotIntegration(credentials=decrypt_credentials(integration.credentials))
+        deals = await hs.sync_deals(modified_after=deals_cursor)
+        companies = await hs.sync_companies()
 
-    deals_upserted = 0
-    leads_upserted = 0
-    for deal in deals:
-        sf_id = deal.pop("sf_opportunity_id")
-        await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
-        deals_upserted += 1
-
-        # Also add to Lead Intel (leads table) so the Lead Intel tab is populated
-        stage = (deal.get("stage") or "").lower()
-        score = _STAGE_SCORES.get(stage, 50)
-        priority = "hot" if score >= 70 else ("warm" if score >= 45 else "cold")
-        amount = deal.get("amount")
-        amount_str = f"€{amount:,}" if amount else "N/A"
-        close = deal.get("close_date")
-        close_str = close.strftime("%Y-%m-%d") if close else "N/A"
-
-        lead_data = {
-            "company_name": deal.get("account_name") or "Unknown Deal",
-            "owner_name": deal.get("owner_name"),
-            "last_activity": deal.get("last_activity_date"),
-            "score": score,
-            "priority": priority,
-            "recommendation": (
-                f"HubSpot deal · Stage: {deal.get('stage') or 'unknown'} · "
-                f"Amount: {amount_str} · Close: {close_str}"
-            ),
+        # Stage → score mapping for Lead Intel scoring
+        _STAGE_SCORES: dict = {
+            "appointmentscheduled": 40,
+            "qualifiedtobuy": 55,
+            "presentationscheduled": 65,
+            "decisionmakerboughtin": 75,
+            "contractsent": 85,
+            "closedwon": 95,
+            "closedlost": 5,
         }
-        await crud.upsert_lead(
-            db, lead_data=lead_data, customer_id=customer_id,
-            source="hubspot", external_id=sf_id,
-        )
-        leads_upserted += 1
 
-    companies_upserted = 0
-    for company in companies:
-        sf_id = company.pop("sf_account_id")
-        await crud.upsert_sf_account(db, customer_id, sf_id, company)
-        companies_upserted += 1
+        deals_upserted = 0
+        leads_upserted = 0
+        for deal in deals:
+            sf_id = deal.pop("sf_opportunity_id")
+            await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
+            deals_upserted += 1
+
+            stage = (deal.get("stage") or "").lower()
+            score = _STAGE_SCORES.get(stage, 50)
+            priority = "hot" if score >= 70 else ("warm" if score >= 45 else "cold")
+            amount = deal.get("amount")
+            amount_str = f"€{amount:,}" if amount else "N/A"
+            close = deal.get("close_date")
+            close_str = close.strftime("%Y-%m-%d") if close else "N/A"
+
+            lead_data = {
+                "company_name": deal.get("account_name") or "Unknown Deal",
+                "owner_name": deal.get("owner_name"),
+                "last_activity": deal.get("last_activity_date"),
+                "score": score,
+                "priority": priority,
+                "recommendation": (
+                    f"HubSpot deal · Stage: {deal.get('stage') or 'unknown'} · "
+                    f"Amount: {amount_str} · Close: {close_str}"
+                ),
+            }
+            await crud.upsert_lead(
+                db, lead_data=lead_data, customer_id=customer_id,
+                source="hubspot", external_id=sf_id,
+            )
+            leads_upserted += 1
+
+        companies_upserted = 0
+        for company in companies:
+            sf_id = company.pop("sf_account_id")
+            await crud.upsert_sf_account(db, customer_id, sf_id, company)
+            companies_upserted += 1
+
+        # Save cursor so next sync is incremental
+        await crud.save_sync_cursor(
+            db, str(integration.id), customer_id, "deals", sync_start_ts
+        )
+        await _write_sync_log(
+            db, integration,
+            status="success",
+            records_created=deals_upserted + companies_upserted,
+            duration_ms=int((time.monotonic() - t0) * 1000),
+        )
+    except Exception as exc:
+        await _write_sync_log(
+            db, integration,
+            status="failed",
+            duration_ms=int((time.monotonic() - t0) * 1000),
+            error_summary=str(exc),
+        )
+        raise
 
     await db.execute(
         sa_update(Integration)
@@ -472,16 +498,14 @@ async def sync_hubspot(
 
     logger.info(
         "HubSpot sync complete for customer %s: %d deals, %d companies, %d leads",
-        customer_id,
-        deals_upserted,
-        companies_upserted,
-        leads_upserted,
+        customer_id, deals_upserted, companies_upserted, leads_upserted,
     )
     return {
         "message": "HubSpot sync complete",
         "deals_synced": deals_upserted,
         "companies_synced": companies_upserted,
         "leads_upserted": leads_upserted,
+        "incremental": deals_cursor is not None,
     }
 
 
@@ -527,61 +551,74 @@ async def _sync_clay(db: AsyncSession, integration: Integration, customer_id: st
     """
     from app.ml.scorer import score_lead as do_score
 
-    async with ClayIntegration(
-        credentials=integration.credentials,
-        config=integration.config or {},
-    ) as clay:
-        rows = await clay.sync_data()
+    t0 = time.monotonic()
+    try:
+        async with ClayIntegration(
+            credentials=decrypt_credentials(integration.credentials),
+            config=integration.config or {},
+        ) as clay:
+            rows = await clay.sync_data()
 
-    created = 0
-    updated = 0
+        created = 0
+        updated = 0
 
-    for lead_data in rows:
-        external_id = lead_data.pop("external_id", None)
+        for lead_data in rows:
+            external_id = lead_data.pop("external_id", None)
 
-        # Check if lead already exists BEFORE upsert so we can count correctly
-        already_exists = bool(
-            external_id and await crud.get_lead_by_external_id(db, external_id, customer_id, "clay")
+            already_exists = bool(
+                external_id and await crud.get_lead_by_external_id(db, external_id, customer_id, "clay")
+            )
+
+            lead = await crud.upsert_lead(
+                db,
+                lead_data=lead_data,
+                customer_id=customer_id,
+                source="clay",
+                external_id=external_id,
+            )
+
+            signals = await crud.get_signals_for_lead(db, str(lead.id))
+            signal_dicts = [
+                {"type": s.type, "title": s.title, "detected_at": s.detected_at}
+                for s in signals
+            ]
+            result = do_score(
+                {
+                    "company_name": lead.company_name,
+                    "industry": lead.industry,
+                    "employee_count": lead.employee_count,
+                },
+                signal_dicts,
+            )
+            await crud.update_lead_score(
+                db,
+                lead_id=str(lead.id),
+                score=result["score"],
+                priority=result["priority"],
+                recommendation=result["recommendation"],
+            )
+
+            if already_exists:
+                updated += 1
+            else:
+                created += 1
+
+        await _write_sync_log(
+            db, integration,
+            status="success",
+            records_created=created,
+            records_updated=updated,
+            duration_ms=int((time.monotonic() - t0) * 1000),
         )
-
-        lead = await crud.upsert_lead(
-            db,
-            lead_data=lead_data,
-            customer_id=customer_id,
-            source="clay",
-            external_id=external_id,
+    except Exception as exc:
+        await _write_sync_log(
+            db, integration,
+            status="failed",
+            duration_ms=int((time.monotonic() - t0) * 1000),
+            error_summary=str(exc),
         )
+        raise
 
-        # Score immediately after upsert
-        signals = await crud.get_signals_for_lead(db, str(lead.id))
-        signal_dicts = [
-            {"type": s.type, "title": s.title, "detected_at": s.detected_at}
-            for s in signals
-        ]
-        result = do_score(
-            {
-                "company_name": lead.company_name,
-                "industry": lead.industry,
-                "employee_count": lead.employee_count,
-            },
-            signal_dicts,
-        )
-        await crud.update_lead_score(
-            db,
-            lead_id=str(lead.id),
-            score=result["score"],
-            priority=result["priority"],
-            recommendation=result["recommendation"],
-        )
-
-        if already_exists:
-            updated += 1
-        else:
-            created += 1
-
-    # Update last_sync timestamp
-    from datetime import datetime
-    from sqlalchemy import update as sa_update
     await db.execute(
         sa_update(Integration)
         .where(Integration.id == integration.id)
@@ -677,8 +714,9 @@ async def connect_notion(
             Integration.service == "notion",
         )
     )
+    encrypted = encrypt_credentials({"api_key": api_key})
     if existing:
-        existing.credentials = {"api_key": api_key}
+        existing.credentials = encrypted
         existing.status = "connected"
         integration = existing
     else:
@@ -686,7 +724,7 @@ async def connect_notion(
             customer_id=customer_id,
             service="notion",
             status="connected",
-            credentials={"api_key": api_key},
+            credentials=encrypted,
         )
         db.add(integration)
 
@@ -725,7 +763,7 @@ async def list_notion_databases(
         raise HTTPException(status_code=404, detail="Notion not connected")
 
     notion = NotionIntegration(
-        credentials=integration.credentials,
+        credentials=decrypt_credentials(integration.credentials),
         config=integration.config or {},
     )
     databases = await notion.get_databases()
@@ -742,8 +780,7 @@ async def sync_notion(
     Each database represents a department; each page is an initiative.
     """
     from app.integrations.notion import NotionIntegration
-    from sqlalchemy import update as sa_update
-    from datetime import datetime
+    from app.db.models import NotionInitiative as _NI
 
     integration = await db.scalar(
         select(Integration).where(
@@ -756,17 +793,24 @@ async def sync_notion(
         raise HTTPException(status_code=404, detail="Notion not connected")
 
     notion = NotionIntegration(
-        credentials=integration.credentials,
+        credentials=decrypt_credentials(integration.credentials),
         config=integration.config or {},
     )
 
+    t0 = time.monotonic()
     try:
         items = await notion.sync_all()
     except Exception as exc:
+        await _write_sync_log(
+            db, integration,
+            status="failed",
+            duration_ms=int((time.monotonic() - t0) * 1000),
+            error_summary=str(exc),
+        )
+        await db.commit()
         logger.exception("Notion sync failed for customer %s: %s", customer_id, exc)
         raise HTTPException(status_code=502, detail=f"Notion sync fejlede: {exc}")
 
-    from app.db.models import NotionInitiative as _NI
     created = 0
     updated = 0
     for item in items:
@@ -784,6 +828,14 @@ async def sync_notion(
             updated += 1
         else:
             created += 1
+
+    await _write_sync_log(
+        db, integration,
+        status="success",
+        records_created=created,
+        records_updated=updated,
+        duration_ms=int((time.monotonic() - t0) * 1000),
+    )
 
     await db.execute(
         sa_update(Integration)

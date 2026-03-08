@@ -47,4 +47,14 @@ celery_app.conf.beat_schedule = {
         "task": "app.utils.tasks.send_daily_digest",
         "schedule": crontab(hour=8, minute=0),
     },
+    # Every Monday 06:00 UTC — snapshot all KPIs for plan-vs-actual tracking
+    "weekly-kpi-snapshot": {
+        "task": "app.utils.tasks.snapshot_weekly_kpis",
+        "schedule": crontab(hour=6, minute=0, day_of_week=1),
+    },
+    # Every Monday 07:00 UTC — generate AI weekly report (after KPI snapshot)
+    "weekly-report": {
+        "task": "app.utils.tasks.generate_weekly_reports",
+        "schedule": crontab(hour=7, minute=0, day_of_week=1),
+    },
 }

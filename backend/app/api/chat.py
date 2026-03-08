@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.ai import build_pipeline_context, chat_with_pipeline, SUGGESTED_QUESTIONS
 from app.core.config import settings
 from app.db.session import get_db
-from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.core.security import get_current_customer_id
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

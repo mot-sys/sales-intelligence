@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.core.security import get_current_customer_id
 from app.db import crud
 from app.db.session import get_db
 

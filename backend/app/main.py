@@ -14,7 +14,7 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 import uuid
 from app.core.config import settings, is_production
-from app.api import leads, analysis, outbound, connections, auth, alerts, webhooks, chat, reports, cmt, workflows, gtm
+from app.api import leads, analysis, connections, auth, alerts, webhooks, chat, reports, cmt, workflows, gtm
 from app.api import settings as settings_api
 from app.db.session import engine, Base, AsyncSessionLocal
 
@@ -29,13 +29,38 @@ if is_production() and settings.SENTRY_DSN:
     )
 
 
+def _validate_startup_config():
+    """Fail fast if critical configuration is missing or unsafe."""
+    errors = []
+
+    if settings.SECRET_KEY == "your-secret-key-change-in-production":
+        if is_production():
+            errors.append("SECRET_KEY is the insecure placeholder. Set a random 64-byte hex string via SECRET_KEY env var.")
+        else:
+            print("⚠️  WARNING: SECRET_KEY is the placeholder default. This is insecure in production.")
+
+    if is_production():
+        if not settings.FRONTEND_URL:
+            print("⚠️  WARNING: FRONTEND_URL not set — CORS will deny all origins in production.")
+        if not settings.CREDENTIAL_ENCRYPTION_KEY:
+            errors.append("CREDENTIAL_ENCRYPTION_KEY must be set in production. Generate with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"")
+
+    if errors:
+        for err in errors:
+            print(f"❌ STARTUP ERROR: {err}")
+        raise RuntimeError(f"Fatal configuration error(s):\n" + "\n".join(errors))
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     # Startup
     print(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     print(f"📊 Environment: {settings.ENVIRONMENT}")
-    
+
+    # Validate configuration before anything else
+    _validate_startup_config()
+
     # Create / migrate database tables (create_all is idempotent — safe in all envs)
     try:
         async with engine.begin() as conn:
@@ -45,23 +70,24 @@ async def lifespan(app: FastAPI):
         print(f"⚠️  create_all failed: {e}")
 
     # Seed the dev customer so the FK constraint on integrations/leads is satisfied
-    try:
-        from app.db.models import Customer
-        from app.core.security import TEMP_CUSTOMER_ID
-        from sqlalchemy import select as sa_select
-        dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
-        async with AsyncSessionLocal() as session:
-            exists = await session.scalar(sa_select(Customer).where(Customer.id == dev_id))
-            if not exists:
-                session.add(Customer(
-                    id=dev_id,
-                    name="Dev User",
-                    email="dev@example.com",
-                ))
-                await session.commit()
-                print("✅ Dev customer seeded")
-    except Exception as e:
-        print(f"⚠️  Dev customer seed skipped: {e}")
+    if not is_production():
+        try:
+            from app.db.models import Customer
+            from app.core.security import TEMP_CUSTOMER_ID
+            from sqlalchemy import select as sa_select
+            dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
+            async with AsyncSessionLocal() as session:
+                exists = await session.scalar(sa_select(Customer).where(Customer.id == dev_id))
+                if not exists:
+                    session.add(Customer(
+                        id=dev_id,
+                        name="Dev User",
+                        email="dev@example.com",
+                    ))
+                    await session.commit()
+                    print("✅ Dev customer seeded")
+        except Exception as e:
+            print(f"⚠️  Dev customer seed skipped: {e}")
 
     yield
     
@@ -85,11 +111,11 @@ app = FastAPI(
 # Middleware
 # ---------
 
-# CORS
+# CORS — uses FRONTEND_URL env var in production; falls back to wildcard in development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
-    allow_credentials=False,   # App uses JWT headers, not cookies — wildcard origin is safe
+    allow_origins=settings.cors_origins,
+    allow_credentials=False,   # App uses JWT headers, not cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -173,7 +199,6 @@ app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(leads.router, prefix="/api/leads", tags=["Leads"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["Alerts"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
-app.include_router(outbound.router, prefix="/api/outbound", tags=["Outbound"])
 app.include_router(connections.router, prefix="/api/connections", tags=["Connections"])
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["Webhooks"])
 app.include_router(chat.router, prefix="/api/chat", tags=["AI Chat"])

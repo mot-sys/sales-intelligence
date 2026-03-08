@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
 from app.db import crud
-from app.core.security import get_current_customer_id_dev
+from app.core.security import get_current_customer_id
 
 router = APIRouter()
 
@@ -63,7 +63,7 @@ def _serialize_alert(alert) -> Dict:
 
 @router.get("/stats")
 async def get_alert_stats(
-    customer_id: str = Depends(get_current_customer_id_dev),
+    customer_id: str = Depends(get_current_customer_id),
     db: AsyncSession = Depends(get_db),
 ):
     """Get alert counts by status and priority for the dashboard widget."""
@@ -78,7 +78,7 @@ async def list_alerts(
     priority: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    customer_id: str = Depends(get_current_customer_id_dev),
+    customer_id: str = Depends(get_current_customer_id),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -103,7 +103,7 @@ async def list_alerts(
 @router.get("/{alert_id}")
 async def get_alert(
     alert_id: str,
-    customer_id: str = Depends(get_current_customer_id_dev),
+    customer_id: str = Depends(get_current_customer_id),
     db: AsyncSession = Depends(get_db),
 ):
     """Get a single alert by ID."""
@@ -117,7 +117,7 @@ async def get_alert(
 async def action_alert(
     alert_id: str,
     body: AlertActionRequest,
-    customer_id: str = Depends(get_current_customer_id_dev),
+    customer_id: str = Depends(get_current_customer_id),
     db: AsyncSession = Depends(get_db),
 ):
     """

@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.core.security import get_current_customer_id
 from app.db import crud as db_crud
 from app.db.models import NotionInitiative, Integration
 from app.db.session import get_db

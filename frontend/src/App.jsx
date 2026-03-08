@@ -186,101 +186,6 @@ const API = {
 };
 
 // ─────────────────────────────────────────────
-// MOCK FALLBACK DATA (shown when backend is offline)
-// ─────────────────────────────────────────────
-
-const MOCK_ALERTS = [
-  {
-    id: '1',
-    type: 'stalled_deal',
-    priority: 'urgent',
-    source: 'salesforce',
-    headline: 'TechCorp A/S deal stalled for 11 days',
-    context: {
-      opportunity_name: 'TechCorp A/S',
-      days_stalled: 11,
-      amount_display: '\u20ac45,000',
-      close_date: '2024-03-15',
-      owner_name: 'Lars Nielsen',
-      detail: '\u20ac45,000 opportunity with no Salesforce activity for 11 days, closes 2024-03-15.',
-    },
-    recommendation: 'Schedule a check-in call and create a follow-up task in Salesforce. Consider sharing a relevant case study to re-engage.',
-    status: 'pending',
-    lead: { company_name: 'TechCorp A/S', score: 87, priority: 'hot' },
-    created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    type: 'intent_spike',
-    priority: 'urgent',
-    source: 'snitcher',
-    headline: 'Nordic Ventures visited 5 pages including pricing',
-    context: {
-      company_name: 'Nordic Ventures',
-      company_domain: 'nordicventures.dk',
-      pages_visited: 5,
-      pricing_page_visited: true,
-      pages: ['/features', '/pricing', '/case-studies', '/about', '/contact'],
-    },
-    recommendation: "Prospect is showing high buying intent \u2014 reach out within 2 hours while they're actively researching. Lead with ROI numbers.",
-    status: 'pending',
-    lead: { company_name: 'Nordic Ventures', score: 79, priority: 'hot', owner_name: 'Julie Frost' },
-    created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    type: 'score_jump',
-    priority: 'high',
-    source: 'scoring',
-    headline: 'GrowthLab score jumped from 48 \u2192 73',
-    context: { old_score: 48, new_score: 73, delta: 25 },
-    recommendation: 'Lead score jumped 25 points due to new hiring signals. Review and prioritize for outreach this week.',
-    status: 'pending',
-    lead: { company_name: 'GrowthLab', score: 73, priority: 'warm', owner_name: 'Mads Holm' },
-    created_at: new Date(Date.now() - 6 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: '4',
-    type: 'stalled_deal',
-    priority: 'high',
-    source: 'salesforce',
-    headline: 'DataStream ApS deal stalled for 8 days',
-    context: {
-      opportunity_name: 'DataStream ApS',
-      days_stalled: 8,
-      amount_display: '\u20ac28,500',
-      detail: '\u20ac28,500 opportunity with no Salesforce activity for 8 days.',
-    },
-    recommendation: 'Send a follow-up email with a link to your product demo. Offer a brief 15-minute call to address any objections.',
-    status: 'pending',
-    lead: { company_name: 'DataStream ApS', score: 62, priority: 'warm', owner_name: 'Rasmus Bech' },
-    created_at: new Date(Date.now() - 18 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: '5',
-    type: 'intent_spike',
-    priority: 'medium',
-    source: 'snitcher',
-    headline: 'CloudFirst Denmark visited 3 pages',
-    context: { company_name: 'CloudFirst Denmark', pages_visited: 3, pricing_page_visited: false },
-    recommendation: 'Add to a nurture sequence and monitor for additional intent signals over the next 48 hours.',
-    status: 'snoozed',
-    lead: { company_name: 'CloudFirst Denmark', score: 54, priority: 'cold', owner_name: 'Julie Frost' },
-    created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
-  },
-];
-
-const MOCK_STATS = { pending: 4, snoozed: 1, dismissed: 3, actioned: 7, urgent_high_pending: 3 };
-
-const MOCK_LEADS = [
-  { id: 1, company_name: 'TechCorp A/S', score: 92, priority: 'hot', industry: 'SaaS', employee_count: 45, contact_name: 'Lars Nielsen', contact_title: 'CRO', owner_name: 'Mads Holm', source: 'Snitcher' },
-  { id: 2, company_name: 'Nordic Ventures', score: 87, priority: 'hot', industry: 'VC', employee_count: 12, contact_name: 'Sofia Andersen', contact_title: 'Partner', owner_name: 'Julie Frost', source: 'Clay' },
-  { id: 3, company_name: 'GrowthLab', score: 73, priority: 'warm', industry: 'Marketing', employee_count: 28, contact_name: 'Michael Jensen', contact_title: 'CEO', owner_name: 'Mads Holm', source: 'Clay' },
-  { id: 4, company_name: 'DataStream ApS', score: 68, priority: 'warm', industry: 'Analytics', employee_count: 67, contact_name: 'Anne Kristensen', contact_title: 'VP Sales', owner_name: 'Rasmus Bech', source: 'Snitcher' },
-  { id: 5, company_name: 'CloudFirst Denmark', score: 54, priority: 'cold', industry: 'Cloud', employee_count: 180, contact_name: 'Peter Madsen', contact_title: 'Director', owner_name: 'Julie Frost', source: 'HubSpot' },
-];
-
-// ─────────────────────────────────────────────
 // UTILITY HELPERS
 // ─────────────────────────────────────────────
 
@@ -441,12 +346,11 @@ function AlertCard({ alert, onAction, isActioning }) {
 const SalesIntelligencePlatform = () => {
   const [activeTab, setActiveTab] = useState('gtm-setup');
   const [alerts, setAlerts] = useState([]);
-  const [alertStats, setAlertStats] = useState(MOCK_STATS);
+  const [alertStats, setAlertStats] = useState({ pending: 0, snoozed: 0, dismissed: 0, actioned: 0, urgent_high_pending: 0 });
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actioningId, setActioningId] = useState(null);
   const [error, setError] = useState(null);
-  const [usingMockData, setUsingMockData] = useState(false);
   const [filterStatus, setFilterStatus] = useState('pending');
   const [selectedLead, setSelectedLead] = useState(null);
   const [filterOwner, setFilterOwner] = useState('all');
@@ -587,11 +491,9 @@ const SalesIntelligencePlatform = () => {
       ]);
       setAlerts(alertsData.alerts || []);
       setAlertStats(statsData);
-      setUsingMockData(false);
     } catch {
-      setAlerts(MOCK_ALERTS.filter(a => a.status === filterStatus));
-      setAlertStats(MOCK_STATS);
-      setUsingMockData(true);
+      setAlerts([]);
+      setAlertStats({ pending: 0, snoozed: 0, dismissed: 0, actioned: 0, urgent_high_pending: 0 });
     } finally {
       setLoading(false);
     }
@@ -602,10 +504,8 @@ const SalesIntelligencePlatform = () => {
     try {
       const data = await API.get('/leads?limit=50');
       setLeads(data.leads || data.items || []);
-      setUsingMockData(false);
     } catch {
-      setLeads(MOCK_LEADS);
-      setUsingMockData(true);
+      setLeads([]);
     } finally {
       setLoading(false);
     }
@@ -1014,12 +914,8 @@ const SalesIntelligencePlatform = () => {
   const handleAlertAction = async (alertId, actionType, payload = null) => {
     setActioningId(alertId);
     try {
-      if (usingMockData) {
-        setAlerts(prev => prev.filter(a => a.id !== alertId));
-      } else {
-        await API.post(`/alerts/${alertId}/action`, { action_type: actionType, payload });
-        await fetchAlerts();
-      }
+      await API.post(`/alerts/${alertId}/action`, { action_type: actionType, payload });
+      await fetchAlerts();
     } catch (e) {
       setError(`Action failed: ${e.message}`);
     } finally {
@@ -1128,11 +1024,6 @@ const SalesIntelligencePlatform = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {usingMockData && (
-              <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full border border-yellow-200">
-                Demo data
-              </span>
-            )}
             <button
               onClick={fetchAlerts}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -1282,7 +1173,7 @@ const SalesIntelligencePlatform = () => {
                 <button onClick={() => setActiveTab('alerts')} className="text-sm text-blue-600 hover:underline">View all</button>
               </div>
               <div className="p-5 space-y-3">
-                {(usingMockData ? MOCK_ALERTS : alerts).filter(a => a.status === 'pending').slice(0, 3).map(alert => (
+                {alerts.filter(a => a.status === 'pending').slice(0, 3).map(alert => (
                   <div key={alert.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:bg-gray-50">
                     <div className="flex items-center gap-3">
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 ${PRIORITY_STYLES[alert.priority]?.dot}`} />

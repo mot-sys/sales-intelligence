@@ -43,6 +43,7 @@ class Customer(Base):
     workflows = relationship("Workflow", back_populates="customer", cascade="all, delete-orphan")
     gtm_config = relationship("GTMConfig", back_populates="customer", uselist=False, cascade="all, delete-orphan")
     forecast_snapshots = relationship("ForecastSnapshot", back_populates="customer", cascade="all, delete-orphan")
+    kpi_snapshots      = relationship("KpiSnapshot", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -767,3 +768,58 @@ class ForecastSnapshot(Base):
 
     # Relationships
     customer = relationship("Customer", back_populates="forecast_snapshots")
+
+
+class IntegrationSyncState(Base):
+    """
+    Cursor-based incremental sync state.
+    One row per (integration_id, object_type). Stores the last-seen cursor
+    so each sync only fetches records changed since the previous run.
+
+    object_type examples: "leads", "opportunities", "accounts", "deals", "companies"
+    cursor examples: ISO timestamp string, page token, last-seen record ID
+    """
+    __tablename__ = "integration_sync_states"
+
+    id             = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    integration_id = Column(UUID(as_uuid=True), ForeignKey("integrations.id", ondelete="CASCADE"), nullable=False)
+    customer_id    = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    object_type    = Column(String(50), nullable=False)   # e.g. "leads", "opportunities"
+    cursor         = Column(String(500), nullable=True)   # last sync cursor / timestamp
+    last_synced_at = Column(TIMESTAMP, nullable=True)     # when the last successful sync completed
+
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("idx_sync_state_integration_type", "integration_id", "object_type", unique=True),
+        Index("idx_sync_state_customer", "customer_id"),
+    )
+
+
+class KpiSnapshot(Base):
+    """
+    Weekly KPI snapshot for plan-vs-actual and trend analysis.
+    One row per (customer_id, snapshot_date). Taken every Monday by Celery beat.
+    metrics JSON stores all pipeline/activity metrics for that week.
+    """
+    __tablename__ = "kpi_snapshots"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    snapshot_date = Column(Date, nullable=False)   # Monday the snapshot covers
+    metrics       = Column(JSON, nullable=False)
+    # {
+    #   pipeline_value, open_deals, closed_won_value, closed_won_count,
+    #   avg_deal_size, win_rate_pct, meetings_held, stalled_deals,
+    #   leads_synced, hot_leads, warm_leads, cold_leads
+    # }
+
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    customer = relationship("Customer", back_populates="kpi_snapshots")
+
+    __table_args__ = (
+        Index("idx_kpi_snapshot_customer_date", "customer_id", "snapshot_date", unique=True),
+    )

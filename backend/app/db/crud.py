@@ -15,7 +15,7 @@ from app.db.models import (
     Lead, Signal, ScoringHistory, Customer, OutboundAction, Alert, AlertAction,
     SalesforceOpportunity, SalesforceAccount,
     ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings, WeeklyReport,
-    NotionInitiative,
+    NotionInitiative, IntegrationSyncState, KpiSnapshot,
 )
 
 
@@ -1014,3 +1014,100 @@ async def delete_notion_initiatives_for_database(
         )
     )
     return result.rowcount
+
+
+# ─────────────────────────────────────────────
+# INCREMENTAL SYNC — cursor management
+# ─────────────────────────────────────────────
+
+async def get_sync_cursor(
+    db: AsyncSession,
+    integration_id: str,
+    object_type: str,
+) -> Optional[str]:
+    """Return the last-saved sync cursor for a (integration, object_type) pair, or None."""
+    row = await db.scalar(
+        select(IntegrationSyncState).where(
+            IntegrationSyncState.integration_id == integration_id,
+            IntegrationSyncState.object_type == object_type,
+        )
+    )
+    return row.cursor if row else None
+
+
+async def save_sync_cursor(
+    db: AsyncSession,
+    integration_id: str,
+    customer_id: str,
+    object_type: str,
+    cursor: str,
+) -> None:
+    """Upsert the sync cursor for a (integration, object_type) pair."""
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+    stmt = (
+        pg_insert(IntegrationSyncState)
+        .values(
+            id=uuid.uuid4(),
+            integration_id=integration_id,
+            customer_id=customer_id,
+            object_type=object_type,
+            cursor=cursor,
+            last_synced_at=datetime.utcnow(),
+        )
+        .on_conflict_do_update(
+            index_elements=["integration_id", "object_type"],
+            set_={"cursor": cursor, "last_synced_at": datetime.utcnow()},
+        )
+    )
+    await db.execute(stmt)
+
+
+# ─────────────────────────────────────────────
+# KPI SNAPSHOTS
+# ─────────────────────────────────────────────
+
+async def upsert_kpi_snapshot(
+    db: AsyncSession,
+    customer_id: str,
+    snapshot_date,
+    metrics: dict,
+) -> KpiSnapshot:
+    """
+    Insert or replace a KPI snapshot for (customer_id, snapshot_date).
+    Uses PostgreSQL INSERT ... ON CONFLICT DO UPDATE so re-running on the same
+    Monday only updates the row rather than erroring.
+    """
+    import uuid as _uuid
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+    stmt = (
+        pg_insert(KpiSnapshot)
+        .values(
+            id=_uuid.uuid4(),
+            customer_id=customer_id,
+            snapshot_date=snapshot_date,
+            metrics=metrics,
+        )
+        .on_conflict_do_update(
+            index_elements=["customer_id", "snapshot_date"],
+            set_={"metrics": metrics},
+        )
+        .returning(KpiSnapshot)
+    )
+    result = await db.execute(stmt)
+    await db.flush()
+    return result.scalar_one()
+
+
+async def get_kpi_snapshots(
+    db: AsyncSession,
+    customer_id: str,
+    limit: int = 12,
+) -> List[KpiSnapshot]:
+    """Return the most recent N KPI snapshots, newest first."""
+    rows = await db.execute(
+        select(KpiSnapshot)
+        .where(KpiSnapshot.customer_id == customer_id)
+        .order_by(KpiSnapshot.snapshot_date.desc())
+        .limit(limit)
+    )
+    return list(rows.scalars().all())

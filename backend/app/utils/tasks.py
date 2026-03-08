@@ -258,3 +258,208 @@ async def _send_daily_digest_async():
         await db.commit()
 
     return {"digests_created": digests_created}
+
+
+# ─────────────────────────────────────────────────────────
+# WEEKLY KPI SNAPSHOT (Monday 06:00 UTC)
+# ─────────────────────────────────────────────────────────
+
+@celery_app.task(name="app.utils.tasks.snapshot_weekly_kpis", bind=True, max_retries=3)
+def snapshot_weekly_kpis(self):
+    """
+    Every Monday at 06:00 UTC: compute current pipeline KPIs for every customer
+    and persist a KpiSnapshot row. Used for plan-vs-actual and week-over-week diffs.
+    """
+    return _run(_snapshot_weekly_kpis_async())
+
+
+async def _snapshot_weekly_kpis_async():
+    from app.db.session import AsyncSessionLocal
+    from app.db import crud
+    from app.db.models import Customer, SalesforceOpportunity, Lead
+    from sqlalchemy import select, func
+    from datetime import date
+
+    snapshots_written = 0
+
+    async with AsyncSessionLocal() as db:
+        customers = await db.execute(select(Customer))
+        all_customers = customers.scalars().all()
+
+        for customer in all_customers:
+            cid = str(customer.id)
+
+            # Pipeline metrics from SalesforceOpportunity
+            opps_result = await db.execute(
+                select(SalesforceOpportunity).where(
+                    SalesforceOpportunity.customer_id == cid
+                )
+            )
+            opps = opps_result.scalars().all()
+
+            closed_won_stages = {"closedwon", "closed won", "closed_won"}
+            closed_lost_stages = {"closedlost", "closed lost", "closed_lost"}
+
+            open_deals, pipeline_value = 0, 0
+            closed_won_count, closed_won_value = 0, 0
+            stalled_deals = 0
+
+            for opp in opps:
+                stage_key = (opp.stage or "").lower().replace(" ", "")
+                if stage_key in closed_won_stages:
+                    closed_won_count += 1
+                    closed_won_value += int(opp.amount or 0)
+                elif stage_key not in closed_lost_stages:
+                    open_deals += 1
+                    pipeline_value += int(opp.amount or 0)
+                    if opp.is_stalled:
+                        stalled_deals += 1
+
+            total_deals = closed_won_count + open_deals
+            win_rate_pct = round(closed_won_count / total_deals * 100, 1) if total_deals else 0
+            avg_deal_size = round(closed_won_value / closed_won_count) if closed_won_count else 0
+
+            # Lead metrics
+            leads_result = await db.execute(
+                select(
+                    func.count(Lead.id).label("total"),
+                    func.sum((Lead.priority == "hot").cast(sa_Integer)).label("hot"),
+                    func.sum((Lead.priority == "warm").cast(sa_Integer)).label("warm"),
+                    func.sum((Lead.priority == "cold").cast(sa_Integer)).label("cold"),
+                ).where(Lead.customer_id == cid)
+            )
+            lead_row = leads_result.one()
+
+            metrics = {
+                "pipeline_value": pipeline_value,
+                "open_deals": open_deals,
+                "closed_won_value": closed_won_value,
+                "closed_won_count": closed_won_count,
+                "avg_deal_size": avg_deal_size,
+                "win_rate_pct": win_rate_pct,
+                "stalled_deals": stalled_deals,
+                "leads_total": lead_row.total or 0,
+                "hot_leads": lead_row.hot or 0,
+                "warm_leads": lead_row.warm or 0,
+                "cold_leads": lead_row.cold or 0,
+            }
+
+            await crud.upsert_kpi_snapshot(db, cid, date.today(), metrics)
+            snapshots_written += 1
+
+        await db.commit()
+
+    return {"snapshots_written": snapshots_written}
+
+
+# ─────────────────────────────────────────────────────────
+# WEEKLY REPORT GENERATION (Monday 07:00 UTC)
+# ─────────────────────────────────────────────────────────
+
+@celery_app.task(name="app.utils.tasks.generate_weekly_reports", bind=True, max_retries=3)
+def generate_weekly_reports(self):
+    """
+    Every Monday at 07:00 UTC: generate AI weekly report for every customer
+    and persist to WeeklyReport. Relies on KpiSnapshot from the 06:00 task.
+    """
+    return _run(_generate_weekly_reports_async())
+
+
+async def _generate_weekly_reports_async():
+    from app.db.session import AsyncSessionLocal
+    from app.db import crud
+    from app.db.models import Customer, WeeklyReport
+    from app.core.ai import build_pipeline_context
+    from app.core.config import settings
+    from sqlalchemy import select
+    from datetime import date
+
+    try:
+        import anthropic
+        client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+    except Exception:
+        return {"error": "Anthropic client unavailable"}
+
+    reports_generated = 0
+
+    async with AsyncSessionLocal() as db:
+        customers = await db.execute(select(Customer))
+        all_customers = customers.scalars().all()
+
+        # Get Monday of current week as week_start
+        today = date.today()
+        week_start_date = today - timedelta(days=today.weekday())
+        week_start = datetime.combine(week_start_date, datetime.min.time())
+
+        for customer in all_customers:
+            cid = str(customer.id)
+            try:
+                # Get last 2 KPI snapshots for week-over-week diff
+                snapshots = await crud.get_kpi_snapshots(db, cid, limit=2)
+                current_metrics = snapshots[0].metrics if snapshots else {}
+                prev_metrics = snapshots[1].metrics if len(snapshots) > 1 else {}
+
+                # Build pipeline context for AI
+                ctx = await build_pipeline_context(db, cid)
+
+                delta_pipeline = (
+                    current_metrics.get("pipeline_value", 0) -
+                    prev_metrics.get("pipeline_value", 0)
+                ) if prev_metrics else None
+
+                prompt = f"""Du er en senior salgsanalytiker. Skriv en ugentlig salgsrapport på dansk for denne uge.
+
+Pipeline: {current_metrics.get('pipeline_value', 'N/A')} kr
+Åbne deals: {current_metrics.get('open_deals', 'N/A')}
+Vundet denne periode: {current_metrics.get('closed_won_count', 'N/A')} deals ({current_metrics.get('closed_won_value', 'N/A')} kr)
+Win rate: {current_metrics.get('win_rate_pct', 'N/A')}%
+Stalled deals: {current_metrics.get('stalled_deals', 'N/A')}
+Hot leads: {current_metrics.get('hot_leads', 'N/A')}
+Pipeline ændring vs forrige uge: {f"+{delta_pipeline:,} kr" if delta_pipeline and delta_pipeline > 0 else (f"{delta_pipeline:,} kr" if delta_pipeline is not None else "N/A")}
+
+Skriv tre sektioner:
+1. HVad skete der: Faktuel opsummering af ugens resultater (3-4 bullets)
+2. Denne uge: Top 3 prioriteter for den kommende uge (3 konkrete handlinger)
+3. Management hjælp: Hvad kræver ledelsesindgreb lige nu? (max 2 punkter, vær konkret)
+
+Svar kun med de tre sektioner, ingen introduktion."""
+
+                resp = await client.messages.create(
+                    model=settings.ANTHROPIC_MODEL,
+                    max_tokens=800,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                full_text = resp.content[0].text if resp.content else ""
+
+                # Split into sections (heuristic split on blank lines or numbered headers)
+                sections = [s.strip() for s in full_text.split("\n\n") if s.strip()]
+                s_happened = sections[0] if len(sections) > 0 else full_text
+                s_week = sections[1] if len(sections) > 1 else ""
+                s_mgmt = sections[2] if len(sections) > 2 else ""
+
+                report = WeeklyReport(
+                    customer_id=cid,
+                    week_start=week_start,
+                    data_snapshot={"metrics": current_metrics, "prev_metrics": prev_metrics},
+                    section_what_happened=s_happened,
+                    section_this_week=s_week,
+                    section_management=s_mgmt,
+                    model_used=settings.ANTHROPIC_MODEL,
+                )
+                db.add(report)
+                reports_generated += 1
+
+            except Exception as exc:
+                # Don't fail the whole batch if one customer errors
+                import logging
+                logging.getLogger(__name__).exception(
+                    "Weekly report failed for customer %s: %s", cid, exc
+                )
+
+        await db.commit()
+
+    return {"reports_generated": reports_generated}
+
+
+# SQLAlchemy Integer needed for cast in KPI snapshot
+from sqlalchemy import Integer as sa_Integer

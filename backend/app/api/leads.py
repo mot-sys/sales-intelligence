@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.db import crud
 from app.ml.scorer import score_lead
-from app.core.security import get_current_customer_id_dev as get_current_customer_id
+from app.core.security import get_current_customer_id
 
 logger = logging.getLogger(__name__)
 

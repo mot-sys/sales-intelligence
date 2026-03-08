@@ -173,9 +173,15 @@ async def get_current_customer_id_dev(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> str:
     """
-    Development dependency: if no token provided, returns TEMP_CUSTOMER_ID.
-    Replace with get_current_customer_id once auth is fully wired.
+    Development-only bypass. Raises 403 in production.
+    Should NOT be used in any route file — use get_current_customer_id instead.
     """
+    from app.core.config import is_production
+    if is_production():
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Dev auth bypass is disabled in production",
+        )
     if credentials is None:
         return TEMP_CUSTOMER_ID
     try:

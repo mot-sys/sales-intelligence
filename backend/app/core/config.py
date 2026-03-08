@@ -32,13 +32,30 @@ class Settings(BaseSettings):
     REDIS_CACHE_TTL: int = 300  # 5 minutes
     
     # Security
+    # IMPORTANT: Override SECRET_KEY via env var. Startup will fail if placeholder is used in production.
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
-    
-    # CORS — wildcard by default so any frontend domain works out of the box.
-    # Override via CORS_ORIGINS env var in production to lock down to specific URLs.
+
+    # Credential encryption key (Fernet symmetric encryption for integration credentials).
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    # Required in production; generated automatically in development.
+    CREDENTIAL_ENCRYPTION_KEY: Optional[str] = None
+
+    # CORS — set FRONTEND_URL in production to restrict allowed origins.
+    # Falls back to wildcard only in development.
+    FRONTEND_URL: Optional[str] = None
+
+    @property
+    def cors_origins(self) -> list[str]:
+        if self.FRONTEND_URL:
+            return [self.FRONTEND_URL]
+        if self.ENVIRONMENT == "production":
+            return []  # Deny all if no FRONTEND_URL set in production
+        return ["*"]  # Development: allow all
+
+    # Kept for backwards compat; prefer cors_origins property
     CORS_ORIGINS: list[str] = ["*"]
     
     # Rate Limiting

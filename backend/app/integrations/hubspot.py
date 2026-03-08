@@ -241,28 +241,72 @@ class HubSpotIntegration(BaseIntegration):
     # Deals
     # ─────────────────────────────────────────────
 
-    async def sync_deals(self) -> List[Dict]:
+    async def sync_deals(self, modified_after: Optional[str] = None) -> List[Dict]:
         """
-        Fetch all open HubSpot deals and return as dicts
-        suitable for upserting into the SalesforceOpportunity table
-        (IDs prefixed with 'hs_' to distinguish from SF records).
-        Resolves owner IDs to full names via /crm/v3/owners.
+        Fetch HubSpot deals and return as dicts suitable for upserting into
+        the SalesforceOpportunity table (IDs prefixed with 'hs_').
+
+        Args:
+            modified_after: ISO 8601 timestamp. When provided, only deals modified
+                            after this point are fetched (incremental sync).
+                            When None, all deals are fetched (full sync).
         """
-        # Fetch owner map in parallel with deals for speed
-        owner_map, records = await asyncio.gather(
-            self._fetch_owners(),
-            self._paginate(
-                f"{HUBSPOT_BASE}/crm/v3/objects/deals",
-                params={
-                    "properties": ",".join([
-                        "dealname", "amount", "closedate", "dealstage",
-                        "hubspot_owner_id", "hs_lastmodifieddate", "notes_last_updated",
-                    ]),
-                    "limit": 100,
-                },
-            ),
-        )
+        deal_properties = [
+            "dealname", "amount", "closedate", "dealstage",
+            "hubspot_owner_id", "hs_lastmodifieddate", "notes_last_updated",
+        ]
+
+        if modified_after:
+            # Use the Search API for filtering by last modified date
+            records, owner_map = await asyncio.gather(
+                self._search_deals(modified_after, deal_properties),
+                self._fetch_owners(),
+            )
+        else:
+            owner_map, records = await asyncio.gather(
+                self._fetch_owners(),
+                self._paginate(
+                    f"{HUBSPOT_BASE}/crm/v3/objects/deals",
+                    params={"properties": ",".join(deal_properties), "limit": 100},
+                ),
+            )
         return [self._map_deal(r, owner_map) for r in records]
+
+    async def _search_deals(self, modified_after: str, properties: List[str]) -> List[Dict]:
+        """Use the HubSpot Search API to fetch deals modified after a timestamp."""
+        # Convert ISO string to Unix milliseconds for HubSpot filter
+        try:
+            dt = datetime.fromisoformat(modified_after.replace("Z", "+00:00"))
+            ts_ms = int(dt.timestamp() * 1000)
+        except Exception:
+            ts_ms = 0
+
+        url = f"{HUBSPOT_BASE}/crm/v3/objects/deals/search"
+        payload = {
+            "filterGroups": [{"filters": [{
+                "propertyName": "hs_lastmodifieddate",
+                "operator": "GTE",
+                "value": str(ts_ms),
+            }]}],
+            "properties": properties,
+            "limit": 100,
+        }
+        results = []
+        after = None
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            while True:
+                body = {**payload}
+                if after:
+                    body["after"] = after
+                resp = await client.post(url, headers=self._headers, json=body)
+                resp.raise_for_status()
+                data = resp.json()
+                results.extend(data.get("results", []))
+                paging = data.get("paging", {}).get("next", {})
+                after = paging.get("after")
+                if not after:
+                    break
+        return results
 
     async def detect_stalled_deals(self, days: int = 7) -> List[Dict]:
         """Return deals with no activity in the last `days` days."""
