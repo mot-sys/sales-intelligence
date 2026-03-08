@@ -2,9 +2,15 @@
 GTM (Go-To-Market) Configuration & Intelligence API
 
 Endpoints:
-  GET  /api/gtm/config        — retrieve strategy, ICP, goals
-  PUT  /api/gtm/config        — upsert config (merge partial updates)
-  GET  /api/gtm/intelligence  — compute board-level GTM KPIs
+  GET  /api/gtm/config             — retrieve strategy, ICP, goals
+  PUT  /api/gtm/config             — upsert config (merge partial updates)
+  GET  /api/gtm/intelligence       — compute board-level GTM KPIs
+  GET  /api/gtm/progress           — YTD gap analysis vs prorated target
+  GET  /api/gtm/daily-report       — weekly scorekort (7 KPIs vs pace)
+  GET  /api/gtm/forecast           — monthly pipeline forecast (3 scenarios)
+  GET  /api/gtm/learnings          — CRM win/loss pattern cards
+  GET  /api/gtm/management-tasks   — auto-generated management action items
+  POST /api/gtm/agent/analyze      — AI agent pipeline analysis (Anthropic)
 """
 
 from fastapi import APIRouter, Depends
@@ -673,3 +679,737 @@ async def get_gtm_progress(
         "alerts":        alerts,
         "generated_at":  now.isoformat(),
     }
+
+
+# ─────────────────────────────────────────────────────────
+# GET /api/gtm/daily-report
+# ─────────────────────────────────────────────────────────
+
+@router.get("/daily-report")
+async def get_daily_report(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Weekly scorekort comparing CRM activity to required weekly pace."""
+    from uuid import UUID
+    cid = UUID(customer_id)
+    now = datetime.now(timezone.utc)
+
+    # Week boundaries (Monday 00:00 UTC)
+    days_since_monday = now.weekday()
+    week_start = (now - timedelta(days=days_since_monday)).replace(
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc
+    )
+
+    # ── Load goals ───────────────────────────────────────
+    cfg_result = await db.execute(select(GTMConfig).where(GTMConfig.customer_id == cid))
+    cfg = cfg_result.scalar_one_or_none()
+    goals = (cfg.goals or {}) if cfg else {}
+
+    revenue_target  = float(goals.get("revenue_target", 0) or 0)
+    acv             = float(goals.get("acv", 0) or 0)
+    win_rate        = float(goals.get("win_rate_pct", 25) or 25) / 100
+    opp_to_meeting  = float(goals.get("opp_to_meeting_rate_pct", 30) or 30) / 100
+    response_rate   = float(goals.get("outreach_response_rate_pct", 10) or 10) / 100
+    period          = goals.get("period", "annual")
+    weeks           = 13 if period == "quarterly" else 52
+
+    # Weekly targets
+    deals_total     = math.ceil(revenue_target / acv) if acv > 0 else 0
+    opps_total      = math.ceil(deals_total / win_rate) if win_rate > 0 else 0
+    mtgs_total      = math.ceil(opps_total / opp_to_meeting) if opp_to_meeting > 0 else 0
+    accts_total     = math.ceil(mtgs_total / response_rate) if response_rate > 0 else 0
+    weekly_deals    = round(deals_total / weeks, 1) if weeks else 0
+    weekly_mtgs     = round(mtgs_total / weeks, 1) if weeks else 0
+    weekly_accts    = round(accts_total / weeks, 1) if weeks else 0
+    weekly_revenue  = round(revenue_target / weeks) if weeks else 0
+
+    # ── Load CRM data ────────────────────────────────────
+    opps_result = await db.execute(
+        select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
+    )
+    all_opps = opps_result.scalars().all()
+
+    leads_result = await db.execute(select(Lead).where(Lead.customer_id == cid))
+    all_leads = leads_result.scalars().all()
+
+    def _n(dt):
+        """Strip tz for naive DB comparisons."""
+        if dt is None:
+            return None
+        return dt.replace(tzinfo=None) if getattr(dt, "tzinfo", None) else dt
+
+    ws_naive = _n(week_start)
+    now_naive = _n(now)
+
+    open_opps = [o for o in all_opps if _is_open(o.stage)]
+
+    # 1. Revenue won this week
+    won_week = [
+        o for o in all_opps
+        if _is_closed_won(o.stage)
+        and o.close_date is not None
+        and _n(o.close_date) >= ws_naive
+    ]
+    revenue_won_week = sum(int(o.amount or 0) for o in won_week)
+
+    # 2. Deals with activity this week (proxy: moved forward)
+    active_deals_week = [
+        o for o in open_opps
+        if o.last_activity_date is not None
+        and _n(o.last_activity_date) >= ws_naive
+    ]
+
+    # 3. Weighted pipeline
+    weighted_pipeline = sum((o.amount or 0) * _stage_prob(o.stage) for o in open_opps)
+
+    # 4. Meetings currently scheduled (in a meeting stage)
+    meeting_stage_keys = {
+        "appointmentscheduled", "qualifiedtobuy", "presentationscheduled",
+        "qualification", "appointment scheduled", "qualified to buy",
+    }
+    meetings_active = [
+        o for o in open_opps
+        if (o.stage or "").lower().replace(" ", "").replace("_", "") in
+           {s.replace(" ", "").replace("_", "") for s in meeting_stage_keys}
+    ]
+    # New meeting activity this week
+    meetings_week = [
+        o for o in meetings_active
+        if o.last_activity_date is not None
+        and _n(o.last_activity_date) >= ws_naive
+    ]
+
+    # 5. Active accounts (leads with activity this week)
+    active_leads_week = [
+        l for l in all_leads
+        if l.last_activity is not None and _n(l.last_activity) >= ws_naive
+    ]
+
+    # 6. New accounts engaged this week (new leads created)
+    new_leads_week = [
+        l for l in all_leads
+        if l.created_at is not None and _n(l.created_at) >= ws_naive
+    ]
+
+    # 7. Deals moved toward closed won this week (closed + stage advancement proxy)
+    closed_won_week = len(won_week)
+
+    stalled_count = sum(1 for o in all_opps if o.is_stalled)
+
+    def _fmtK(n):
+        if n >= 1_000_000:
+            return f"{n/1_000_000:.1f}M"
+        if n >= 1000:
+            return f"{round(n/1000)}k"
+        return str(round(n))
+
+    def _item(label, emoji, actual, target, suffix, note, is_currency=False):
+        pct = round(actual / target * 100, 0) if target > 0 else 0
+        if pct >= 100:
+            status = "strong"
+        elif pct >= 60:
+            status = "ok"
+        elif pct >= 30:
+            status = "low"
+        else:
+            status = "critical"
+        return {
+            "label":       label,
+            "emoji":       emoji,
+            "actual":      actual,
+            "target":      target,
+            "pct":         pct,
+            "suffix":      suffix,
+            "status":      status,
+            "note":        note,
+            "is_currency": is_currency,
+        }
+
+    scorecard = [
+        _item("Omsætning vundet",        "💰", revenue_won_week,      weekly_revenue,
+              "kr", f"Mål: {_fmtK(weekly_revenue)}kr/uge", True),
+        _item("Deals lukket",            "🏆", closed_won_week,        max(int(weekly_deals), 1),
+              "deals", f"Mål: {weekly_deals} deals/uge"),
+        _item("Deals rykket fremad",     "➡️",  len(active_deals_week), max(int(weekly_deals * 3), 1),
+              "deals", "Deals med aktivitet denne uge"),
+        _item("Pipeline (vægtet)",       "📈", round(weighted_pipeline / 1000),
+              max(round(revenue_target / 1000), 1), "k kr",
+              f"Mål: {_fmtK(revenue_target)}kr total"),
+        _item("Møder afholdt / booket",  "📅", len(meetings_week),     max(int(weekly_mtgs), 1),
+              "møder", f"Mål: {weekly_mtgs} møder/uge"),
+        _item("Aktive accounts",         "🏢", len(active_leads_week), max(int(weekly_accts), 1),
+              "accounts", f"Mål: {weekly_accts} accounts/uge"),
+        _item("Nye virksomheder",        "🆕", len(new_leads_week),    max(int(weekly_accts * 0.3), 1),
+              "nye", "Nye leads skabt denne uge"),
+    ]
+
+    items_on_track = sum(1 for s in scorecard if s["status"] in ("strong", "ok"))
+    overall_pct = round(items_on_track / len(scorecard) * 100, 0) if scorecard else 0
+
+    return {
+        "week_start":        week_start.isoformat(),
+        "scorecard":         scorecard,
+        "overall_pct":       overall_pct,
+        "items_on_track":    items_on_track,
+        "total_items":       len(scorecard),
+        "stalled_deals":     stalled_count,
+        "weighted_pipeline": round(weighted_pipeline),
+        "open_deals":        len(open_opps),
+        "generated_at":      now.isoformat(),
+    }
+
+
+# ─────────────────────────────────────────────────────────
+# GET /api/gtm/forecast
+# ─────────────────────────────────────────────────────────
+
+@router.get("/forecast")
+async def get_forecast(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Pipeline forecast: monthly breakdown + 3 scenarios (base / conservative / optimistic)."""
+    from uuid import UUID
+    from collections import defaultdict
+    cid = UUID(customer_id)
+    now = datetime.now(timezone.utc)
+
+    cfg_result = await db.execute(select(GTMConfig).where(GTMConfig.customer_id == cid))
+    cfg = cfg_result.scalar_one_or_none()
+    goals = (cfg.goals or {}) if cfg else {}
+    revenue_target = float(goals.get("revenue_target", 0) or 0)
+    period = goals.get("period", "annual")
+
+    opps_result = await db.execute(
+        select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
+    )
+    all_opps = opps_result.scalars().all()
+    open_opps = [o for o in all_opps if _is_open(o.stage)]
+
+    def _n(dt):
+        if dt is None:
+            return None
+        return dt.replace(tzinfo=None) if getattr(dt, "tzinfo", None) else dt
+
+    # Closed-won YTD
+    year_start_naive = _n(datetime(now.year, 1, 1, tzinfo=timezone.utc))
+    won_ytd = [
+        o for o in all_opps
+        if _is_closed_won(o.stage)
+        and o.close_date is not None
+        and _n(o.close_date) >= year_start_naive
+    ]
+    revenue_won_ytd = sum(int(o.amount or 0) for o in won_ytd)
+
+    # Group open opps by close_date month
+    monthly: dict = defaultdict(lambda: {
+        "base": 0.0, "conservative": 0.0, "optimistic": 0.0, "count": 0, "top_opps": []
+    })
+    no_date = {"base": 0.0, "conservative": 0.0, "optimistic": 0.0, "count": 0}
+
+    for opp in open_opps:
+        prob    = _stage_prob(opp.stage)
+        amount  = int(opp.amount or 0)
+        base    = amount * prob
+        cons    = amount * prob * 0.60
+        opt     = amount * min(prob * 1.35, 1.0)
+
+        if opp.close_date:
+            cd = _n(opp.close_date)
+            key = f"{cd.year}-{cd.month:02d}"
+            monthly[key]["base"]         += base
+            monthly[key]["conservative"] += cons
+            monthly[key]["optimistic"]   += opt
+            monthly[key]["count"]        += 1
+            if len(monthly[key]["top_opps"]) < 3:
+                monthly[key]["top_opps"].append({
+                    "account": opp.account_name,
+                    "amount":  amount,
+                    "stage":   opp.stage,
+                    "prob":    round(prob * 100),
+                })
+        else:
+            no_date["base"]         += base
+            no_date["conservative"] += cons
+            no_date["optimistic"]   += opt
+            no_date["count"]        += 1
+
+    # Build 12-month list
+    months = []
+    for i in range(12):
+        raw_month = now.month + i
+        y = now.year + (raw_month - 1) // 12
+        m = ((raw_month - 1) % 12) + 1
+        key   = f"{y}-{m:02d}"
+        label = datetime(y, m, 1).strftime("%b %Y")
+        d     = monthly.get(key, {"base": 0, "conservative": 0, "optimistic": 0, "count": 0, "top_opps": []})
+        months.append({
+            "key":          key,
+            "label":        label,
+            "base":         round(d["base"]),
+            "conservative": round(d["conservative"]),
+            "optimistic":   round(d["optimistic"]),
+            "count":        d["count"],
+            "top_opps":     d.get("top_opps", []),
+        })
+
+    total_base = sum(m["base"] for m in months) + revenue_won_ytd
+    total_cons = sum(m["conservative"] for m in months) + revenue_won_ytd
+    total_opt  = sum(m["optimistic"] for m in months) + revenue_won_ytd
+
+    return {
+        "months": months,
+        "totals": {
+            "base":           round(total_base),
+            "conservative":   round(total_cons),
+            "optimistic":     round(total_opt),
+            "revenue_target": round(revenue_target),
+            "base_pct":       round(total_base / revenue_target * 100, 1) if revenue_target > 0 else 0,
+            "won_ytd":        round(revenue_won_ytd),
+        },
+        "no_close_date": no_date,
+        "generated_at":  now.isoformat(),
+    }
+
+
+# ─────────────────────────────────────────────────────────
+# GET /api/gtm/learnings
+# ─────────────────────────────────────────────────────────
+
+@router.get("/learnings")
+async def get_learnings(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Win/loss pattern analysis — returns learning cards derived from CRM data."""
+    from uuid import UUID
+    cid = UUID(customer_id)
+    now = datetime.now(timezone.utc)
+
+    opps_result = await db.execute(
+        select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
+    )
+    all_opps = opps_result.scalars().all()
+
+    won_opps  = [o for o in all_opps if _is_closed_won(o.stage)]
+    lost_opps = [o for o in all_opps if _is_closed_lost(o.stage)]
+    open_opps = [o for o in all_opps if _is_open(o.stage)]
+    stalled   = [o for o in open_opps if o.is_stalled]
+
+    date_str = now.strftime("%d. %b")
+    learnings = []
+
+    # ── 1. Win rate ──────────────────────────────────────
+    total_closed = len(won_opps) + len(lost_opps)
+    if total_closed >= 2:
+        wr = round(len(won_opps) / total_closed * 100, 1)
+        above_avg = wr >= 25
+        learnings.append({
+            "id":     "win_rate",
+            "impact": "high" if above_avg else "medium",
+            "title":  f"Win rate: {wr}% ({len(won_opps)} af {total_closed} deals)",
+            "body":   (
+                f"Du vinder {wr}% af dine deals — "
+                + ("over branchen gennemsnittet (25%). Solid kvalificeringsproces." if above_avg
+                   else "under branchen gennemsnittet (25%). Analyser tab-årsager.")
+            ),
+            "date":   date_str,
+            "action": "Gennemgå de seneste 3 tabte deals og find det fælles fravær.",
+        })
+
+    # ── 2. Deal-størrelse: vundet vs. åbne ───────────────
+    won_amounts  = [int(o.amount or 0) for o in won_opps if o.amount]
+    open_amounts = [int(o.amount or 0) for o in open_opps if o.amount]
+    if won_amounts and open_amounts:
+        avg_won  = sum(won_amounts) / len(won_amounts)
+        avg_open = sum(open_amounts) / len(open_amounts)
+        diff_pct = round((avg_won - avg_open) / max(avg_open, 1) * 100, 0)
+        sign = "+" if diff_pct >= 0 else ""
+        learnings.append({
+            "id":     "deal_size",
+            "impact": "medium",
+            "title":  f"Vundne deals er {sign}{diff_pct}% {'større' if diff_pct >= 0 else 'mindre'} end pipeline",
+            "body":   (
+                f"Gns. lukket: {avg_won/1000:.0f}k kr  ·  Gns. åben pipeline: {avg_open/1000:.0f}k kr. "
+                + ("Du vinder de større deals — fokusér på dem." if diff_pct > 10
+                   else "Pipeline matcher vundne deals — ICP er konsistent.")
+            ),
+            "date":   date_str,
+            "action": f"Prioritér åbne deals over {avg_won/1000:.0f}k kr i næste pipeline-review.",
+        })
+
+    # ── 3. Stage med flest tab ────────────────────────────
+    if lost_opps:
+        lost_by_stage: dict = {}
+        for o in lost_opps:
+            s = o.stage or "Ukendt"
+            lost_by_stage[s] = lost_by_stage.get(s, 0) + 1
+        top_lost_stage = max(lost_by_stage, key=lambda k: lost_by_stage[k])
+        top_lost_n     = lost_by_stage[top_lost_stage]
+        learnings.append({
+            "id":     "lost_stage",
+            "impact": "high",
+            "title":  f"Flest tab i '{top_lost_stage}' ({top_lost_n} deals)",
+            "body":   (
+                f"{top_lost_n} af {len(lost_opps)} tabte deals faldt fra i stage '{top_lost_stage}'. "
+                f"Dette er dit primære lækage-punkt."
+            ),
+            "date":   date_str,
+            "action": f"Hvad blokkerer deals i '{top_lost_stage}'? Tilbud, teknisk validering eller champion?",
+        })
+
+    # ── 4. Rep-performance variance ──────────────────────
+    rep_stats: dict = {}
+    for o in all_opps:
+        rep = o.owner_name or "Unassigned"
+        if rep not in rep_stats:
+            rep_stats[rep] = {"won": 0, "total": 0}
+        rep_stats[rep]["total"] += 1
+        if _is_closed_won(o.stage):
+            rep_stats[rep]["won"] += 1
+
+    rep_rates = {
+        rep: round(s["won"] / s["total"] * 100, 0)
+        for rep, s in rep_stats.items()
+        if s["total"] >= 2
+    }
+    if len(rep_rates) >= 2:
+        top    = max(rep_rates, key=rep_rates.get)
+        bottom = min(rep_rates, key=rep_rates.get)
+        gap    = rep_rates[top] - rep_rates[bottom]
+        if gap >= 10:
+            learnings.append({
+                "id":     "rep_variance",
+                "impact": "high" if gap >= 25 else "medium",
+                "title":  f"{top}: {rep_rates[top]:.0f}%  vs  {bottom}: {rep_rates[bottom]:.0f}% win rate",
+                "body":   (
+                    f"{gap:.0f}% forskel i win rate. {top} har den bedste tilgang. "
+                    f"Peer coaching kan løfte teamets samlede performance."
+                ),
+                "date":   date_str,
+                "action": f"Book shadowing: {bottom} følger {top} på næste møde eller demo.",
+            })
+
+    # ── 5. Stagnerende pipeline-risiko ───────────────────
+    if stalled:
+        stalled_val = sum(int(o.amount or 0) for o in stalled)
+        learnings.append({
+            "id":     "stalled_risk",
+            "impact": "high" if stalled_val > 300_000 else "medium",
+            "title":  f"{len(stalled)} stagnerende deals — {stalled_val/1000:.0f}k kr i risiko",
+            "body":   (
+                f"Disse deals har ingen aktivitet i 14+ dage. "
+                f"Stagnerende deals taber historisk set inden for 30 dage."
+            ),
+            "date":   date_str,
+            "action": "Se Tasks for specifikke ryk-handlinger på disse deals.",
+        })
+
+    # ── 6. Signal-korrelation (hvis ConversionData) ──────
+    conv_result = await db.execute(
+        select(ConversionData).where(
+            ConversionData.customer_id == cid,
+            ConversionData.outcome == "deal_closed",
+        )
+    )
+    conversions = conv_result.scalars().all()
+    if conversions:
+        won_lead_ids = [c.lead_id for c in conversions]
+        sig_rows = await db.execute(
+            select(Signal.type, sql_func.count(Signal.id).label("cnt"))
+            .where(Signal.lead_id.in_(won_lead_ids))
+            .group_by(Signal.type)
+            .order_by(sql_func.count(Signal.id).desc())
+            .limit(3)
+        )
+        top_sigs = list(sig_rows)
+        if top_sigs:
+            sig_str = "  ·  ".join(f"{r.type} ({r.cnt}x)" for r in top_sigs)
+            learnings.append({
+                "id":     "win_signals",
+                "impact": "high",
+                "title":  f"Vindersignal: {top_sigs[0].type} korrelerer stærkest med lukkede deals",
+                "body":   f"Signaler i vundne deals: {sig_str}. Disse er dine stærkeste intent-indikatorer.",
+                "date":   date_str,
+                "action": "Prioritér accounts med disse signaler i din daglige outreach.",
+            })
+
+    return {
+        "learnings": learnings,
+        "summary": {
+            "won": len(won_opps), "lost": len(lost_opps),
+            "open": len(open_opps), "stalled": len(stalled),
+        },
+        "generated_at": now.isoformat(),
+    }
+
+
+# ─────────────────────────────────────────────────────────
+# GET /api/gtm/management-tasks
+# ─────────────────────────────────────────────────────────
+
+@router.get("/management-tasks")
+async def get_management_tasks(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Auto-generated management action items derived from CRM data patterns."""
+    from uuid import UUID
+    cid = UUID(customer_id)
+    now = datetime.now(timezone.utc)
+
+    def _n(dt):
+        if dt is None: return None
+        return dt.replace(tzinfo=None) if getattr(dt, "tzinfo", None) else dt
+
+    now_naive = _n(now)
+
+    opps_result = await db.execute(
+        select(SalesforceOpportunity).where(SalesforceOpportunity.customer_id == cid)
+    )
+    all_opps = opps_result.scalars().all()
+    open_opps = [o for o in all_opps if _is_open(o.stage)]
+
+    leads_result = await db.execute(select(Lead).where(Lead.customer_id == cid))
+    all_leads = leads_result.scalars().all()
+
+    tasks = []
+    _id = 0
+
+    def mk(type_, priority, headline, deal, rep, action, data=None):
+        nonlocal _id
+        _id += 1
+        return {
+            "id":       _id,
+            "type":     type_,
+            "priority": priority,
+            "headline": headline,
+            "deal":     deal,
+            "rep":      rep,
+            "action":   action,
+            "data":     data or {},
+            "status":   "pending",
+        }
+
+    # ── 1. Stalled deals → ryk rep ───────────────────────
+    stalled = sorted([o for o in open_opps if o.is_stalled], key=lambda o: -(o.amount or 0))
+    for opp in stalled[:6]:
+        if opp.last_activity_date:
+            days = (now_naive - _n(opp.last_activity_date)).days
+        else:
+            days = 30
+        amt = int(opp.amount or 0)
+        tasks.append(mk(
+            "stalled_deal",
+            "urgent" if amt > 300_000 or days > 21 else "high",
+            f"Ryk {opp.owner_name or 'sælger'} for '{opp.account_name}' — {days} dage uden aktivitet",
+            opp.account_name or "Ukendt",
+            opp.owner_name or "Unassigned",
+            f"Kontakt {opp.owner_name or 'sælger'} og få status. Deal er {amt/1000:.0f}k kr i {opp.stage or 'ukendt stage'}.",
+            {"amount": amt, "stage": opp.stage, "days_stalled": days},
+        ))
+
+    # ── 2. Closing soon, ingen nylig aktivitet → send tilbud ─
+    two_weeks = _n(now + timedelta(days=14))
+    closing_soon = [
+        o for o in open_opps
+        if o.close_date is not None
+        and _n(o.close_date) is not None
+        and _n(o.close_date) <= two_weeks
+        and (o.last_activity_date is None
+             or (now_naive - _n(o.last_activity_date)).days > 7)
+    ]
+    for opp in closing_soon[:4]:
+        days_left = (_n(opp.close_date) - now_naive).days if opp.close_date else 0
+        tasks.append(mk(
+            "closing_soon",
+            "urgent",
+            f"Send tilbud til '{opp.account_name}' — lukker om {days_left} dage",
+            opp.account_name or "Ukendt",
+            opp.owner_name or "Unassigned",
+            f"Close dato er om {days_left} dage uden nylig aktivitet. Send tilbud eller bekræft status med {opp.owner_name or 'sælger'}.",
+            {"amount": int(opp.amount or 0), "days_left": days_left},
+        ))
+
+    # ── 3. Møde/tilbudsstage uden opfølgning → udfyld næste trin ─
+    active_stage_no_followup = [
+        o for o in open_opps
+        if any(kw in (o.stage or "").lower()
+               for kw in ["appointment", "scheduled", "proposal", "negotiation", "presentation"])
+        and (o.last_activity_date is None
+             or (now_naive - _n(o.last_activity_date)).days > 10)
+    ]
+    if active_stage_no_followup:
+        names = [o.account_name for o in active_stage_no_followup[:5] if o.account_name]
+        tasks.append(mk(
+            "missing_followup",
+            "high",
+            f"Udfyld næste trin på {len(active_stage_no_followup)} deals i møde/tilbudsstage",
+            ", ".join(names[:3]) + ("…" if len(names) > 3 else ""),
+            "Team",
+            f"Disse {len(active_stage_no_followup)} deals er i aktiv stage men mangler opfølgning. Opdatér CRM med næste møde-dato eller action-item.",
+            {"deals": [o.account_name for o in active_stage_no_followup[:6]]},
+        ))
+
+    # ── 4. Rep-coaching: win rate under 15% ──────────────
+    rep_stats: dict = {}
+    for o in all_opps:
+        rep = o.owner_name or "Unassigned"
+        if rep not in rep_stats:
+            rep_stats[rep] = {"won": 0, "total": 0, "open_val": 0}
+        rep_stats[rep]["total"] += 1
+        if _is_closed_won(o.stage):
+            rep_stats[rep]["won"] += 1
+        elif _is_open(o.stage):
+            rep_stats[rep]["open_val"] += int(o.amount or 0)
+
+    for rep, s in rep_stats.items():
+        if s["total"] >= 3 and (s["won"] / s["total"]) < 0.15:
+            wr = round(s["won"] / s["total"] * 100, 0)
+            tasks.append(mk(
+                "rep_coaching",
+                "medium",
+                f"Coaching: {rep} — win rate {wr:.0f}% under mål",
+                f"{s['total']} deals, {s['open_val']/1000:.0f}k kr åben pipeline",
+                rep,
+                f"{rep} vinder {wr:.0f}% af deals. Book coaching-session og analyser tab-mønstre.",
+                {"win_rate": wr, "total_deals": s["total"], "won": s["won"]},
+            ))
+
+    # ── 5. SDR aktiverer for mange / for få ──────────────
+    # Find reps with very low or very high outreach but low meeting conversion
+    rep_leads: dict = {}
+    for l in all_leads:
+        rep = l.owner_name or "Unassigned"
+        if rep not in rep_leads:
+            rep_leads[rep] = {"total": 0, "active": 0}
+        rep_leads[rep]["total"] += 1
+        # Active = activity in last 30 days
+        if l.last_activity and _n(l.last_activity) >= _n(now - timedelta(days=30)):
+            rep_leads[rep]["active"] += 1
+
+    for rep, s in rep_leads.items():
+        if s["total"] >= 10:
+            act_rate = s["active"] / s["total"]
+            if act_rate < 0.10:
+                tasks.append(mk(
+                    "low_activation",
+                    "medium",
+                    f"Aktiver flere accounts: {rep} — kun {round(act_rate*100)}% aktiv rate",
+                    f"{s['total']} accounts i pipeline",
+                    rep,
+                    f"{rep} har kun aktiveret {s['active']} af {s['total']} accounts de seneste 30 dage. Sæt mål om +{max(int(s['total']*0.2 - s['active']), 5)} nye kontakter.",
+                    {"active_rate": round(act_rate * 100, 1), "active": s["active"], "total": s["total"]},
+                ))
+
+    # ── Sort by priority ─────────────────────────────────
+    prio_order = {"urgent": 0, "high": 1, "medium": 2}
+    tasks.sort(key=lambda t: prio_order.get(t["priority"], 9))
+
+    return {
+        "tasks": tasks,
+        "counts": {
+            "urgent": sum(1 for t in tasks if t["priority"] == "urgent"),
+            "high":   sum(1 for t in tasks if t["priority"] == "high"),
+            "medium": sum(1 for t in tasks if t["priority"] == "medium"),
+            "total":  len(tasks),
+        },
+        "generated_at": now.isoformat(),
+    }
+
+
+# ─────────────────────────────────────────────────────────
+# POST /api/gtm/agent/analyze
+# ─────────────────────────────────────────────────────────
+
+@router.post("/agent/analyze")
+async def agent_analyze(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    AI Agent: analyze full pipeline snapshot and return actionable insights.
+    Uses Anthropic Claude — requires ANTHROPIC_API_KEY env var.
+    """
+    from uuid import UUID
+    from app.core.config import settings
+    from app.core.ai import build_pipeline_context
+
+    cid = UUID(customer_id)
+    now = datetime.now(timezone.utc)
+
+    if not settings.ANTHROPIC_API_KEY:
+        return {
+            "thinking": [],
+            "insights": "ANTHROPIC_API_KEY er ikke konfigureret. Tilføj den i Railway environment variables.",
+            "tasks": [],
+            "generated_at": now.isoformat(),
+        }
+
+    # Build pipeline context (same as chat)
+    context = await build_pipeline_context(db, str(cid))
+
+    # Load GTM goals for additional context
+    cfg_result = await db.execute(select(GTMConfig).where(GTMConfig.customer_id == cid))
+    cfg = cfg_result.scalar_one_or_none()
+    goals = (cfg.goals or {}) if cfg else {}
+    revenue_target = float(goals.get("revenue_target", 0) or 0)
+
+    from anthropic import AsyncAnthropic
+    client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+    model = settings.ANTHROPIC_MODEL or "claude-3-5-haiku-20241022"
+
+    import json
+    system = f"""\
+Du er en AI sales intelligence agent. Din opgave: analysér pipeline-data og returner præcise, handlingsrettede indsigter på dansk.
+
+I dag: {now.strftime('%A %d. %B %Y')}
+Omsætningsmål: {revenue_target/1000:.0f}k kr
+
+Returnér ALTID valid JSON med disse felter:
+{{
+  "thinking": ["step 1...", "step 2...", "step 3..."],
+  "insights": "1-2 sætninger om den vigtigste observation",
+  "tasks": [
+    {{"priority": "urgent|high|medium", "deal": "deal-navn", "action": "konkret handling"}}
+  ]
+}}
+
+Maks 3 tasks. Vær konkret — brug rigtige deal-navne og beløb fra data.
+"""
+
+    import json as _json
+    try:
+        response = await client.messages.create(
+            model=model,
+            system=system,
+            messages=[{
+                "role": "user",
+                "content": f"Analysér denne pipeline:\n{_json.dumps(context, indent=2, default=str)[:8000]}"
+            }],
+            max_tokens=1000,
+        )
+        raw = response.content[0].text.strip()
+
+        # Extract JSON (sometimes wrapped in ```json ... ```)
+        if "```" in raw:
+            import re
+            m = re.search(r"```(?:json)?\s*([\s\S]+?)```", raw)
+            raw = m.group(1).strip() if m else raw
+
+        parsed = _json.loads(raw)
+        return {
+            "thinking":     parsed.get("thinking", []),
+            "insights":     parsed.get("insights", ""),
+            "tasks":        parsed.get("tasks", []),
+            "generated_at": now.isoformat(),
+        }
+    except Exception as e:
+        return {
+            "thinking":     [f"Analyserer {context['pipeline_summary']['total_open_deals']} åbne deals..."],
+            "insights":     f"Analyse mislykkedes: {str(e)[:200]}",
+            "tasks":        [],
+            "generated_at": now.isoformat(),
+        }
