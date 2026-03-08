@@ -528,6 +528,8 @@ const SalesIntelligencePlatform = () => {
   // Industry/geo chip input helpers
   const [industryInput, setIndustryInput] = useState('');
   const [geoInput, setGeoInput] = useState('');
+  // Bottom-up calculator
+  const [bottomUpPerDay, setBottomUpPerDay] = useState(5);
 
   // ── Intelligence state ───────────────────────────────────────────────────
   const [intelligenceData, setIntelligenceData] = useState(null);
@@ -3738,97 +3740,265 @@ const SalesIntelligencePlatform = () => {
               const rev  = parseFloat(g.revenue_target) || 0;
               const acv  = parseFloat(g.acv) || 0;
               const wr   = parseFloat(g.win_rate_pct) / 100 || 0.01;
-              const omr  = parseFloat(g.opp_to_meeting_rate_pct) / 100 || 0.01;
+              // meeting_to_opp_rate: % af møder der kvalificerer som opportunity
+              const mor  = parseFloat(g.opp_to_meeting_rate_pct) / 100 || 0.01;
+              // outreach_to_meeting_rate: % af kontaktede accounts der siger ja til møde
               const rr   = parseFloat(g.outreach_response_rate_pct) / 100 || 0.01;
-              const weeks = g.period === 'quarterly' ? 13 : 52;
-              const deals = acv > 0 ? Math.ceil(rev / acv) : 0;
-              const opps  = wr > 0 ? Math.ceil(deals / wr) : 0;
-              const mtgs  = omr > 0 ? Math.ceil(opps / omr) : 0;
-              const accts = rr > 0 ? Math.ceil(mtgs / rr) : 0;
+              const weeks  = g.period === 'quarterly' ? 13 : 52;
+              const workdays = weeks * 5;
+
+              // ── Top-down (fra mål → aktivitet) ──
+              const deals  = acv > 0 ? Math.ceil(rev / acv) : 0;
+              const opps   = wr > 0 ? Math.ceil(deals / wr) : 0;
+              const mtgs   = mor > 0 ? Math.ceil(opps / mor) : 0;
+              const accts  = rr > 0 ? Math.ceil(mtgs / rr) : 0;
+              const acctsPrDay = workdays > 0 ? (accts / workdays).toFixed(1) : 0;
+              const mtgsPrDay  = workdays > 0 ? (mtgs / workdays).toFixed(1) : 0;
+
+              // ── Bottom-up (fra aktivitet → forventet omsætning) ──
+              const buPerDay  = parseFloat(bottomUpPerDay) || 0;
+              const buTotal   = buPerDay * workdays;
+              const buMtgs    = Math.floor(buTotal * rr);
+              const buOpps    = Math.floor(buMtgs * mor);
+              const buDeals   = Math.floor(buOpps * wr);
+              const buRev     = buDeals * acv;
+              const buPct     = rev > 0 ? Math.round(buRev / rev * 100) : 0;
+              const buGap     = Math.max(rev - buRev, 0);
+
+              const fmtKr = (n) => n >= 1000000
+                ? `${(n/1000000).toFixed(1)}M kr`
+                : n >= 1000 ? `${(n/1000).toFixed(0)}k kr` : `${n} kr`;
+
               return (
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="bg-white p-6 rounded-lg border border-gray-200 space-y-4">
-                    <h3 className="text-sm font-semibold text-gray-700">Indstillinger</h3>
+                <div className="grid grid-cols-5 gap-6">
+                  {/* ── Left: Inputs ── */}
+                  <div className="col-span-2 bg-white p-6 rounded-lg border border-gray-200 space-y-4">
+                    <h3 className="text-sm font-semibold text-gray-700">Konverteringsrater & mål</h3>
+
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs text-gray-500 block mb-1">Periode</label>
+                        <label className="text-xs font-medium text-gray-700 block mb-0.5">Periode</label>
                         <select value={g.period} onChange={e => setGoalsForm(f => ({ ...f, period: e.target.value }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none">
-                          <option value="annual">Årlig</option>
-                          <option value="quarterly">Kvartal</option>
+                          <option value="annual">Årlig (52 uger)</option>
+                          <option value="quarterly">Kvartal (13 uger)</option>
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500 block mb-1">Nuværende ARR</label>
-                        <input type="number" value={g.current_arr || ''} onChange={e => setGoalsForm(f => ({ ...f, current_arr: parseFloat(e.target.value) || 0 }))} placeholder="0" className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none" />
+                        <label className="text-xs font-medium text-gray-700 block mb-0.5">Nuværende ARR</label>
+                        <div className="flex items-center">
+                          <input type="number" value={g.current_arr || ''} onChange={e => setGoalsForm(f => ({ ...f, current_arr: parseFloat(e.target.value) || 0 }))} placeholder="0" className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none" />
+                          <span className="px-2 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500">kr</span>
+                        </div>
                       </div>
                     </div>
+
                     {[
-                      { key: 'revenue_target', label: 'Omsætningsmål', placeholder: '1.000.000', suffix: 'kr' },
-                      { key: 'acv', label: 'Gns. kontraktværdi (ACV)', placeholder: '50.000', suffix: 'kr' },
-                      { key: 'win_rate_pct', label: 'Win rate', placeholder: '25', suffix: '%' },
-                      { key: 'opp_to_meeting_rate_pct', label: 'Opportunity → møde rate', placeholder: '30', suffix: '%' },
-                      { key: 'outreach_response_rate_pct', label: 'Outreach svar-rate', placeholder: '10', suffix: '%' },
-                    ].map(({ key, label, placeholder, suffix }) => (
+                      {
+                        key: 'revenue_target',
+                        label: 'Omsætningsmål (ny ARR)',
+                        hint: 'Ny omsætning der skal genereres i perioden',
+                        placeholder: '5.000.000', suffix: 'kr',
+                      },
+                      {
+                        key: 'acv',
+                        label: 'Gns. kontraktværdi (ACV)',
+                        hint: 'Gennemsnitlig årlig kontraktværdi pr. ny kunde',
+                        placeholder: '250.000', suffix: 'kr',
+                      },
+                      {
+                        key: 'win_rate_pct',
+                        label: 'Opportunity → Deal (win rate)',
+                        hint: '% af opportunities der lukkes som betalende kunde',
+                        placeholder: '25', suffix: '%',
+                      },
+                      {
+                        key: 'opp_to_meeting_rate_pct',
+                        label: 'Møde → Opportunity (kvalificeringsrate)',
+                        hint: '% af møder der kvalificerer og åbnes som opportunity i CRM',
+                        placeholder: '40', suffix: '%',
+                      },
+                      {
+                        key: 'outreach_response_rate_pct',
+                        label: 'Account kontaktet → Møde booket',
+                        hint: '% af kontaktede accounts der siger ja til et møde',
+                        placeholder: '5', suffix: '%',
+                      },
+                    ].map(({ key, label, hint, placeholder, suffix }) => (
                       <div key={key}>
-                        <label className="text-xs text-gray-500 block mb-1">{label}</label>
+                        <label className="text-xs font-medium text-gray-700 block mb-0.5">{label}</label>
+                        <p className="text-xs text-gray-400 mb-1">{hint}</p>
                         <div className="flex items-center">
                           <input type="number" value={g[key] || ''} onChange={e => setGoalsForm(f => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))} placeholder={placeholder} className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                          <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500">{suffix}</span>
+                          <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500 font-medium">{suffix}</span>
                         </div>
                       </div>
                     ))}
+
                     <button onClick={() => saveGtmConfig('goals', goalsForm)} disabled={gtmSaving} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
                       <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem Målsætninger'}
                     </button>
                   </div>
-                  <div className="space-y-3">
+
+                  {/* ── Right: Top-down + Bottom-up ── */}
+                  <div className="col-span-3 space-y-4">
+
+                    {/* Top-down waterfall */}
                     <div className="bg-white p-5 rounded-lg border border-gray-200">
-                      <h3 className="text-sm font-semibold text-gray-700 mb-4">Aktivitetsformlen</h3>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-gray-700">⬇ Top-down — hvad kræver det?</h3>
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra mål → daglig aktivitet</span>
+                      </div>
                       {deals > 0 ? (
-                        <div className="space-y-2">
-                          {[
-                            { label: 'Omsætningsmål', value: `${(rev/1000).toFixed(0)}k kr`, color: 'bg-blue-100 text-blue-800', desc: '' },
-                            { label: `÷ ACV (${(acv/1000).toFixed(0)}k kr)`, value: `${deals} deals`, color: 'bg-purple-100 text-purple-800', desc: 'Deals der skal lukkes' },
-                            { label: `÷ Win rate (${g.win_rate_pct}%)`, value: `${opps} opportunities`, color: 'bg-orange-100 text-orange-800', desc: 'Opportunities der skal åbnes' },
-                            { label: `÷ Opp→møde (${g.opp_to_meeting_rate_pct}%)`, value: `${mtgs} møder`, color: 'bg-yellow-100 text-yellow-800', desc: 'Møder der skal bookes' },
-                            { label: `÷ Svar-rate (${g.outreach_response_rate_pct}%)`, value: `${accts} accounts`, color: 'bg-green-100 text-green-800', desc: 'Accounts der skal kontaktes' },
-                          ].map(({ label, value, color, desc }, idx, arr) => (
-                            <div key={label}>
-                              <div className={`flex items-center justify-between p-3 rounded-lg ${color}`}>
-                                <div>
-                                  <span className="text-xs opacity-70">{label}</span>
-                                  <div className="font-bold text-sm">{value}</div>
-                                  {desc && <span className="text-xs opacity-60">{desc}</span>}
+                        <>
+                          <div className="space-y-1.5">
+                            {[
+                              {
+                                step: '🎯', label: 'Omsætningsmål',
+                                value: fmtKr(rev),
+                                sub: `${g.period === 'quarterly' ? 'kvartal' : 'år'}`,
+                                color: 'bg-slate-700 text-white',
+                              },
+                              {
+                                step: '÷', label: `ACV ${fmtKr(acv)} pr. kunde`,
+                                value: `${deals} nye kunder`,
+                                sub: 'skal lukkes',
+                                color: 'bg-blue-600 text-white',
+                                arrow: true,
+                              },
+                              {
+                                step: '÷', label: `Win rate ${g.win_rate_pct}%  (opportunity → deal)`,
+                                value: `${opps} opportunities`,
+                                sub: 'skal oprettes i CRM',
+                                color: 'bg-indigo-500 text-white',
+                                arrow: true,
+                              },
+                              {
+                                step: '÷', label: `Kvalificeringsrate ${g.opp_to_meeting_rate_pct}%  (møde → opportunity)`,
+                                value: `${mtgs} møder`,
+                                sub: 'skal holdes',
+                                color: 'bg-violet-500 text-white',
+                                arrow: true,
+                              },
+                              {
+                                step: '÷', label: `Møde-rate ${g.outreach_response_rate_pct}%  (kontakt → møde)`,
+                                value: `${accts} accounts`,
+                                sub: 'skal kontaktes i alt',
+                                color: 'bg-orange-500 text-white',
+                                arrow: true,
+                              },
+                            ].map(({ step, label, value, sub, color, arrow }, idx) => (
+                              <div key={idx}>
+                                {arrow && <div className="flex items-center gap-2 my-1 pl-3"><div className="w-px h-3 bg-gray-300 ml-2" /><span className="text-xs text-gray-400">{step} {label}</span></div>}
+                                <div className={`flex items-center justify-between px-4 py-2.5 rounded-lg ${color}`}>
+                                  {!arrow && <span className="text-xs opacity-75">{label}</span>}
+                                  {arrow && <span className="text-xs opacity-0">_</span>}
+                                  <div className="text-right">
+                                    <div className="font-bold text-base">{value}</div>
+                                    <div className="text-xs opacity-70">{sub}</div>
+                                  </div>
                                 </div>
                               </div>
-                              {idx < arr.length - 1 && <div className="text-center text-gray-400 text-xs my-1">↓</div>}
+                            ))}
+                          </div>
+                          {/* Daily summary */}
+                          <div className="mt-4 grid grid-cols-3 gap-2">
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-orange-600">{acctsPrDay}</div>
+                              <div className="text-xs text-orange-700 font-medium">accounts/dag</div>
+                              <div className="text-xs text-orange-500">du skal kontakte</div>
                             </div>
-                          ))}
-                          <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                            <p className="text-xs font-semibold text-gray-600 mb-2">Ugentlige mål ({g.period === 'quarterly' ? '13 uger' : '52 uger'})</p>
-                            <div className="grid grid-cols-3 gap-2 text-center">
-                              <div className="bg-white rounded p-2 border border-gray-200">
-                                <div className="text-lg font-bold text-blue-600">{(accts/weeks).toFixed(1)}</div>
-                                <div className="text-xs text-gray-500">accounts/uge</div>
-                              </div>
-                              <div className="bg-white rounded p-2 border border-gray-200">
-                                <div className="text-lg font-bold text-purple-600">{(mtgs/weeks).toFixed(1)}</div>
-                                <div className="text-xs text-gray-500">møder/uge</div>
-                              </div>
-                              <div className="bg-white rounded p-2 border border-gray-200">
-                                <div className="text-lg font-bold text-orange-600">{(opps/weeks).toFixed(1)}</div>
-                                <div className="text-xs text-gray-500">opps/uge</div>
-                              </div>
+                            <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-violet-600">{mtgsPrDay}</div>
+                              <div className="text-xs text-violet-700 font-medium">møder/dag</div>
+                              <div className="text-xs text-violet-500">du skal holde</div>
+                            </div>
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+                              <div className="text-2xl font-bold text-blue-600">{(opps/weeks).toFixed(1)}</div>
+                              <div className="text-xs text-blue-700 font-medium">opps/uge</div>
+                              <div className="text-xs text-blue-500">der skal åbnes</div>
                             </div>
                           </div>
-                        </div>
+                        </>
                       ) : (
-                        <div className="text-center py-8 text-gray-400">
-                          <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                          <p className="text-sm">Udfyld omsætningsmål og ACV for at se aktivitetsformlen</p>
+                        <div className="text-center py-6 text-gray-400">
+                          <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                          <p className="text-sm">Udfyld omsætningsmål og ACV for at se formlen</p>
                         </div>
                       )}
                     </div>
+
+                    {/* Bottom-up calculator */}
+                    <div className="bg-white p-5 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-gray-700">⬆ Bottom-up — hvad kan I nå?</h3>
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra kapacitet → forventet omsætning</span>
+                      </div>
+                      <div className="flex items-end gap-4 mb-4">
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-gray-700 block mb-0.5">Accounts aktiveret per dag</label>
+                          <p className="text-xs text-gray-400 mb-1">Hvor mange nye accounts kan jeres team realistisk kontakte dagligt?</p>
+                          <div className="flex items-center">
+                            <input
+                              type="number"
+                              value={bottomUpPerDay}
+                              onChange={e => setBottomUpPerDay(parseFloat(e.target.value) || 0)}
+                              min={1} max={500}
+                              className="flex-1 text-lg font-bold border-2 border-blue-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-700"
+                            />
+                            <span className="px-3 py-2.5 bg-blue-50 border-2 border-l-0 border-blue-300 rounded-r-lg text-sm text-blue-600 font-medium">acc/dag</span>
+                          </div>
+                        </div>
+                        {acv > 0 && buPerDay > 0 && (
+                          <div className={`px-4 py-2.5 rounded-lg text-center border-2 ${buPct >= 100 ? 'bg-green-50 border-green-400' : buPct >= 70 ? 'bg-amber-50 border-amber-400' : 'bg-red-50 border-red-300'}`}>
+                            <div className={`text-3xl font-black ${buPct >= 100 ? 'text-green-600' : buPct >= 70 ? 'text-amber-600' : 'text-red-500'}`}>{buPct}%</div>
+                            <div className="text-xs text-gray-500">af mål</div>
+                          </div>
+                        )}
+                      </div>
+
+                      {acv > 0 && buPerDay > 0 ? (
+                        <>
+                          <div className="space-y-1.5">
+                            {[
+                              { emoji: '📞', label: `${buPerDay} accounts/dag × ${workdays} arbejdsdage`, value: `${buTotal.toLocaleString()} accounts kontaktet`, color: 'bg-gray-100 text-gray-800' },
+                              { emoji: '📅', label: `× møde-rate ${g.outreach_response_rate_pct}%`, value: `${buMtgs.toLocaleString()} møder holdt`, color: 'bg-orange-50 text-orange-800', border: 'border border-orange-200' },
+                              { emoji: '🔍', label: `× kvalificeringsrate ${g.opp_to_meeting_rate_pct}%`, value: `${buOpps.toLocaleString()} opportunities åbnet`, color: 'bg-violet-50 text-violet-800', border: 'border border-violet-200' },
+                              { emoji: '🏆', label: `× win rate ${g.win_rate_pct}%`, value: `${buDeals.toLocaleString()} nye kunder`, color: 'bg-blue-50 text-blue-800', border: 'border border-blue-200' },
+                              { emoji: '💰', label: `× ACV ${fmtKr(acv)}`, value: fmtKr(buRev), color: buPct >= 100 ? 'bg-green-100 text-green-900' : 'bg-amber-50 text-amber-900', border: buPct >= 100 ? 'border border-green-300' : 'border border-amber-300' },
+                            ].map(({ emoji, label, value, color, border = '' }, idx, arr) => (
+                              <div key={idx}>
+                                <div className={`flex items-center justify-between px-3 py-2 rounded-lg ${color} ${border}`}>
+                                  <span className="text-xs">{emoji} {label}</span>
+                                  <span className="text-sm font-bold">{value}</span>
+                                </div>
+                                {idx < arr.length - 1 && <div className="text-center text-gray-300 text-xs">↓</div>}
+                              </div>
+                            ))}
+                          </div>
+
+                          {buGap > 0 && (
+                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                              <p className="text-xs font-semibold text-red-700">
+                                ⚠ Gap: du mangler {fmtKr(buGap)} for at nå målet
+                              </p>
+                              <p className="text-xs text-red-500 mt-0.5">
+                                Løsninger: øg til {Math.ceil(accts / workdays * (rev / Math.max(buRev, 1))).toFixed(0)} accounts/dag · eller forbedr win rate · eller hæv ACV
+                              </p>
+                            </div>
+                          )}
+                          {buPct >= 100 && (
+                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <p className="text-xs font-semibold text-green-700">✓ Med {buPerDay} accounts/dag når du dit omsætningsmål!</p>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-6 text-gray-400">
+                          <p className="text-sm">Udfyld konverteringsraterne til venstre og angiv accounts/dag for at se projekteringen</p>
+                        </div>
+                      )}
+                    </div>
+
                   </div>
                 </div>
               );
