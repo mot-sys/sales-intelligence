@@ -125,6 +125,10 @@ const INITIAL = {
   activitySummary: null,
   activitySummaryLoading: false,
 
+  // ── Persisted Recommendations ──────────────────────────────────────────────
+  recommendations: null,
+  recommendationsLoading: false,
+
   // ── AI Agent ─────────────────────────────────────────────────────────────
   agentData: null,
   agentLoading: false,
@@ -656,6 +660,41 @@ const useDataStore = create((set, getStore) => ({
   },
 
   // ══════════════════════════════════════════════════════════════════════════
+  // PERSISTED RECOMMENDATIONS
+  // ══════════════════════════════════════════════════════════════════════════
+
+  fetchRecommendations: async () => {
+    set({ recommendationsLoading: true });
+    try {
+      const data = await get('/outbound/recommendations?status=pending&limit=20');
+      set({ recommendations: data });
+    } catch {
+      set({ recommendations: null });
+    } finally {
+      set({ recommendationsLoading: false });
+    }
+  },
+
+  dismissRecommendation: async (recId) => {
+    try {
+      await post(`/outbound/recommendations/${recId}/action?action=dismissed`, {});
+      // Remove from local state immediately
+      const current = useDataStore.getState().recommendations;
+      if (current?.recommendations) {
+        set({
+          recommendations: {
+            ...current,
+            recommendations: current.recommendations.filter(r => r.id !== recId),
+            total: current.total - 1,
+          }
+        });
+      }
+    } catch (e) {
+      console.error('Failed to dismiss recommendation:', e);
+    }
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
   // CRM ACTIVITY SUMMARY  (P1.6)
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -702,6 +741,7 @@ const useDataStore = create((set, getStore) => ({
       s.fetchLearnings(),
       s.fetchMgmtTasks(),
       s.fetchActivitySummary(),
+      s.fetchRecommendations(),
     ]);
   },
 

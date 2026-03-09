@@ -41,12 +41,14 @@ export default function IntelligencePage() {
     mgmtTasks,         mgmtTasksLoading,
     agentData,         agentLoading,
     activitySummary,   activitySummaryLoading,
+    recommendations,   recommendationsLoading,
     // actions
     fetchIntelligenceTab,
     fetchIntelligence, fetchDailyReport, fetchForecast,
     fetchForecastHistory, saveSnapshot,
     fetchLearnings, fetchMgmtTasks,
-    fetchActivitySummary,
+    fetchActivitySummary, fetchRecommendations,
+    dismissRecommendation,
     runAgent,
   } = useDataStore();
 
@@ -61,6 +63,7 @@ export default function IntelligencePage() {
     fetchLearnings();
     fetchMgmtTasks();
     fetchActivitySummary();
+    fetchRecommendations();
   };
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -155,6 +158,8 @@ export default function IntelligencePage() {
         dismissedTaskIds={dismissedTaskIds}
         setDismissedTaskIds={setDismissedTaskIds}
         onRefresh={fetchMgmtTasks}
+        recommendations={recommendations}
+        onDismissRec={dismissRecommendation}
       />}
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -805,7 +810,15 @@ function LearningsSubTab({ learnings, loading }) {
 
 // ─── Sub-tab: Management Tasks ─────────────────────────────────────────────
 
-function TasksSubTab({ mgmtTasks, loading, dismissedTaskIds, setDismissedTaskIds, onRefresh }) {
+const REC_TYPE_LABELS = {
+  stalled_deal:    { icon: '⏸', label: 'Stagnerende deal' },
+  closing_soon:    { icon: '⏰', label: 'Lukker snart' },
+  rep_coaching:    { icon: '🎯', label: 'Rep coaching' },
+  activate_account:{ icon: '💡', label: 'Aktivér account' },
+  coverage_gap:    { icon: '📉', label: 'Pipeline gap' },
+};
+
+function TasksSubTab({ mgmtTasks, loading, dismissedTaskIds, setDismissedTaskIds, onRefresh, recommendations, onDismissRec }) {
   if (loading && !mgmtTasks) return (
     <div className="flex items-center justify-center py-20 text-gray-400">
       <RefreshCw className="w-6 h-6 animate-spin mr-2" /> Genererer tasks...
@@ -863,6 +876,36 @@ function TasksSubTab({ mgmtTasks, loading, dismissedTaskIds, setDismissedTaskIds
           </div>
         </div>
       ))}
+
+      {/* Persisted recommendations from rule engine */}
+      {(recommendations?.recommendations || []).length > 0 && (
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Anbefalinger fra regelmotor</p>
+          <div className="space-y-3">
+            {recommendations.recommendations.map(rec => {
+              const cfg = REC_TYPE_LABELS[rec.rec_type] || { icon: '📌', label: rec.rec_type };
+              const bg  = rec.priority === 'urgent' ? 'bg-red-50 border-red-200'
+                        : rec.priority === 'high'   ? 'bg-amber-50 border-amber-200'
+                        : 'bg-gray-50 border-gray-200';
+              return (
+                <div key={rec.id} className={`flex items-start gap-3 p-3 rounded-lg border ${bg}`}>
+                  <span className="text-base mt-0.5">{cfg.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-500 mb-0.5">{cfg.label}</p>
+                    <p className="text-sm font-semibold text-gray-900">{rec.title}</p>
+                    {rec.description && <p className="text-xs text-gray-500 mt-1 line-clamp-2">{rec.description}</p>}
+                  </div>
+                  <button
+                    onClick={() => onDismissRec?.(rec.id)}
+                    className="text-gray-300 hover:text-gray-500 text-lg leading-none flex-shrink-0"
+                    title="Afvis"
+                  >✕</button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
