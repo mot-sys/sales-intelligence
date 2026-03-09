@@ -27,8 +27,8 @@ export default function PipelinePage() {
   useEffect(() => { fetchPipelineTab(); }, [fetchPipelineTab]);
 
   // ── Derived ─────────────────────────────────────────────────────────────
-  const deals = (pipelineData?.pipeline || []).filter(d =>
-    !pipelineSearch || d.name?.toLowerCase().includes(pipelineSearch.toLowerCase())
+  const deals = (pipelineData?.deals || []).filter(d =>
+    !pipelineSearch || (d.name || d.account_name || '').toLowerCase().includes(pipelineSearch.toLowerCase())
   );
 
   // ── Render ──────────────────────────────────────────────────────────────
