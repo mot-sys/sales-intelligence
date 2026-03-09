@@ -11,15 +11,16 @@ import {
   Camera, History,
 } from 'lucide-react';
 
-// â”€â”€ Page components (P1.10 extraction) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ Page components (P1.10 extraction) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+import GTMSetupPage     from './pages/GTMSetupPage';
 import IntelligencePage from './pages/IntelligencePage';
 import PipelinePage     from './pages/PipelinePage';
 import SignalsPage      from './pages/SignalsPage';
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // CHAT CHART RENDERER
 // Renders AI-generated chart specs from render_chart tool calls
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const CHART_PALETTE = [
   '#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626',
@@ -27,7 +28,7 @@ const CHART_PALETTE = [
 ];
 
 const formatChartValue = (value, prefix = '', suffix = '') => {
-  if (value === null || value === undefined) return 'â€”';
+  if (value === null || value === undefined) return 'Ã¢â‚¬â€';
   if (typeof value === 'number' && value >= 1000) {
     return `${prefix}${value >= 1000000
       ? (value / 1000000).toFixed(1) + 'M'
@@ -59,7 +60,7 @@ const ChatChart = ({ spec }) => {
         <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">{title}</p>
       )}
 
-      {/* â”€â”€ Vertical bar chart â”€â”€ */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Vertical bar chart Ã¢â€â‚¬Ã¢â€â‚¬ */}
       {chart_type === 'bar' && (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
@@ -86,7 +87,7 @@ const ChatChart = ({ spec }) => {
         </ResponsiveContainer>
       )}
 
-      {/* â”€â”€ Horizontal bar chart â”€â”€ */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Horizontal bar chart Ã¢â€â‚¬Ã¢â€â‚¬ */}
       {chart_type === 'horizontal_bar' && (
         <div className="space-y-2">
           {data.map((item, i) => {
@@ -115,7 +116,7 @@ const ChatChart = ({ spec }) => {
         </div>
       )}
 
-      {/* â”€â”€ Pie chart â”€â”€ */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Pie chart Ã¢â€â‚¬Ã¢â€â‚¬ */}
       {chart_type === 'pie' && (
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
@@ -140,7 +141,7 @@ const ChatChart = ({ spec }) => {
             <Tooltip
               formatter={(val) => [
                 formatChartValue(val, value_prefix, value_suffix),
-                'VÃ¦rdi',
+                'VÃƒÂ¦rdi',
               ]}
             />
           </PieChart>
@@ -150,9 +151,9 @@ const ChatChart = ({ spec }) => {
   );
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // API HELPERS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 // API requests use relative URLs so Vercel proxies them to Railway server-side.
 // Override with VITE_API_URL only if you need to bypass the proxy.
@@ -190,9 +191,9 @@ const API = {
   },
 };
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // UTILITY HELPERS
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const PRIORITY_STYLES = {
   urgent: { badge: 'bg-red-100 text-red-700 border-red-300', dot: 'bg-red-500', border: 'border-l-red-500' },
@@ -238,9 +239,9 @@ function getScoreColor(score) {
   return 'text-gray-500';
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // ALERT CARD COMPONENT
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function AlertCard({ alert, onAction, isActioning }) {
   const pStyle = PRIORITY_STYLES[alert.priority] || PRIORITY_STYLES.low;
@@ -344,9 +345,9 @@ function AlertCard({ alert, onAction, isActioning }) {
   );
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 // MAIN APP
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const SalesIntelligencePlatform = () => {
   const [activeTab, setActiveTab] = useState('gtm-setup');
@@ -397,7 +398,7 @@ const SalesIntelligencePlatform = () => {
   const [workflowsLoading, setWorkflowsLoading] = useState(false);
   const [wfModal, setWfModal] = useState(null);        // null | 'create' | workflow-object
   const [wfRunning, setWfRunning] = useState(null);    // workflow id being run
-  const [wfRunResult, setWfRunResult] = useState({});  // id â†’ result
+  const [wfRunResult, setWfRunResult] = useState({});  // id Ã¢â€ â€™ result
   const [wfForm, setWfForm] = useState({ name: '', description: '', trigger_type: 'manual', conditions: [], actions: [] });
   // Buyer Journey tab
   const [journeyCompany, setJourneyCompany] = useState('');
@@ -417,7 +418,7 @@ const SalesIntelligencePlatform = () => {
   const [cmtStatusFilter, setCmtStatusFilter] = useState('all');
   const [cmtDeptFilter, setCmtDeptFilter] = useState('all');
 
-  // â”€â”€ GTM Setup state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ GTM Setup state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [gtmTab, setGtmTab] = useState('strategy');
   const [gtmConfig, setGtmConfig] = useState(null);
   const [gtmSaving, setGtmSaving] = useState(false);
@@ -449,16 +450,16 @@ const SalesIntelligencePlatform = () => {
   const [progressData, setProgressData] = useState(null);
   const [progressLoading, setProgressLoading] = useState(false);
 
-  // â”€â”€ Intelligence state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Intelligence state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [intelligenceData, setIntelligenceData] = useState(null);
   const [intelligenceLoading, setIntelligenceLoading] = useState(false);
   const [intelligenceSubTab, setIntelligenceSubTab] = useState('overblik');
 
-  // â”€â”€ Daily report (scorekort) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Daily report (scorekort) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [dailyReport, setDailyReport] = useState(null);
   const [dailyReportLoading, setDailyReportLoading] = useState(false);
 
-  // â”€â”€ Forecast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Forecast Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [forecast, setForecast] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [forecastHistory, setForecastHistory] = useState(null);
@@ -466,24 +467,24 @@ const SalesIntelligencePlatform = () => {
   const [snapshotSaving, setSnapshotSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // â”€â”€ Learnings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Learnings Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [learnings, setLearnings] = useState(null);
   const [learningsLoading, setLearningsLoading] = useState(false);
 
-  // â”€â”€ Management Tasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Management Tasks Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [mgmtTasks, setMgmtTasks] = useState(null);
   const [mgmtTasksLoading, setMgmtTasksLoading] = useState(false);
   const [dismissedTaskIds, setDismissedTaskIds] = useState(new Set());
 
-  // â”€â”€ AI Agent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ AI Agent Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [agentData, setAgentData] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
 
-  // â”€â”€ New sub-tab state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ New sub-tab state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [pipelineSubTab, setPipelineSubTab] = useState('deals');
   const [signalsSubTab, setSignalsSubTab] = useState('alerts');
 
-  // â”€â”€ Legacy dropdown state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Legacy dropdown state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const [legacyOpen, setLegacyOpen] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
@@ -538,9 +539,9 @@ const SalesIntelligencePlatform = () => {
       setContextInput(settingsData.company_context || '');
     } catch {
       setSuggestedQuestions([
-        'Hvad skal jeg fokusere pÃ¥ denne uge?',
+        'Hvad skal jeg fokusere pÃƒÂ¥ denne uge?',
         'Hvilke deals er mest i fare?',
-        'Hvilke leads bÃ¸r jeg kontakte i dag?',
+        'Hvilke leads bÃƒÂ¸r jeg kontakte i dag?',
         'Giv mig et overblik over min pipeline',
       ]);
     }
@@ -714,10 +715,10 @@ const SalesIntelligencePlatform = () => {
     setCmtSyncMsg(null);
     try {
       const data = await API.post('/connections/notion/sync');
-      setCmtSyncMsg(`âœ“ Synced â€” ${data.created ?? 0} new, ${data.updated ?? 0} updated`);
+      setCmtSyncMsg(`Ã¢Å“â€œ Synced Ã¢â‚¬â€ ${data.created ?? 0} new, ${data.updated ?? 0} updated`);
       await fetchCmt();
     } catch (e) {
-      setCmtSyncMsg(`âœ— ${e.message}`);
+      setCmtSyncMsg(`Ã¢Å“â€” ${e.message}`);
     } finally {
       setCmtSyncing(false);
     }
@@ -775,7 +776,7 @@ const SalesIntelligencePlatform = () => {
           setGrowthPct(0);
         }
       }
-    } catch { /* silent â€” use form defaults */ }
+    } catch { /* silent Ã¢â‚¬â€ use form defaults */ }
   }, []);
 
   const saveGtmConfig = async (section, formData) => {
@@ -961,7 +962,7 @@ const SalesIntelligencePlatform = () => {
     try {
       const params = new URLSearchParams(connectForm).toString();
       const data = await API.post(`/connections/${connectModal}?${params}`);
-      // OAuth services return an auth_url â€” open it in a new tab
+      // OAuth services return an auth_url Ã¢â‚¬â€ open it in a new tab
       if (data.auth_url) {
         window.open(data.auth_url, '_blank', 'noopener,noreferrer');
         setConnectModal(null);
@@ -972,7 +973,7 @@ const SalesIntelligencePlatform = () => {
       setConnectModal(null);
       setConnectForm({});
     } catch (e) {
-      setConnectError(e.message || 'Connection failed â€” check your credentials.');
+      setConnectError(e.message || 'Connection failed Ã¢â‚¬â€ check your credentials.');
     } finally {
       setConnectLoading(false);
     }
@@ -1018,14 +1019,14 @@ const SalesIntelligencePlatform = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* â”€â”€ Header â”€â”€ */}
+      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬ */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Zap className="w-8 h-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Signal Intelligence</h1>
-              <p className="text-sm text-gray-500">GTM Intelligence Platform Â· Board-level insights</p>
+              <p className="text-sm text-gray-500">GTM Intelligence Platform Ã‚Â· Board-level insights</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -1039,7 +1040,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         </div>
 
-        {/* â”€â”€ Primary Nav â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ Primary Nav Ã¢â€â‚¬Ã¢â€â‚¬ */}
         <div className="flex items-center space-x-1 px-6">
           {PRIMARY_TABS.map(tab => {
             const Icon = tab.icon;
@@ -1113,7 +1114,7 @@ const SalesIntelligencePlatform = () => {
 
       <div className="p-6">
 
-        {/* â”€â”€ DASHBOARD TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ DASHBOARD TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="grid grid-cols-4 gap-4">
@@ -1188,7 +1189,7 @@ const SalesIntelligencePlatform = () => {
                           <p className="text-xs text-gray-500">{timeAgo(alert.created_at)}</p>
                           {(alert.context?.owner_name || alert.lead?.owner_name) && (
                             <span className="text-xs text-indigo-600 font-medium">
-                              Â· {alert.context?.owner_name || alert.lead?.owner_name}
+                              Ã‚Â· {alert.context?.owner_name || alert.lead?.owner_name}
                             </span>
                           )}
                         </div>
@@ -1204,7 +1205,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* â”€â”€ ALERTS TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ ALERTS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'alerts' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -1257,7 +1258,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* â”€â”€ AI CHAT TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ AI CHAT TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'chat' && (() => {
           return (
             <div className="flex gap-6 h-[calc(100vh-200px)] min-h-[500px]">
@@ -1283,7 +1284,7 @@ const SalesIntelligencePlatform = () => {
                         <MessageSquare className="w-8 h-8 text-purple-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-700">SpÃ¸rg om din pipeline</p>
+                        <p className="font-medium text-gray-700">SpÃƒÂ¸rg om din pipeline</p>
                         <p className="text-sm text-gray-400 mt-1">AI'en har adgang til alle dine deals, leads og alerts</p>
                       </div>
                       <div className="flex flex-wrap gap-2 justify-center mt-2">
@@ -1356,7 +1357,7 @@ const SalesIntelligencePlatform = () => {
                       type="text"
                       value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
-                      placeholder="Stil et spÃ¸rgsmÃ¥l om din pipeline..."
+                      placeholder="Stil et spÃƒÂ¸rgsmÃƒÂ¥l om din pipeline..."
                       disabled={chatLoading}
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
                     />
@@ -1389,12 +1390,12 @@ const SalesIntelligencePlatform = () => {
                       ].map(({ label, value, warn }) => (
                         <div key={label} className="flex justify-between text-sm">
                           <span className="text-gray-500">{label}</span>
-                          <span className={`font-semibold ${warn ? 'text-red-600' : 'text-gray-900'}`}>{value ?? 'â€”'}</span>
+                          <span className={`font-semibold ${warn ? 'text-red-600' : 'text-gray-900'}`}>{value ?? 'Ã¢â‚¬â€'}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400">IndlÃ¦ser...</p>
+                    <p className="text-sm text-gray-400">IndlÃƒÂ¦ser...</p>
                   )}
                 </div>
 
@@ -1417,13 +1418,13 @@ const SalesIntelligencePlatform = () => {
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold">{m.label}</span>
                             {m.tier === 'recommended' && (
-                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">âœ“ Best</span>
+                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">Ã¢Å“â€œ Best</span>
                             )}
                             {m.tier === 'powerful' && (
-                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">âš¡ Max</span>
+                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">Ã¢Å¡Â¡ Max</span>
                             )}
                             {m.tier === 'fast' && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">ðŸš€ Fast</span>
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">Ã°Å¸Å¡â‚¬ Fast</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>
@@ -1468,7 +1469,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Fx: Svar altid pÃ¥ dansk"
+                          placeholder="Fx: Svar altid pÃƒÂ¥ dansk"
                           value={skillInput}
                           onChange={e => setSkillInput(e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && addSkill()}
@@ -1488,7 +1489,7 @@ const SalesIntelligencePlatform = () => {
                         <p className="text-xs text-gray-500 font-medium mb-1.5">Virksomhedskontekst</p>
                         <textarea
                           rows={3}
-                          placeholder="Fx: Vi sÃ¦lger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
+                          placeholder="Fx: Vi sÃƒÂ¦lger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
                           value={contextInput}
                           onChange={e => setContextInput(e.target.value)}
                           className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
@@ -1506,9 +1507,9 @@ const SalesIntelligencePlatform = () => {
                       <div className="pt-1 border-t border-gray-100">
                         <p className="text-xs text-gray-400 mb-1.5">Forslag:</p>
                         {[
-                          'Svar altid pÃ¥ dansk',
-                          'FokusÃ©r pÃ¥ deals der lukker inden for 30 dage',
-                          'Brug MEDDIC salgsmÃ¸ntoden',
+                          'Svar altid pÃƒÂ¥ dansk',
+                          'FokusÃƒÂ©r pÃƒÂ¥ deals der lukker inden for 30 dage',
+                          'Brug MEDDIC salgsmÃƒÂ¸ntoden',
                           'Vores ICP: SaaS, 50-500 ansatte',
                         ].map((s, i) => (
                           <button
@@ -1547,7 +1548,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ WEEKLY REPORT TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ WEEKLY REPORT TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'report' && (() => {
           const report = weeklyReport;
           const hasReport = report && (report.section_what_happened || report.section_this_week || report.section_management);
@@ -1578,7 +1579,7 @@ const SalesIntelligencePlatform = () => {
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
                       {hasReport
-                        ? `Uge startende ${report.week_start} Â· Genereret ${new Date(report.generated_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} Â· ${report.model_used || 'AI'}`
+                        ? `Uge startende ${report.week_start} Ã‚Â· Genereret ${new Date(report.generated_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} Ã‚Â· ${report.model_used || 'AI'}`
                         : 'Klik "Generer rapport" for at lave denne uges analyse'}
                     </p>
                   </div>
@@ -1599,14 +1600,14 @@ const SalesIntelligencePlatform = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     >
                       <Sparkles className={`w-4 h-4 ${weeklyReportGenerating ? 'animate-spin' : ''}`} />
-                      {weeklyReportGenerating ? 'Generererâ€¦' : hasReport ? 'Regenerer' : 'Generer rapport'}
+                      {weeklyReportGenerating ? 'GenerererÃ¢â‚¬Â¦' : hasReport ? 'Regenerer' : 'Generer rapport'}
                     </button>
                   </div>
                 </div>
 
                 {weeklyReportError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                    âš ï¸ {weeklyReportError}
+                    Ã¢Å¡Â Ã¯Â¸Â {weeklyReportError}
                   </div>
                 )}
 
@@ -1614,7 +1615,7 @@ const SalesIntelligencePlatform = () => {
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm text-blue-700">
-                      Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitetâ€¦
+                      Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitetÃ¢â‚¬Â¦
                     </span>
                   </div>
                 )}
@@ -1626,7 +1627,7 @@ const SalesIntelligencePlatform = () => {
                   <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 font-medium">Ingen rapport endnu</p>
                   <p className="text-sm text-gray-400 mt-1 mb-6">
-                    Klik "Generer rapport" ovenfor â€” AI analyserer din pipeline og skriver rapporten.
+                    Klik "Generer rapport" ovenfor Ã¢â‚¬â€ AI analyserer din pipeline og skriver rapporten.
                   </p>
                   <p className="text-xs text-gray-400">Rapporten opdateres automatisk mandag morgen kl. 8 (via Railway cron).</p>
                 </div>
@@ -1642,7 +1643,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <Activity className="w-4 h-4 text-blue-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">ðŸ“Š Hvad skete der denne uge</h3>
+                      <h3 className="font-semibold text-gray-900">Ã°Å¸â€œÅ  Hvad skete der denne uge</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_what_happened)}
@@ -1655,7 +1656,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                         <Target className="w-4 h-4 text-green-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">ðŸŽ¯ Hvad skal der ske denne uge</h3>
+                      <h3 className="font-semibold text-gray-900">Ã°Å¸Å½Â¯ Hvad skal der ske denne uge</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_this_week)}
@@ -1668,7 +1669,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                         <Award className="w-4 h-4 text-purple-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">ðŸ¤ Hvad kan sales management gÃ¸re</h3>
+                      <h3 className="font-semibold text-gray-900">Ã°Å¸Â¤Â Hvad kan sales management gÃƒÂ¸re</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_management)}
@@ -1681,10 +1682,10 @@ const SalesIntelligencePlatform = () => {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Data grundlag</p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
-                          { label: 'Deals i pipeline', value: report.data_snapshot.pipeline?.total_deals ?? 'â€”' },
-                          { label: 'Aktive deals (uge)', value: report.data_snapshot.pipeline?.recently_active_deals ?? 'â€”' },
-                          { label: 'Alerts trigget', value: report.data_snapshot.alerts?.total ?? 'â€”' },
-                          { label: 'HubSpot-opgaver', value: report.data_snapshot.tasks?.total ?? (report.data_snapshot.tasks?.available === false ? 'N/A' : 'â€”') },
+                          { label: 'Deals i pipeline', value: report.data_snapshot.pipeline?.total_deals ?? 'Ã¢â‚¬â€' },
+                          { label: 'Aktive deals (uge)', value: report.data_snapshot.pipeline?.recently_active_deals ?? 'Ã¢â‚¬â€' },
+                          { label: 'Alerts trigget', value: report.data_snapshot.alerts?.total ?? 'Ã¢â‚¬â€' },
+                          { label: 'HubSpot-opgaver', value: report.data_snapshot.tasks?.total ?? (report.data_snapshot.tasks?.available === false ? 'N/A' : 'Ã¢â‚¬â€') },
                         ].map(({ label, value }) => (
                           <div key={label} className="bg-white rounded-lg p-3 border border-gray-200 text-center">
                             <p className="text-lg font-bold text-gray-900">{value}</p>
@@ -1700,7 +1701,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ PIPELINE DATA TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ PIPELINE DATA TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'data' && (() => {
           const STAGE_COLORS = {
             closedwon: 'bg-green-100 text-green-800 border-green-200',
@@ -1715,7 +1716,7 @@ const SalesIntelligencePlatform = () => {
             ? s.replace(/([a-z])([A-Z])/g, '$1 $2')
                 .replace(/_/g, ' ')
                 .replace(/\b\w/g, c => c.toUpperCase())
-            : 'â€”';
+            : 'Ã¢â‚¬â€';
 
           const deals = (pipelineData?.deals || []).filter(d => {
             if (!pipelineSearch) return true;
@@ -1738,7 +1739,7 @@ const SalesIntelligencePlatform = () => {
           return (
             <div className="space-y-5">
 
-              {/* â”€â”€ Summary cards â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Summary cards Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {summary && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {[
@@ -1746,18 +1747,18 @@ const SalesIntelligencePlatform = () => {
                     { label: 'Pipeline Value', value: summary.total_pipeline_display, color: 'text-green-600' },
                     { label: 'Stalled', value: summary.stalled_deals, color: summary.stalled_deals > 0 ? 'text-red-600' : 'text-gray-500' },
                     { label: 'Pending Alerts', value: summary.pending_alerts, color: summary.pending_alerts > 0 ? 'text-orange-600' : 'text-gray-500' },
-                    { label: 'Top Lead Score', value: summary.top_lead_score ?? 'â€”', color: 'text-purple-600' },
+                    { label: 'Top Lead Score', value: summary.top_lead_score ?? 'Ã¢â‚¬â€', color: 'text-purple-600' },
                     { label: 'Urgent / High', value: summary.urgent_or_high_alerts, color: summary.urgent_or_high_alerts > 0 ? 'text-red-600' : 'text-gray-500' },
                   ].map(({ label, value, color }) => (
                     <div key={label} className="bg-white rounded-lg border border-gray-200 px-4 py-3">
                       <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-                      <p className={`text-xl font-bold ${color}`}>{value ?? 'â€”'}</p>
+                      <p className={`text-xl font-bold ${color}`}>{value ?? 'Ã¢â‚¬â€'}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* â”€â”€ Stage distribution bar â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Stage distribution bar Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {summary?.deals_by_stage && Object.keys(summary.deals_by_stage).length > 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Deals by Stage</p>
@@ -1771,7 +1772,7 @@ const SalesIntelligencePlatform = () => {
                           <div key={stage}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs text-gray-700">{stageLabel(stage)}</span>
-                              <span className="text-xs font-semibold text-gray-900">{count} deal{count !== 1 ? 's' : ''} &nbsp;Â·&nbsp; {pct}%</span>
+                              <span className="text-xs font-semibold text-gray-900">{count} deal{count !== 1 ? 's' : ''} &nbsp;Ã‚Â·&nbsp; {pct}%</span>
                             </div>
                             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                               <div
@@ -1786,7 +1787,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ View toggle + search â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ View toggle + search Ã¢â€â‚¬Ã¢â€â‚¬ */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex gap-2">
                   {[['deals', 'Deals'], ['leads', 'Leads']].map(([id, label]) => (
@@ -1825,7 +1826,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               </div>
 
-              {/* â”€â”€ Deals table â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Deals table Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {pipelineView === 'deals' && (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   {pipelineLoading && !pipelineData ? (
@@ -1861,7 +1862,7 @@ const SalesIntelligencePlatform = () => {
                                 </span>
                               </td>
                               <td className="px-5 py-3.5">
-                                <span className="font-semibold text-gray-900 text-sm">{deal.amount_display || 'â€”'}</span>
+                                <span className="font-semibold text-gray-900 text-sm">{deal.amount_display || 'Ã¢â‚¬â€'}</span>
                               </td>
                               <td className="px-5 py-3.5">
                                 {deal.owner ? (
@@ -1869,10 +1870,10 @@ const SalesIntelligencePlatform = () => {
                                     <Users className="w-3.5 h-3.5" />
                                     {deal.owner}
                                   </span>
-                                ) : <span className="text-xs text-gray-400">â€”</span>}
+                                ) : <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>}
                               </td>
                               <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">
-                                {deal.close_date || <span className="text-gray-400">â€”</span>}
+                                {deal.close_date || <span className="text-gray-400">Ã¢â‚¬â€</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 {deal.days_since_last_activity != null ? (
@@ -1882,7 +1883,7 @@ const SalesIntelligencePlatform = () => {
                                   }`}>
                                     {deal.days_since_last_activity}d ago
                                   </span>
-                                ) : <span className="text-xs text-gray-400">â€”</span>}
+                                ) : <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -1909,14 +1910,14 @@ const SalesIntelligencePlatform = () => {
                         </tbody>
                       </table>
                       <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        {deals.length} deals Â· {pipelineData?.generatedAt && `Synced ${pipelineData.generatedAt}`}
+                        {deals.length} deals Ã‚Â· {pipelineData?.generatedAt && `Synced ${pipelineData.generatedAt}`}
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* â”€â”€ Leads table â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Leads table Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {pipelineView === 'leads' && (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   {pipelineLoading && !pipelineData ? (
@@ -1947,7 +1948,7 @@ const SalesIntelligencePlatform = () => {
                                 {lead.company_domain && <p className="text-xs text-gray-400">{lead.company_domain}</p>}
                               </td>
                               <td className="px-5 py-3.5">
-                                <p className="text-sm text-gray-800">{lead.contact_name || 'â€”'}</p>
+                                <p className="text-sm text-gray-800">{lead.contact_name || 'Ã¢â‚¬â€'}</p>
                                 <p className="text-xs text-gray-400">{lead.contact_title || ''}</p>
                               </td>
                               <td className="px-5 py-3.5">
@@ -1958,27 +1959,27 @@ const SalesIntelligencePlatform = () => {
                                   {(lead.priority || 'cold').toUpperCase()}
                                 </span>
                               </td>
-                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.industry || 'â€”'}</td>
-                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.employee_count ?? 'â€”'}</td>
+                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.industry || 'Ã¢â‚¬â€'}</td>
+                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.employee_count ?? 'Ã¢â‚¬â€'}</td>
                               <td className="px-5 py-3.5">
                                 {lead.owner_name ? (
                                   <span className="flex items-center gap-1.5 text-sm text-indigo-700 font-medium">
                                     <Users className="w-3.5 h-3.5" />
                                     {lead.owner_name}
                                   </span>
-                                ) : <span className="text-xs text-gray-400">â€”</span>}
+                                ) : <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                   lead.source === 'hubspot' ? 'bg-orange-100 text-orange-700' :
                                   lead.source === 'clay' ? 'bg-blue-100 text-blue-700' :
                                   'bg-gray-100 text-gray-600'
-                                }`}>{lead.source || 'â€”'}</span>
+                                }`}>{lead.source || 'Ã¢â‚¬â€'}</span>
                               </td>
                               <td className="px-5 py-3.5 max-w-xs">
                                 {lead.recommendation ? (
                                   <p className="text-xs text-gray-500 truncate" title={lead.recommendation}>{lead.recommendation}</p>
-                                ) : <span className="text-xs text-gray-300">â€”</span>}
+                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
                               </td>
                             </tr>
                           ))}
@@ -1996,7 +1997,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ ANALYTICS TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ ANALYTICS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'analytics' && (() => {
           const ad = analyticsData;
           const fcast = ad?.forecast;
@@ -2065,7 +2066,7 @@ const SalesIntelligencePlatform = () => {
                   <div>
                     <p className="font-semibold text-red-800">Kunne ikke hente analytics data</p>
                     <p className="text-sm text-red-600 mt-1 font-mono">{analyticsError}</p>
-                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig â€” vent 1-2 min og klik Refresh</p>
+                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig Ã¢â‚¬â€ vent 1-2 min og klik Refresh</p>
                   </div>
                 </div>
               )}
@@ -2077,14 +2078,14 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ REVENUE FORECAST â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ REVENUE FORECAST Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {analyticsView === 'forecast' && fcast && (
                 <div className="space-y-5">
                   {/* KPI cards */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { label: 'Weighted Forecast', value: fcast.weighted_forecast_display, sub: 'amount Ã— stage probability', color: 'text-purple-600', bg: 'bg-purple-50' },
-                      { label: 'Commit Forecast',   value: fcast.commit_forecast_display,  sub: 'stages â‰¥70% probability',    color: 'text-blue-600',   bg: 'bg-blue-50' },
+                      { label: 'Weighted Forecast', value: fcast.weighted_forecast_display, sub: 'amount Ãƒâ€” stage probability', color: 'text-purple-600', bg: 'bg-purple-50' },
+                      { label: 'Commit Forecast',   value: fcast.commit_forecast_display,  sub: 'stages Ã¢â€°Â¥70% probability',    color: 'text-blue-600',   bg: 'bg-blue-50' },
                       { label: 'Best Case',          value: fcast.best_case_display,        sub: '100% of open pipeline',      color: 'text-green-600',  bg: 'bg-green-50' },
                       { label: 'Already Won',        value: fcast.closed_won_display,       sub: `${fcast.open_deal_count} open deals`,  color: 'text-emerald-600', bg: 'bg-emerald-50' },
                     ].map(({ label, value, sub, color, bg }) => (
@@ -2108,7 +2109,7 @@ const SalesIntelligencePlatform = () => {
                             return (
                               <div key={m.month}>
                                 <div className="flex justify-between mb-0.5">
-                                  <span className="text-xs text-gray-700">{m.month === 'No Date' ? 'â€” No close date' : m.month}</span>
+                                  <span className="text-xs text-gray-700">{m.month === 'No Date' ? 'Ã¢â‚¬â€ No close date' : m.month}</span>
                                   <span className="text-xs font-semibold text-gray-900">{m.display}</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -2194,7 +2195,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ FUNNEL â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ FUNNEL Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {analyticsView === 'funnel' && funnel && (
                 <div className="space-y-5">
                   {/* Summary */}
@@ -2252,7 +2253,7 @@ const SalesIntelligencePlatform = () => {
                               {/* Conversion arrow */}
                               {s.conversion_to_next_pct != null && (
                                 <div className="flex-shrink-0 text-right w-20">
-                                  <p className="text-xs text-gray-400">â†’ next</p>
+                                  <p className="text-xs text-gray-400">Ã¢â€ â€™ next</p>
                                   <p className={`text-sm font-bold ${s.conversion_to_next_pct >= 50 ? 'text-green-600' : s.conversion_to_next_pct >= 25 ? 'text-orange-500' : 'text-red-500'}`}>
                                     {s.conversion_to_next_pct}%
                                   </p>
@@ -2267,7 +2268,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ CRM HEALTH â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ CRM HEALTH Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {analyticsView === 'health' && health && (
                 <div className="space-y-5">
                   {/* Score card */}
@@ -2292,7 +2293,7 @@ const SalesIntelligencePlatform = () => {
                       </div>
                       <div>
                         <p className="text-xl font-bold text-gray-900">{health.summary}</p>
-                        <p className="text-sm text-gray-500 mt-1">{health.total_deals} deals analysed Â· {health.clean_deals ?? 'â€”'} clean</p>
+                        <p className="text-sm text-gray-500 mt-1">{health.total_deals} deals analysed Ã‚Â· {health.clean_deals ?? 'Ã¢â‚¬â€'} clean</p>
                         {health.issues.length === 0 && (
                           <p className="mt-3 flex items-center gap-2 text-green-700 font-medium">
                             <CheckCircle className="w-4 h-4" /> Your CRM data is in great shape!
@@ -2344,11 +2345,11 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ TOP ACCOUNTS â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ TOP ACCOUNTS Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {analyticsView === 'accounts' && accts && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">{accts.total} accounts ranked by priority score Â· {accts.generated_at}</p>
+                    <p className="text-sm text-gray-500">{accts.total} accounts ranked by priority score Ã‚Â· {accts.generated_at}</p>
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -2368,7 +2369,7 @@ const SalesIntelligencePlatform = () => {
                               <td className="px-4 py-3.5">
                                 <p className="font-semibold text-gray-900 text-sm">{acc.company}</p>
                                 {acc.contact && (
-                                  <p className="text-xs text-gray-400">{acc.contact}{acc.contact_title ? ` Â· ${acc.contact_title}` : ''}</p>
+                                  <p className="text-xs text-gray-400">{acc.contact}{acc.contact_title ? ` Ã‚Â· ${acc.contact_title}` : ''}</p>
                                 )}
                                 {acc.industry && <p className="text-xs text-gray-300">{acc.industry}</p>}
                               </td>
@@ -2393,7 +2394,7 @@ const SalesIntelligencePlatform = () => {
                                   <span className="flex items-center gap-1.5 text-xs text-indigo-700 font-medium">
                                     <Users className="w-3 h-3" />{acc.owner}
                                   </span>
-                                ) : <span className="text-xs text-gray-300">â€”</span>}
+                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
                               </td>
                               <td className="px-4 py-3.5">
                                 {acc.has_open_deal ? (
@@ -2403,7 +2404,7 @@ const SalesIntelligencePlatform = () => {
                                       <p className="text-xs text-green-700 font-semibold">{acc.deal_amount_display}</p>
                                     )}
                                     {acc.deal_close_date && (
-                                      <p className="text-xs text-gray-400">â†’ {acc.deal_close_date}</p>
+                                      <p className="text-xs text-gray-400">Ã¢â€ â€™ {acc.deal_close_date}</p>
                                     )}
                                   </div>
                                 ) : <span className="text-xs text-gray-300">No deal</span>}
@@ -2413,16 +2414,16 @@ const SalesIntelligencePlatform = () => {
                                   <div className="space-y-1">
                                     {acc.urgency_signals.slice(0, 2).map((sig, si) => (
                                       <span key={si} className="block text-xs text-orange-700 bg-orange-50 border border-orange-100 rounded px-1.5 py-0.5 truncate">
-                                        âš  {sig}
+                                        Ã¢Å¡Â  {sig}
                                       </span>
                                     ))}
                                   </div>
-                                ) : <span className="text-xs text-gray-300">â€”</span>}
+                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
                               </td>
                               <td className="px-4 py-3.5 max-w-[180px]">
                                 {acc.next_action ? (
                                   <p className="text-xs text-gray-500 truncate" title={acc.next_action}>{acc.next_action}</p>
-                                ) : <span className="text-xs text-gray-300">â€”</span>}
+                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
                               </td>
                             </tr>
                           ))}
@@ -2436,25 +2437,25 @@ const SalesIntelligencePlatform = () => {
                         </div>
                       )}
                       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        {accts.accounts.length} accounts Â· sorted by priority score (lead score Ã— stage probability Ã— recency)
+                        {accts.accounts.length} accounts Ã‚Â· sorted by priority score (lead score Ãƒâ€” stage probability Ãƒâ€” recency)
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* â”€â”€ ATTRIBUTION VIEW â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ ATTRIBUTION VIEW Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {analyticsView === 'attribution' && (() => {
                 const attr = attributionData;
                 if (attributionLoading) return (
                   <div className="flex items-center justify-center py-16 text-gray-400">
-                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attributionâ€¦
+                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attributionÃ¢â‚¬Â¦
                   </div>
                 );
                 if (!attr) return (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-400">
                     <BarChart2 className="w-10 h-10 mb-3 opacity-40" />
-                    <p>No attribution data yet â€” connect HubSpot or Salesforce.</p>
+                    <p>No attribution data yet Ã¢â‚¬â€ connect HubSpot or Salesforce.</p>
                   </div>
                 );
                 const { summary, stage_breakdown, signal_attribution, owner_performance, forecast_narrative } = attr;
@@ -2466,7 +2467,7 @@ const SalesIntelligencePlatform = () => {
                         { label: 'Closed Won', value: summary.closed_won_display, sub: `${summary.closed_won_count} deals`, color: 'text-green-600' },
                         { label: 'Weighted Pipeline', value: summary.weighted_pipeline_display, sub: `${summary.active_count} active deals`, color: 'text-blue-600' },
                         { label: 'Win Rate', value: `${summary.win_rate}%`, sub: `${summary.closed_lost_count} lost`, color: summary.win_rate >= 30 ? 'text-green-600' : 'text-orange-600' },
-                        { label: 'Active Pipeline', value: summary.active_value ? `â‚¬${(summary.active_value/1000).toFixed(0)}k` : 'â‚¬0', sub: 'total value', color: 'text-indigo-600' },
+                        { label: 'Active Pipeline', value: summary.active_value ? `Ã¢â€šÂ¬${(summary.active_value/1000).toFixed(0)}k` : 'Ã¢â€šÂ¬0', sub: 'total value', color: 'text-indigo-600' },
                       ].map(({ label, value, sub, color }) => (
                         <div key={label} className="bg-white rounded-lg border border-gray-200 p-4 text-center">
                           <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -2491,7 +2492,7 @@ const SalesIntelligencePlatform = () => {
                               <div key={s.stage}>
                                 <div className="flex justify-between text-xs text-gray-600 mb-1">
                                   <span className="font-medium truncate mr-2">{s.stage}</span>
-                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals Â· {s.value_display}</span>
+                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals Ã‚Â· {s.value_display}</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                   <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
@@ -2564,7 +2565,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ BUYER JOURNEY TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ BUYER JOURNEY TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'journey' && (() => {
           const EVENT_COLORS = {
             blue: 'border-blue-400 bg-blue-50',
@@ -2583,12 +2584,12 @@ const SalesIntelligencePlatform = () => {
                   <Target className="w-5 h-5 text-blue-600" />
                   Buyer Journey
                 </h2>
-                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account â€” deals, signals, alerts in one view</p>
+                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account Ã¢â‚¬â€ deals, signals, alerts in one view</p>
                 {/* Search */}
                 <div className="flex gap-3">
                   <input
                     type="text"
-                    placeholder="Search account nameâ€¦"
+                    placeholder="Search account nameÃ¢â‚¬Â¦"
                     value={journeyCompany}
                     onChange={e => setJourneyCompany(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && journeyCompany.trim() && fetchJourney(journeyCompany.trim())}
@@ -2632,13 +2633,13 @@ const SalesIntelligencePlatform = () => {
                         <p className="font-semibold text-blue-900 text-lg">{journeyData.deal.account_name}</p>
                         <p className="text-sm text-blue-700">
                           Stage: <strong>{journeyData.deal.stage}</strong>
-                          {journeyData.deal.amount ? ` Â· â‚¬${journeyData.deal.amount.toLocaleString()}` : ''}
-                          {journeyData.deal.owner ? ` Â· ${journeyData.deal.owner}` : ''}
+                          {journeyData.deal.amount ? ` Ã‚Â· Ã¢â€šÂ¬${journeyData.deal.amount.toLocaleString()}` : ''}
+                          {journeyData.deal.owner ? ` Ã‚Â· ${journeyData.deal.owner}` : ''}
                         </p>
                       </div>
                       <div className="flex gap-2">
                         {journeyData.deal.is_stalled && (
-                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">âš ï¸ Stalled</span>
+                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">Ã¢Å¡Â Ã¯Â¸Â Stalled</span>
                         )}
                         {journeyData.deal.close_date && (
                           <span className="px-2 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-700">
@@ -2681,7 +2682,7 @@ const SalesIntelligencePlatform = () => {
                                       )}
                                       <span className="text-xs text-gray-400 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : 'â€”'}
+                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Ã¢â‚¬â€'}
                                       </span>
                                     </div>
                                   </div>
@@ -2701,7 +2702,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ WORKFLOWS TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ WORKFLOWS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'workflows' && (() => {
           const TRIGGER_LABELS = {
             manual: 'Manual only',
@@ -2715,7 +2716,7 @@ const SalesIntelligencePlatform = () => {
           };
           const FIELD_OPTIONS = ['score', 'priority', 'source', 'industry'];
           const OP_OPTIONS = ['gt', 'lt', 'eq', 'neq', 'contains'];
-          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: 'â‰ ', contains: 'contains' };
+          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: 'Ã¢â€°Â ', contains: 'contains' };
 
           const addCondition = () => setWfForm(f => ({ ...f, conditions: [...f.conditions, { field: 'score', op: 'gt', value: '' }] }));
           const removeCondition = (i) => setWfForm(f => ({ ...f, conditions: f.conditions.filter((_, idx) => idx !== i) }));
@@ -2782,7 +2783,7 @@ const SalesIntelligencePlatform = () => {
                     <Zap className="w-5 h-5 text-yellow-500" />
                     Workflow Automation
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules â€” automatically act on leads based on conditions</p>
+                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules Ã¢â‚¬â€ automatically act on leads based on conditions</p>
                 </div>
                 <button
                   onClick={openCreate}
@@ -2795,7 +2796,7 @@ const SalesIntelligencePlatform = () => {
               {/* Workflow list */}
               {workflowsLoading ? (
                 <div className="flex items-center justify-center py-12 text-gray-400">
-                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loadingâ€¦
+                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> LoadingÃ¢â‚¬Â¦
                 </div>
               ) : workflows.length === 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -2826,17 +2827,17 @@ const SalesIntelligencePlatform = () => {
                                   {c.field} {OP_LABELS[c.op] || c.op} {c.value}
                                 </span>
                               ))}
-                              {wf.conditions?.length > 0 && <span className="text-gray-400">â†’</span>}
+                              {wf.conditions?.length > 0 && <span className="text-gray-400">Ã¢â€ â€™</span>}
                               {(wf.actions || []).map((a, i) => (
                                 <span key={i} className="bg-green-50 border border-green-100 text-green-700 rounded px-2 py-0.5">
                                   {ACTION_LABELS[a.type] || a.type}
                                 </span>
                               ))}
                             </div>
-                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} Â· {wf.run_count} runs total</p>}
+                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} Ã‚Â· {wf.run_count} runs total</p>}
                             {result && (
                               <div className={`mt-2 text-xs rounded px-3 py-2 ${result.error ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
-                                {result.error ? `âœ— ${result.error}` : `âœ“ ${result.leads_matched}/${result.leads_evaluated} leads matched Â· ${result.actions_fired} actions fired`}
+                                {result.error ? `Ã¢Å“â€” ${result.error}` : `Ã¢Å“â€œ ${result.leads_matched}/${result.leads_evaluated} leads matched Ã‚Â· ${result.actions_fired} actions fired`}
                               </div>
                             )}
                           </div>
@@ -2847,7 +2848,7 @@ const SalesIntelligencePlatform = () => {
                               className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                             >
                               <Zap className={`w-3 h-3 ${wfRunning === wf.id ? 'animate-pulse' : ''}`} />
-                              {wfRunning === wf.id ? 'Runningâ€¦' : 'Run'}
+                              {wfRunning === wf.id ? 'RunningÃ¢â‚¬Â¦' : 'Run'}
                             </button>
                             <button
                               onClick={() => handleToggle(wf)}
@@ -2865,7 +2866,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ Create/Edit Modal â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Create/Edit Modal Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {wfModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                   <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -2897,11 +2898,11 @@ const SalesIntelligencePlatform = () => {
                       {/* Conditions */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF â€” Conditions (all must match)</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF Ã¢â‚¬â€ Conditions (all must match)</label>
                           <button onClick={addCondition} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add condition</button>
                         </div>
                         {wfForm.conditions.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">No conditions â€” workflow runs on ALL leads</p>
+                          <p className="text-xs text-gray-400 italic">No conditions Ã¢â‚¬â€ workflow runs on ALL leads</p>
                         ) : (
                           <div className="space-y-2">
                             {wfForm.conditions.map((c, i) => (
@@ -2923,11 +2924,11 @@ const SalesIntelligencePlatform = () => {
                       {/* Actions */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN â€” Actions</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN Ã¢â‚¬â€ Actions</label>
                           <button onClick={addAction} className="text-xs text-green-600 hover:text-green-800 font-medium">+ Add action</button>
                         </div>
                         {wfForm.actions.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">No actions â€” add at least one</p>
+                          <p className="text-xs text-gray-400 italic">No actions Ã¢â‚¬â€ add at least one</p>
                         ) : (
                           <div className="space-y-3">
                             {wfForm.actions.map((a, i) => (
@@ -2979,7 +2980,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ CONNECTIONS TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ CONNECTIONS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'connections' && (() => {
           const INTEGRATION_DEFS = [
             {
@@ -3067,7 +3068,7 @@ const SalesIntelligencePlatform = () => {
                                 className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <RefreshCw className={`w-3.5 h-3.5 ${syncingId === conn.id ? 'animate-spin' : ''}`} />
-                                {syncingId === conn.id ? 'Syncingâ€¦' : 'Sync now'}
+                                {syncingId === conn.id ? 'SyncingÃ¢â‚¬Â¦' : 'Sync now'}
                               </button>
                               <button
                                 onClick={() => handleDisconnect(conn.id)}
@@ -3079,7 +3080,7 @@ const SalesIntelligencePlatform = () => {
                           )}
                           {syncResult[conn?.id] && (
                             <span className={`text-xs ${syncResult[conn.id].ok ? 'text-green-600' : 'text-red-500'}`}>
-                              {syncResult[conn.id].ok ? 'âœ“' : 'âœ—'} {syncResult[conn.id].msg}
+                              {syncResult[conn.id].ok ? 'Ã¢Å“â€œ' : 'Ã¢Å“â€”'} {syncResult[conn.id].msg}
                             </span>
                           )}
                         </div>
@@ -3143,7 +3144,7 @@ const SalesIntelligencePlatform = () => {
                         disabled={connectLoading}
                         className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                       >
-                        {connectLoading ? 'Connectingâ€¦' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
+                        {connectLoading ? 'ConnectingÃ¢â‚¬Â¦' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
                       </button>
                     </div>
                   </div>
@@ -3153,7 +3154,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ CMT DASHBOARD TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ CMT DASHBOARD TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'cmt' && (() => {
           const STATUS_STYLES = {
             done:        { badge: 'bg-green-100 text-green-700 border-green-200',       dot: 'bg-green-500',  label: 'Done' },
@@ -3177,7 +3178,7 @@ const SalesIntelligencePlatform = () => {
 
           return (
             <div className="space-y-6">
-              {/* â”€â”€ Header â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬ */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                   <div>
@@ -3186,7 +3187,7 @@ const SalesIntelligencePlatform = () => {
                       CMT Dashboard
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
-                      Cross-department initiative progress â€” synced from Notion
+                      Cross-department initiative progress Ã¢â‚¬â€ synced from Notion
                     </p>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
@@ -3201,7 +3202,7 @@ const SalesIntelligencePlatform = () => {
                       className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${cmtSyncing ? 'animate-spin' : ''}`} />
-                      {cmtSyncing ? 'Syncingâ€¦' : 'Sync Notion'}
+                      {cmtSyncing ? 'SyncingÃ¢â‚¬Â¦' : 'Sync Notion'}
                     </button>
                     <button
                       onClick={fetchCmt}
@@ -3216,7 +3217,7 @@ const SalesIntelligencePlatform = () => {
 
                 {/* Sync feedback */}
                 {cmtSyncMsg && (
-                  <p className={`mt-3 text-sm font-medium ${cmtSyncMsg.startsWith('âœ“') ? 'text-green-600' : 'text-red-500'}`}>
+                  <p className={`mt-3 text-sm font-medium ${cmtSyncMsg.startsWith('Ã¢Å“â€œ') ? 'text-green-600' : 'text-red-500'}`}>
                     {cmtSyncMsg}
                   </p>
                 )}
@@ -3263,7 +3264,7 @@ const SalesIntelligencePlatform = () => {
                 )}
               </div>
 
-              {/* â”€â”€ Filters â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Filters Ã¢â€â‚¬Ã¢â€â‚¬ */}
               <div className="flex items-center gap-3 flex-wrap">
                 <Filter className="w-4 h-4 text-gray-400" />
                 {/* Status filter */}
@@ -3289,11 +3290,11 @@ const SalesIntelligencePlatform = () => {
                 </select>
               </div>
 
-              {/* â”€â”€ Loading / Error â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Loading / Error Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {cmtLoading && (
                 <div className="flex items-center justify-center py-16 text-gray-400">
                   <RefreshCw className="w-6 h-6 animate-spin mr-3" />
-                  Loading initiativesâ€¦
+                  Loading initiativesÃ¢â‚¬Â¦
                 </div>
               )}
               {cmtError && !cmtLoading && (
@@ -3303,7 +3304,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ Empty state â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Empty state Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {!cmtLoading && !cmtError && cmtDepartments.length === 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                   <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -3320,7 +3321,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* â”€â”€ Department Cards â”€â”€ */}
+              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Department Cards Ã¢â€â‚¬Ã¢â€â‚¬ */}
               {!cmtLoading && filteredDepts.map(dept => {
                 const pct = dept.total > 0 ? Math.round((dept.done / dept.total) * 100) : 0;
                 return (
@@ -3444,7 +3445,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€ LEADS TAB â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ LEADS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {activeTab === 'leads' && (() => {
           const owners = ['all', ...Array.from(new Set(leads.map(l => l.owner_name).filter(Boolean)))];
           const visibleLeads = filterOwner === 'all' ? leads : leads.filter(l => l.owner_name === filterOwner);
@@ -3499,7 +3500,7 @@ const SalesIntelligencePlatform = () => {
                               {lead.owner_name}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-400">â€”</span>
+                            <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -3525,731 +3526,27 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        {/* â”€â”€ GTM SETUP TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        {/* â”€â”€ GTM SETUP TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        {/* Extracted to src/pages/GTMSetupPage.jsx (P1.10) */}
         {activeTab === 'gtm-setup' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">GTM Setup</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Konfigurer din go-to-market strategi, ICP og mÃ¥lsÃ¦tninger</p>
-              </div>
-              {gtmSaved && (
-                <span className="flex items-center gap-1.5 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-lg">
-                  <CheckCircle className="w-4 h-4" /> Gemt
-                </span>
-              )}
-            </div>
-
-            {/* Sub-tab pills */}
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-              {[
-                { id: 'strategy',     label: 'Strategi',     icon: Target },
-                { id: 'icp',          label: 'ICP & TAM',    icon: Users },
-                { id: 'goals',        label: 'MÃ¥lsÃ¦tninger', icon: TrendingUp },
-                { id: 'integrations', label: 'Integrationer', icon: Database },
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => setGtmTab(id)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    gtmTab === id ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {/* â”€â”€ Strategy â”€â”€ */}
-            {gtmTab === 'strategy' && (
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Virksomhedsbeskrivelse</label>
-                    <p className="text-xs text-gray-400 mb-3">Hvad gÃ¸r I? Elevator pitch til AI-analysen.</p>
-                    <textarea
-                      rows={4}
-                      value={strategyForm.company_description}
-                      onChange={e => setStrategyForm(f => ({ ...f, company_description: e.target.value }))}
-                      placeholder="Vi tilbyder en SaaS-platform der hjÃ¦lper B2B-salgshold med at..."
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    />
-                  </div>
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Value Proposition</label>
-                    <p className="text-xs text-gray-400 mb-3">Hvad differentiere jer fra konkurrenterne?</p>
-                    <textarea
-                      rows={3}
-                      value={strategyForm.value_proposition}
-                      onChange={e => setStrategyForm(f => ({ ...f, value_proposition: e.target.value }))}
-                      placeholder="Vi er de eneste der kombinerer realtids intent signals med CRM-data og..."
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-semibold text-gray-700">Konkurrenter</label>
-                      <button
-                        onClick={() => setStrategyForm(f => ({ ...f, competitors: [...f.competitors, { name: '', weakness: '', how_we_win: '' }] }))}
-                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Plus className="w-3 h-3" /> TilfÃ¸j
-                      </button>
-                    </div>
-                    <div className="space-y-3">
-                      {(strategyForm.competitors || []).map((c, i) => (
-                        <div key={i} className="grid grid-cols-3 gap-2 items-start">
-                          <input value={c.name || ''} onChange={e => { const arr = [...strategyForm.competitors]; arr[i] = { ...arr[i], name: e.target.value }; setStrategyForm(f => ({ ...f, competitors: arr })); }} placeholder="Navn" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                          <input value={c.weakness || ''} onChange={e => { const arr = [...strategyForm.competitors]; arr[i] = { ...arr[i], weakness: e.target.value }; setStrategyForm(f => ({ ...f, competitors: arr })); }} placeholder="Svaghed" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                          <div className="flex gap-1">
-                            <input value={c.how_we_win || ''} onChange={e => { const arr = [...strategyForm.competitors]; arr[i] = { ...arr[i], how_we_win: e.target.value }; setStrategyForm(f => ({ ...f, competitors: arr })); }} placeholder="Hvorfor vi vinder" className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                            <button onClick={() => setStrategyForm(f => ({ ...f, competitors: f.competitors.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
-                        </div>
-                      ))}
-                      {!strategyForm.competitors?.length && <p className="text-xs text-gray-400 italic">Ingen konkurrenter tilfÃ¸jet endnu.</p>}
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-semibold text-gray-700">Produkter / Services</label>
-                      <button
-                        onClick={() => setStrategyForm(f => ({ ...f, offerings: [...f.offerings, { name: '', description: '', price_range: '' }] }))}
-                        className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Plus className="w-3 h-3" /> TilfÃ¸j
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {(strategyForm.offerings || []).map((o, i) => (
-                        <div key={i} className="grid grid-cols-3 gap-2">
-                          <input value={o.name || ''} onChange={e => { const arr = [...strategyForm.offerings]; arr[i] = { ...arr[i], name: e.target.value }; setStrategyForm(f => ({ ...f, offerings: arr })); }} placeholder="Navn" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
-                          <input value={o.description || ''} onChange={e => { const arr = [...strategyForm.offerings]; arr[i] = { ...arr[i], description: e.target.value }; setStrategyForm(f => ({ ...f, offerings: arr })); }} placeholder="Beskrivelse" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
-                          <div className="flex gap-1">
-                            <input value={o.price_range || ''} onChange={e => { const arr = [...strategyForm.offerings]; arr[i] = { ...arr[i], price_range: e.target.value }; setStrategyForm(f => ({ ...f, offerings: arr })); }} placeholder="Pris" className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
-                            <button onClick={() => setStrategyForm(f => ({ ...f, offerings: f.offerings.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
-                        </div>
-                      ))}
-                      {!strategyForm.offerings?.length && <p className="text-xs text-gray-400 italic">Ingen produkter tilfÃ¸jet endnu.</p>}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-span-2 flex justify-end">
-                  <button
-                    onClick={() => saveGtmConfig('strategy', strategyForm)}
-                    disabled={gtmSaving}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium"
-                  >
-                    <Save className="w-4 h-4" />
-                    {gtmSaving ? 'Gemmer...' : 'Gem Strategi'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* â”€â”€ ICP & TAM â”€â”€ */}
-            {gtmTab === 'icp' && (
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Industrier</label>
-                    <p className="text-xs text-gray-400 mb-3">Tryk Enter for at tilfÃ¸je en industri</p>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {(icpForm.company_filters?.industries || []).map((ind, i) => (
-                        <span key={i} className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                          {ind}
-                          <button onClick={() => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, industries: f.company_filters.industries.filter((_, j) => j !== i) } }))}><X className="w-3 h-3" /></button>
-                        </span>
-                      ))}
-                    </div>
-                    <input
-                      value={industryInput}
-                      onChange={e => setIndustryInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && industryInput.trim()) { setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, industries: [...(f.company_filters?.industries || []), industryInput.trim()] } })); setIndustryInput(''); e.preventDefault(); }}}
-                      placeholder="SaaS, Fintech, Logistik..."
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">VirksomhedsstÃ¸rrelse (antal ansatte)</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-gray-500 mb-1 block">Min</label>
-                        <input type="number" value={icpForm.company_filters?.employee_min || ''} onChange={e => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, employee_min: parseInt(e.target.value) || 0 } }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-500 mb-1 block">Max</label>
-                        <input type="number" value={icpForm.company_filters?.employee_max || ''} onChange={e => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, employee_max: parseInt(e.target.value) || 5000 } }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Geografi</label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {(icpForm.company_filters?.geographies || []).map((g, i) => (
-                        <span key={i} className="flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium">
-                          {g}
-                          <button onClick={() => setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, geographies: f.company_filters.geographies.filter((_, j) => j !== i) } }))}><X className="w-3 h-3" /></button>
-                        </span>
-                      ))}
-                    </div>
-                    <input
-                      value={geoInput}
-                      onChange={e => setGeoInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter' && geoInput.trim()) { setIcpForm(f => ({ ...f, company_filters: { ...f.company_filters, geographies: [...(f.company_filters?.geographies || []), geoInput.trim()] } })); setGeoInput(''); e.preventDefault(); }}}
-                      placeholder="Danmark, Sverige, DACH..."
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">TAM â€” Total Addressable Market</label>
-                    <p className="text-xs text-gray-400 mb-3">Hvor mange virksomheder matcher jeres ICP i alt (eksternt estimat)?</p>
-                    <input
-                      type="number"
-                      value={icpForm.tam_total || ''}
-                      onChange={e => setIcpForm(f => ({ ...f, tam_total: parseInt(e.target.value) || 0 }))}
-                      placeholder="F.eks. 1200"
-                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <textarea
-                      rows={2}
-                      value={icpForm.tam_notes || ''}
-                      onChange={e => setIcpForm(f => ({ ...f, tam_notes: e.target.value }))}
-                      placeholder="Kilde eller noter til TAM-estimatet..."
-                      className="mt-2 w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none resize-none"
-                    />
-                  </div>
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-semibold text-gray-700">Buyer Personas</label>
-                      <button onClick={() => setIcpForm(f => ({ ...f, personas: [...(f.personas || []), { title: '', department: '', pain_points: '' }] }))} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"><Plus className="w-3 h-3" /> TilfÃ¸j</button>
-                    </div>
-                    <div className="space-y-3">
-                      {(icpForm.personas || []).map((p, i) => (
-                        <div key={i} className="border border-gray-100 rounded-lg p-3 space-y-2">
-                          <div className="grid grid-cols-2 gap-2">
-                            <input value={p.title || ''} onChange={e => { const arr = [...icpForm.personas]; arr[i] = { ...arr[i], title: e.target.value }; setIcpForm(f => ({ ...f, personas: arr })); }} placeholder="Titel (f.eks. VP Sales)" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
-                            <input value={p.department || ''} onChange={e => { const arr = [...icpForm.personas]; arr[i] = { ...arr[i], department: e.target.value }; setIcpForm(f => ({ ...f, personas: arr })); }} placeholder="Afdeling" className="text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
-                          </div>
-                          <div className="flex gap-1">
-                            <input value={p.pain_points || ''} onChange={e => { const arr = [...icpForm.personas]; arr[i] = { ...arr[i], pain_points: e.target.value }; setIcpForm(f => ({ ...f, personas: arr })); }} placeholder="Pain points" className="flex-1 text-xs border border-gray-300 rounded px-2 py-1.5 focus:outline-none" />
-                            <button onClick={() => setIcpForm(f => ({ ...f, personas: f.personas.filter((_, j) => j !== i) }))} className="text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                          </div>
-                        </div>
-                      ))}
-                      {!icpForm.personas?.length && <p className="text-xs text-gray-400 italic">Ingen personas tilfÃ¸jet endnu.</p>}
-                    </div>
-                  </div>
-                </div>
-                <div className="col-span-2 flex justify-end">
-                  <button onClick={() => saveGtmConfig('icp', icpForm)} disabled={gtmSaving} className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
-                    <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem ICP'}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* â”€â”€ Goals / Activity Calculator â”€â”€ */}
-            {gtmTab === 'goals' && (() => {
-              const g = goalsForm;
-              // Effective revenue target: either absolute amount or % growth of current ARR
-              const rev  = goalsInputMode === 'percent'
-                ? Math.round((parseFloat(g.current_arr) || 0) * (parseFloat(growthPct) || 0) / 100)
-                : parseFloat(g.revenue_target) || 0;
-              const acv  = parseFloat(g.acv) || 0;
-              const wr   = parseFloat(g.win_rate_pct) / 100 || 0.01;
-              // meeting_to_opp_rate: % af mÃ¸der der kvalificerer som opportunity
-              const mor  = parseFloat(g.opp_to_meeting_rate_pct) / 100 || 0.01;
-              // outreach_to_meeting_rate: % af kontaktede accounts der siger ja til mÃ¸de
-              const rr   = parseFloat(g.outreach_response_rate_pct) / 100 || 0.01;
-              const weeks  = g.period === 'quarterly' ? 13 : 52;
-              const workdays = weeks * 5;
-
-              // â”€â”€ Top-down (fra mÃ¥l â†’ aktivitet) â”€â”€
-              const deals  = acv > 0 ? Math.ceil(rev / acv) : 0;
-              const opps   = wr > 0 ? Math.ceil(deals / wr) : 0;
-              const mtgs   = mor > 0 ? Math.ceil(opps / mor) : 0;
-              const accts  = rr > 0 ? Math.ceil(mtgs / rr) : 0;
-              const acctsPrDay = workdays > 0 ? (accts / workdays).toFixed(1) : 0;
-              const mtgsPrDay  = workdays > 0 ? (mtgs / workdays).toFixed(1) : 0;
-
-              // â”€â”€ Bottom-up (fra aktivitet â†’ forventet omsÃ¦tning) â”€â”€
-              const buPerDay  = parseFloat(bottomUpPerDay) || 0;
-              const buTotal   = buPerDay * workdays;
-              const buMtgs    = Math.floor(buTotal * rr);
-              const buOpps    = Math.floor(buMtgs * mor);
-              const buDeals   = Math.floor(buOpps * wr);
-              const buRev     = buDeals * acv;
-              const buPct     = rev > 0 ? Math.round(buRev / rev * 100) : 0;
-              const buGap     = Math.max(rev - buRev, 0);
-
-              const fmtKr = (n) => n >= 1000000
-                ? `${(n/1000000).toFixed(1)}M kr`
-                : n >= 1000 ? `${(n/1000).toFixed(0)}k kr` : `${n} kr`;
-
-              return (
-                <div className="grid grid-cols-5 gap-6">
-                  {/* â”€â”€ Left: Inputs â”€â”€ */}
-                  <div className="col-span-2 bg-white p-6 rounded-lg border border-gray-200 space-y-4">
-                    <h3 className="text-sm font-semibold text-gray-700">Konverteringsrater & mÃ¥l</h3>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs font-medium text-gray-700 block mb-0.5">Periode</label>
-                        <select value={g.period} onChange={e => setGoalsForm(f => ({ ...f, period: e.target.value }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none">
-                          <option value="annual">Ã…rlig (52 uger)</option>
-                          <option value="quarterly">Kvartal (13 uger)</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-xs font-medium text-gray-700 block mb-0.5">NuvÃ¦rende ARR</label>
-                        <div className="flex items-center">
-                          <input type="number" value={g.current_arr || ''} onChange={e => setGoalsForm(f => ({ ...f, current_arr: parseFloat(e.target.value) || 0 }))} placeholder="0" className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none" />
-                          <span className="px-2 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500">kr</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* â”€â”€ Revenue target: toggle absolute / % growth â”€â”€ */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-medium text-gray-700">OmsÃ¦tningsmÃ¥l (ny ARR)</label>
-                        <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
-                          <button
-                            onClick={() => setGoalsInputMode('absolute')}
-                            className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${goalsInputMode === 'absolute' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >BelÃ¸b</button>
-                          <button
-                            onClick={() => setGoalsInputMode('percent')}
-                            className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${goalsInputMode === 'percent' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >% vÃ¦kst</button>
-                        </div>
-                      </div>
-
-                      {goalsInputMode === 'absolute' ? (
-                        <>
-                          <p className="text-xs text-gray-400 mb-1">Ny omsÃ¦tning der skal genereres i perioden</p>
-                          <div className="flex items-center">
-                            <input type="number" value={g.revenue_target || ''} onChange={e => setGoalsForm(f => ({ ...f, revenue_target: parseFloat(e.target.value) || 0 }))} placeholder="5000000" className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                            <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500 font-medium">kr</span>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-xs text-gray-400 mb-1">VÃ¦kst ift. nuvÃ¦rende ARR ({fmtKr(parseFloat(g.current_arr) || 0)})</p>
-                          <div className="flex gap-2 items-stretch">
-                            <div className="flex items-center flex-1">
-                              <input
-                                type="number" value={growthPct || ''} min={0} max={999}
-                                onChange={e => setGrowthPct(parseFloat(e.target.value) || 0)}
-                                placeholder="40"
-                                className="flex-1 text-base font-bold border-2 border-blue-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-700"
-                              />
-                              <span className="px-3 py-2.5 bg-blue-50 border-2 border-l-0 border-blue-300 rounded-r-lg text-sm text-blue-600 font-bold">%</span>
-                            </div>
-                            <div className="flex items-center flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                              <div>
-                                <div className="text-xs text-gray-400 mb-0.5">= nyt mÃ¥l</div>
-                                <div className="text-sm font-bold text-gray-800">{fmtKr(rev)}</div>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    {/* â”€â”€ Other conversion rate inputs â”€â”€ */}
-                    {[
-                      {
-                        key: 'acv',
-                        label: 'Gns. kontraktvÃ¦rdi (ACV)',
-                        hint: 'Gennemsnitlig Ã¥rlig kontraktvÃ¦rdi pr. ny kunde',
-                        placeholder: '250000', suffix: 'kr',
-                      },
-                      {
-                        key: 'win_rate_pct',
-                        label: 'Opportunity â†’ Deal (win rate)',
-                        hint: '% af opportunities der lukkes som betalende kunde',
-                        placeholder: '25', suffix: '%',
-                      },
-                      {
-                        key: 'opp_to_meeting_rate_pct',
-                        label: 'MÃ¸de â†’ Opportunity (kvalificeringsrate)',
-                        hint: '% af mÃ¸der der kvalificerer og Ã¥bnes som opportunity i CRM',
-                        placeholder: '40', suffix: '%',
-                      },
-                      {
-                        key: 'outreach_response_rate_pct',
-                        label: 'Account kontaktet â†’ MÃ¸de booket',
-                        hint: '% af kontaktede accounts der siger ja til et mÃ¸de',
-                        placeholder: '5', suffix: '%',
-                      },
-                    ].map(({ key, label, hint, placeholder, suffix }) => (
-                      <div key={key}>
-                        <label className="text-xs font-medium text-gray-700 block mb-0.5">{label}</label>
-                        <p className="text-xs text-gray-400 mb-1">{hint}</p>
-                        <div className="flex items-center">
-                          <input type="number" value={g[key] || ''} onChange={e => setGoalsForm(f => ({ ...f, [key]: parseFloat(e.target.value) || 0 }))} placeholder={placeholder} className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                          <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500 font-medium">{suffix}</span>
-                        </div>
-                      </div>
-                    ))}
-
-                    <button onClick={() => {
-                      const payload = { ...goalsForm };
-                      if (goalsInputMode === 'percent') {
-                        payload.revenue_target = rev; // computed value
-                        payload.input_mode = 'percent';
-                        payload.growth_pct = parseFloat(growthPct) || 0;
-                      } else {
-                        payload.input_mode = 'absolute';
-                        payload.growth_pct = 0;
-                      }
-                      saveGtmConfig('goals', payload);
-                    }} disabled={gtmSaving} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
-                      <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem MÃ¥lsÃ¦tninger'}
-                    </button>
-                  </div>
-
-                  {/* â”€â”€ Right: Top-down + Bottom-up â”€â”€ */}
-                  <div className="col-span-3 space-y-4">
-
-                    {/* Top-down waterfall */}
-                    <div className="bg-white p-5 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">â¬‡ Top-down â€” hvad krÃ¦ver det?</h3>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra mÃ¥l â†’ daglig aktivitet</span>
-                      </div>
-                      {deals > 0 ? (
-                        <>
-                          <div className="space-y-1.5">
-                            {[
-                              {
-                                step: 'ðŸŽ¯', label: 'OmsÃ¦tningsmÃ¥l',
-                                value: fmtKr(rev),
-                                sub: `${g.period === 'quarterly' ? 'kvartal' : 'Ã¥r'}`,
-                                color: 'bg-slate-700 text-white',
-                              },
-                              {
-                                step: 'Ã·', label: `ACV ${fmtKr(acv)} pr. kunde`,
-                                value: `${deals} nye kunder`,
-                                sub: 'skal lukkes',
-                                color: 'bg-blue-600 text-white',
-                                arrow: true,
-                              },
-                              {
-                                step: 'Ã·', label: `Win rate ${g.win_rate_pct}%  (opportunity â†’ deal)`,
-                                value: `${opps} opportunities`,
-                                sub: 'skal oprettes i CRM',
-                                color: 'bg-indigo-500 text-white',
-                                arrow: true,
-                              },
-                              {
-                                step: 'Ã·', label: `Kvalificeringsrate ${g.opp_to_meeting_rate_pct}%  (mÃ¸de â†’ opportunity)`,
-                                value: `${mtgs} mÃ¸der`,
-                                sub: 'skal holdes',
-                                color: 'bg-violet-500 text-white',
-                                arrow: true,
-                              },
-                              {
-                                step: 'Ã·', label: `MÃ¸de-rate ${g.outreach_response_rate_pct}%  (kontakt â†’ mÃ¸de)`,
-                                value: `${accts} accounts`,
-                                sub: 'skal kontaktes i alt',
-                                color: 'bg-orange-500 text-white',
-                                arrow: true,
-                              },
-                            ].map(({ step, label, value, sub, color, arrow }, idx) => (
-                              <div key={idx}>
-                                {arrow && <div className="flex items-center gap-2 my-1 pl-3"><div className="w-px h-3 bg-gray-300 ml-2" /><span className="text-xs text-gray-400">{step} {label}</span></div>}
-                                <div className={`flex items-center justify-between px-4 py-2.5 rounded-lg ${color}`}>
-                                  {!arrow && <span className="text-xs opacity-75">{label}</span>}
-                                  {arrow && <span className="text-xs opacity-0">_</span>}
-                                  <div className="text-right">
-                                    <div className="font-bold text-base">{value}</div>
-                                    <div className="text-xs opacity-70">{sub}</div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          {/* Daily summary */}
-                          <div className="mt-4 grid grid-cols-3 gap-2">
-                            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-                              <div className="text-2xl font-bold text-orange-600">{acctsPrDay}</div>
-                              <div className="text-xs text-orange-700 font-medium">accounts/dag</div>
-                              <div className="text-xs text-orange-500">du skal kontakte</div>
-                            </div>
-                            <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
-                              <div className="text-2xl font-bold text-violet-600">{mtgsPrDay}</div>
-                              <div className="text-xs text-violet-700 font-medium">mÃ¸der/dag</div>
-                              <div className="text-xs text-violet-500">du skal holde</div>
-                            </div>
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-                              <div className="text-2xl font-bold text-blue-600">{(opps/weeks).toFixed(1)}</div>
-                              <div className="text-xs text-blue-700 font-medium">opps/uge</div>
-                              <div className="text-xs text-blue-500">der skal Ã¥bnes</div>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-center py-6 text-gray-400">
-                          <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                          <p className="text-sm">Udfyld omsÃ¦tningsmÃ¥l og ACV for at se formlen</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Bottom-up calculator */}
-                    <div className="bg-white p-5 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">â¬† Bottom-up â€” hvad kan I nÃ¥?</h3>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra kapacitet â†’ forventet omsÃ¦tning</span>
-                      </div>
-                      <div className="flex items-end gap-4 mb-4">
-                        <div className="flex-1">
-                          <label className="text-xs font-medium text-gray-700 block mb-0.5">Accounts aktiveret per dag</label>
-                          <p className="text-xs text-gray-400 mb-1">Hvor mange nye accounts kan jeres team realistisk kontakte dagligt?</p>
-                          <div className="flex items-center">
-                            <input
-                              type="number"
-                              value={bottomUpPerDay}
-                              onChange={e => setBottomUpPerDay(parseFloat(e.target.value) || 0)}
-                              min={1} max={500}
-                              className="flex-1 text-lg font-bold border-2 border-blue-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-700"
-                            />
-                            <span className="px-3 py-2.5 bg-blue-50 border-2 border-l-0 border-blue-300 rounded-r-lg text-sm text-blue-600 font-medium">acc/dag</span>
-                          </div>
-                        </div>
-                        {acv > 0 && buPerDay > 0 && (
-                          <div className={`px-4 py-2.5 rounded-lg text-center border-2 ${buPct >= 100 ? 'bg-green-50 border-green-400' : buPct >= 70 ? 'bg-amber-50 border-amber-400' : 'bg-red-50 border-red-300'}`}>
-                            <div className={`text-3xl font-black ${buPct >= 100 ? 'text-green-600' : buPct >= 70 ? 'text-amber-600' : 'text-red-500'}`}>{buPct}%</div>
-                            <div className="text-xs text-gray-500">af mÃ¥l</div>
-                          </div>
-                        )}
-                      </div>
-
-                      {acv > 0 && buPerDay > 0 ? (
-                        <>
-                          <div className="space-y-1.5">
-                            {[
-                              { emoji: 'ðŸ“ž', label: `${buPerDay} accounts/dag Ã— ${workdays} arbejdsdage`, value: `${buTotal.toLocaleString()} accounts kontaktet`, color: 'bg-gray-100 text-gray-800' },
-                              { emoji: 'ðŸ“…', label: `Ã— mÃ¸de-rate ${g.outreach_response_rate_pct}%`, value: `${buMtgs.toLocaleString()} mÃ¸der holdt`, color: 'bg-orange-50 text-orange-800', border: 'border border-orange-200' },
-                              { emoji: 'ðŸ”', label: `Ã— kvalificeringsrate ${g.opp_to_meeting_rate_pct}%`, value: `${buOpps.toLocaleString()} opportunities Ã¥bnet`, color: 'bg-violet-50 text-violet-800', border: 'border border-violet-200' },
-                              { emoji: 'ðŸ†', label: `Ã— win rate ${g.win_rate_pct}%`, value: `${buDeals.toLocaleString()} nye kunder`, color: 'bg-blue-50 text-blue-800', border: 'border border-blue-200' },
-                              { emoji: 'ðŸ’°', label: `Ã— ACV ${fmtKr(acv)}`, value: fmtKr(buRev), color: buPct >= 100 ? 'bg-green-100 text-green-900' : 'bg-amber-50 text-amber-900', border: buPct >= 100 ? 'border border-green-300' : 'border border-amber-300' },
-                            ].map(({ emoji, label, value, color, border = '' }, idx, arr) => (
-                              <div key={idx}>
-                                <div className={`flex items-center justify-between px-3 py-2 rounded-lg ${color} ${border}`}>
-                                  <span className="text-xs">{emoji} {label}</span>
-                                  <span className="text-sm font-bold">{value}</span>
-                                </div>
-                                {idx < arr.length - 1 && <div className="text-center text-gray-300 text-xs">â†“</div>}
-                              </div>
-                            ))}
-                          </div>
-
-                          {buGap > 0 && (
-                            <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                              <p className="text-xs font-semibold text-red-700">
-                                âš  Gap: du mangler {fmtKr(buGap)} for at nÃ¥ mÃ¥let
-                              </p>
-                              <p className="text-xs text-red-500 mt-0.5">
-                                LÃ¸sninger: Ã¸g til {Math.ceil(accts / workdays * (rev / Math.max(buRev, 1))).toFixed(0)} accounts/dag Â· eller forbedr win rate Â· eller hÃ¦v ACV
-                              </p>
-                            </div>
-                          )}
-                          {buPct >= 100 && (
-                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-xs font-semibold text-green-700">âœ“ Med {buPerDay} accounts/dag nÃ¥r du dit omsÃ¦tningsmÃ¥l!</p>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <div className="text-center py-6 text-gray-400">
-                          <p className="text-sm">Udfyld konverteringsraterne til venstre og angiv accounts/dag for at se projekteringen</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* â”€â”€ CRM Fremdrift panel â”€â”€ */}
-                    <div className="bg-white p-5 rounded-lg border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">ðŸ“Š CRM Fremdrift â€” er vi pÃ¥ sporet?</h3>
-                        {progressData && progressData.revenue?.target > 0 && (
-                          <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${progressData.revenue.on_track ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                            {progressData.revenue.on_track ? 'âœ“ PÃ¥ sporet' : 'âš  Bagud'}
-                          </span>
-                        )}
-                      </div>
-
-                      {progressLoading ? (
-                        <div className="text-center py-6 text-gray-400 text-sm">Henter CRM data...</div>
-                      ) : progressData && progressData.revenue?.target > 0 ? (() => {
-                        const pr = progressData;
-                        const fmtK = (n) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n/1000)}k` : `${n}`;
-                        return (
-                          <>
-                            {/* Period progress bar */}
-                            <div className="mb-4">
-                              <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Tid brugt: <strong>{pr.elapsed_pct}%</strong> af {pr.period === 'quarterly' ? 'kvartalet' : 'Ã¥ret'}</span>
-                                <span><strong>{pr.weeks_remaining}</strong> uger tilbage</span>
-                              </div>
-                              <div className="h-4 bg-gray-100 rounded-full overflow-hidden relative">
-                                <div className="h-full bg-gray-200 rounded-full absolute inset-0" style={{ width: `${pr.elapsed_pct}%` }} />
-                                <div className={`h-full rounded-full absolute inset-0 transition-all ${pr.revenue.on_track ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${Math.min(pr.revenue.achieved_pct, 100)}%` }} />
-                              </div>
-                              <div className="flex justify-between text-xs mt-1">
-                                <span className={`font-semibold ${pr.revenue.on_track ? 'text-green-600' : 'text-amber-600'}`}>{pr.revenue.achieved_pct}% af mÃ¥l nÃ¥et</span>
-                                <span className="text-gray-400">{pr.elapsed_pct}% forventet nu</span>
-                              </div>
-                            </div>
-
-                            {/* 3 metric cards */}
-                            <div className="grid grid-cols-3 gap-2 mb-4">
-                              {[
-                                { label: 'Deals lukket', display: String(pr.deals.won), sub: `/ ${pr.deals.needed_total} mÃ¥l`, ok: pr.deals.on_track },
-                                { label: 'OmsÃ¦tning vundet', display: `${fmtK(pr.revenue.won)}kr`, sub: `/ ${fmtK(pr.revenue.target)}kr mÃ¥l`, ok: pr.revenue.on_track },
-                                { label: 'Pipeline (vÃ¦gtet)', display: `${fmtK(pr.pipeline.weighted_value)}kr`, sub: `dÃ¦kker ${pr.pipeline.covers_gap_pct}%`, ok: pr.pipeline.covers_gap_pct >= 100 },
-                              ].map(({ label, display, sub, ok }) => (
-                                <div key={label} className={`p-3 rounded-lg border text-center ${ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-                                  <div className="text-xs text-gray-500 mb-1">{label}</div>
-                                  <div className={`text-base font-bold leading-tight ${ok ? 'text-green-700' : 'text-red-600'}`}>{display}</div>
-                                  <div className="text-xs text-gray-400 mt-0.5">{sub}</div>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* What's still needed */}
-                            {pr.deals.remaining > 0 && (
-                              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-3">
-                                <p className="text-xs font-semibold text-amber-800 mb-2">Hvad mangler du de nÃ¦ste {pr.weeks_remaining} uger?</p>
-                                <div className="grid grid-cols-3 gap-2 text-center">
-                                  <div className="bg-white rounded-lg p-2 border border-amber-100">
-                                    <div className="text-lg font-black text-amber-700">{pr.deals.remaining}</div>
-                                    <div className="text-xs text-amber-600">deals ({pr.deals.weekly_needed}/uge)</div>
-                                  </div>
-                                  <div className="bg-white rounded-lg p-2 border border-amber-100">
-                                    <div className="text-lg font-black text-amber-700">{pr.activity_remaining.meetings_needed}</div>
-                                    <div className="text-xs text-amber-600">mÃ¸der</div>
-                                  </div>
-                                  <div className="bg-white rounded-lg p-2 border border-amber-100">
-                                    <div className="text-lg font-black text-amber-700">{pr.activity_remaining.accounts_needed}</div>
-                                    <div className="text-xs text-amber-600">accounts ({pr.activity_remaining.weekly_accounts}/uge)</div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Alert strings from backend */}
-                            {pr.alerts.length > 0 && (
-                              <div className="space-y-1.5">
-                                {pr.alerts.map((a, i) => (
-                                  <div key={i} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                                    <span className="text-gray-400 text-xs mt-0.5">â€¢</span>
-                                    <p className="text-xs text-gray-600">{a}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {pr.deals.remaining === 0 && (
-                              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <p className="text-xs font-semibold text-green-700">âœ“ Du har nÃ¥et dit omsÃ¦tningsmÃ¥l for perioden!</p>
-                              </div>
-                            )}
-                          </>
-                        );
-                      })() : (
-                        <div className="text-center py-8 text-gray-400">
-                          <p className="text-sm font-medium mb-1">Gem dine mÃ¥lsÃ¦tninger</p>
-                          <p className="text-xs">Forbind dit CRM (HubSpot/Salesforce) for at se fremdriften automatisk</p>
-                          <button onClick={fetchGtmProgress} className="mt-3 text-xs text-blue-500 hover:text-blue-700 underline">GenindlÃ¦s</button>
-                        </div>
-                      )}
-                    </div>
-
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* â”€â”€ Integrations (reuse connections content) â”€â”€ */}
-            {gtmTab === 'integrations' && (() => {
-              // Inline the connections tab content (same logic, different entry point)
-              const INTEGRATION_DEFS = [
-                { id: 'salesforce', name: 'Salesforce', icon: 'â˜ï¸', desc: 'CRM deals, accounts, contacts', color: 'bg-blue-50 border-blue-200' },
-                { id: 'hubspot', name: 'HubSpot', icon: 'ðŸŸ ', desc: 'Deals, companies, contacts', color: 'bg-orange-50 border-orange-200' },
-                { id: 'clay', name: 'Clay', icon: 'ðŸ§±', desc: 'Lead enrichment & signals', color: 'bg-purple-50 border-purple-200' },
-                { id: 'snitcher', name: 'Snitcher', icon: 'ðŸ‘ï¸', desc: 'Website visitor intent', color: 'bg-green-50 border-green-200' },
-                { id: 'notion', name: 'Notion', icon: 'ðŸ““', desc: 'Project & initiative tracking', color: 'bg-gray-50 border-gray-200' },
-              ];
-              return (
-                <div>
-                  <p className="text-sm text-gray-500 mb-4">Forbind din GTM tech-stack. Data fra disse integrationer bruges i alle analyser.</p>
-                  <div className="grid grid-cols-3 gap-4">
-                    {INTEGRATION_DEFS.map(def => {
-                      const conn = connections.find(c => c.service === def.id);
-                      return (
-                        <div key={def.id} className={`p-5 rounded-lg border-2 ${def.color}`}>
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <span className="text-2xl">{def.icon}</span>
-                              <div>
-                                <div className="font-semibold text-gray-900 text-sm">{def.name}</div>
-                                <div className="text-xs text-gray-500">{def.desc}</div>
-                              </div>
-                            </div>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${conn?.status === 'connected' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                              {conn?.status === 'connected' ? 'â— Forbundet' : 'â—‹ Ikke forbundet'}
-                            </span>
-                          </div>
-                          {conn?.status === 'connected' ? (
-                            <div className="flex gap-2">
-                              <button onClick={() => handleSync(def.id, conn.id)} disabled={syncingId === conn.id} className="flex-1 text-xs py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                                {syncingId === conn.id ? 'Synkroniserer...' : 'â†» Sync'}
-                              </button>
-                              <button onClick={() => handleDisconnect(conn.id)} className="text-xs py-1.5 px-3 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
-                                Fjern
-                              </button>
-                            </div>
-                          ) : (
-                            <button onClick={() => { setConnectModal(def.id); setConnectForm({}); setConnectError(null); }} className="w-full text-xs py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                              Forbind
-                            </button>
-                          )}
-                          {syncResult[conn?.id]?.msg && (
-                            <p className={`text-xs mt-2 ${syncResult[conn.id].ok ? 'text-green-600' : 'text-red-600'}`}>{syncResult[conn.id].msg}</p>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
+          <GTMSetupPage
+            onOpenConnectModal={(id) => { setConnectModal(id); setConnectForm({}); setConnectError(null); }}
+          />
         )}
 
-        {/* â”€â”€ INTELLIGENCE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ INTELLIGENCE TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {/* Extracted to src/pages/IntelligencePage.jsx (P1.10) */}
         {activeTab === 'intelligence' && <IntelligencePage />}
 
 
-        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-        {/* â”€â”€ PIPELINE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ PIPELINE TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {/* Extracted to src/pages/PipelinePage.jsx (P1.10) */}
         {activeTab === 'pipeline' && <PipelinePage />}
 
-        {/* â”€â”€ SIGNALS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ SIGNALS TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
         {/* Extracted to src/pages/SignalsPage.jsx (P1.10) */}
         {activeTab === 'signals' && <SignalsPage />}
 
@@ -4292,7 +3589,7 @@ const SalesIntelligencePlatform = () => {
                   </div>
                 ))}
               </div>
-              {/* Score Breakdown â€” HockeyStack-style explainable scoring */}
+              {/* Score Breakdown Ã¢â‚¬â€ HockeyStack-style explainable scoring */}
               {selectedLead.scoring_breakdown && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Score Breakdown</p>
@@ -4310,7 +3607,7 @@ const SalesIntelligencePlatform = () => {
                           <div className="flex justify-between items-center mb-0.5">
                             <div>
                               <span className="text-xs font-medium text-gray-700">{label}</span>
-                              <span className="text-xs text-gray-400 ml-1">â€” {desc}</span>
+                              <span className="text-xs text-gray-400 ml-1">Ã¢â‚¬â€ {desc}</span>
                             </div>
                             <span className="text-xs font-bold text-gray-900">{val}/{max}</span>
                           </div>
