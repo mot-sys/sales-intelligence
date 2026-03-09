@@ -11,16 +11,16 @@ import {
   Camera, History,
 } from 'lucide-react';
 
-// Ã¢â€â‚¬Ã¢â€â‚¬ Page components (P1.10 extraction) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Page components (P1.10 extraction) ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 import GTMSetupPage     from './pages/GTMSetupPage';
 import IntelligencePage from './pages/IntelligencePage';
 import PipelinePage     from './pages/PipelinePage';
 import SignalsPage      from './pages/SignalsPage';
 
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 // CHAT CHART RENDERER
 // Renders AI-generated chart specs from render_chart tool calls
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 const CHART_PALETTE = [
   '#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626',
@@ -28,7 +28,7 @@ const CHART_PALETTE = [
 ];
 
 const formatChartValue = (value, prefix = '', suffix = '') => {
-  if (value === null || value === undefined) return 'Ã¢â‚¬â€';
+  if (value === null || value === undefined) return 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â';
   if (typeof value === 'number' && value >= 1000) {
     return `${prefix}${value >= 1000000
       ? (value / 1000000).toFixed(1) + 'M'
@@ -60,7 +60,7 @@ const ChatChart = ({ spec }) => {
         <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">{title}</p>
       )}
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Vertical bar chart Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Vertical bar chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
       {chart_type === 'bar' && (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
@@ -87,7 +87,7 @@ const ChatChart = ({ spec }) => {
         </ResponsiveContainer>
       )}
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Horizontal bar chart Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Horizontal bar chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
       {chart_type === 'horizontal_bar' && (
         <div className="space-y-2">
           {data.map((item, i) => {
@@ -116,7 +116,7 @@ const ChatChart = ({ spec }) => {
         </div>
       )}
 
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Pie chart Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Pie chart ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
       {chart_type === 'pie' && (
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
@@ -141,7 +141,7 @@ const ChatChart = ({ spec }) => {
             <Tooltip
               formatter={(val) => [
                 formatChartValue(val, value_prefix, value_suffix),
-                'VÃƒÂ¦rdi',
+                'VÃƒÆ’Ã‚Â¦rdi',
               ]}
             />
           </PieChart>
@@ -151,9 +151,9 @@ const ChatChart = ({ spec }) => {
   );
 };
 
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 // API HELPERS
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 // API requests use relative URLs so Vercel proxies them to Railway server-side.
 // Override with VITE_API_URL only if you need to bypass the proxy.
@@ -191,9 +191,9 @@ const API = {
   },
 };
 
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 // UTILITY HELPERS
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 const PRIORITY_STYLES = {
   urgent: { badge: 'bg-red-100 text-red-700 border-red-300', dot: 'bg-red-500', border: 'border-l-red-500' },
@@ -239,9 +239,9 @@ function getScoreColor(score) {
   return 'text-gray-500';
 }
 
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 // ALERT CARD COMPONENT
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 function AlertCard({ alert, onAction, isActioning }) {
   const pStyle = PRIORITY_STYLES[alert.priority] || PRIORITY_STYLES.low;
@@ -345,9 +345,9 @@ function AlertCard({ alert, onAction, isActioning }) {
   );
 }
 
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 // MAIN APP
-// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 
 const SalesIntelligencePlatform = () => {
   const [activeTab, setActiveTab] = useState('gtm-setup');
@@ -398,7 +398,7 @@ const SalesIntelligencePlatform = () => {
   const [workflowsLoading, setWorkflowsLoading] = useState(false);
   const [wfModal, setWfModal] = useState(null);        // null | 'create' | workflow-object
   const [wfRunning, setWfRunning] = useState(null);    // workflow id being run
-  const [wfRunResult, setWfRunResult] = useState({});  // id Ã¢â€ â€™ result
+  const [wfRunResult, setWfRunResult] = useState({});  // id ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ result
   const [wfForm, setWfForm] = useState({ name: '', description: '', trigger_type: 'manual', conditions: [], actions: [] });
   // Buyer Journey tab
   const [journeyCompany, setJourneyCompany] = useState('');
@@ -418,73 +418,8 @@ const SalesIntelligencePlatform = () => {
   const [cmtStatusFilter, setCmtStatusFilter] = useState('all');
   const [cmtDeptFilter, setCmtDeptFilter] = useState('all');
 
-  // Ã¢â€â‚¬Ã¢â€â‚¬ GTM Setup state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [gtmTab, setGtmTab] = useState('strategy');
-  const [gtmConfig, setGtmConfig] = useState(null);
-  const [gtmSaving, setGtmSaving] = useState(false);
-  const [gtmSaved, setGtmSaved] = useState(false);
-  const [strategyForm, setStrategyForm] = useState({
-    company_description: '', value_proposition: '', competitors: [], offerings: [],
-  });
-  const [icpForm, setIcpForm] = useState({
-    personas: [],
-    company_filters: { industries: [], employee_min: 1, employee_max: 5000, geographies: [], technologies: [] },
-    tam_total: 0, tam_notes: '',
-  });
-  const [goalsForm, setGoalsForm] = useState({
-    period: 'annual', revenue_target: 0, acv: 0,
-    win_rate_pct: 25, opp_to_meeting_rate_pct: 30, outreach_response_rate_pct: 10,
-    current_arr: 0,
-  });
-  // Industry/geo chip input helpers
-  const [industryInput, setIndustryInput] = useState('');
-  const [geoInput, setGeoInput] = useState('');
-  // Bottom-up calculator
-  const [bottomUpPerDay, setBottomUpPerDay] = useState(5);
 
-  // Goals input mode: 'absolute' = enter kr amount, 'percent' = enter % growth of current ARR
-  const [goalsInputMode, setGoalsInputMode] = useState('absolute');
-  const [growthPct, setGrowthPct] = useState(0);
-
-  // CRM progress / gap analysis
-  const [progressData, setProgressData] = useState(null);
-  const [progressLoading, setProgressLoading] = useState(false);
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Intelligence state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [intelligenceData, setIntelligenceData] = useState(null);
-  const [intelligenceLoading, setIntelligenceLoading] = useState(false);
-  const [intelligenceSubTab, setIntelligenceSubTab] = useState('overblik');
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Daily report (scorekort) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [dailyReport, setDailyReport] = useState(null);
-  const [dailyReportLoading, setDailyReportLoading] = useState(false);
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Forecast Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [forecast, setForecast] = useState(null);
-  const [forecastLoading, setForecastLoading] = useState(false);
-  const [forecastHistory, setForecastHistory] = useState(null);
-  const [forecastHistoryLoading, setForecastHistoryLoading] = useState(false);
-  const [snapshotSaving, setSnapshotSaving] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Learnings Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [learnings, setLearnings] = useState(null);
-  const [learningsLoading, setLearningsLoading] = useState(false);
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Management Tasks Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [mgmtTasks, setMgmtTasks] = useState(null);
-  const [mgmtTasksLoading, setMgmtTasksLoading] = useState(false);
-  const [dismissedTaskIds, setDismissedTaskIds] = useState(new Set());
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ AI Agent Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [agentData, setAgentData] = useState(null);
-  const [agentLoading, setAgentLoading] = useState(false);
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ New sub-tab state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
-  const [pipelineSubTab, setPipelineSubTab] = useState('deals');
-  const [signalsSubTab, setSignalsSubTab] = useState('alerts');
-
-  // Ã¢â€â‚¬Ã¢â€â‚¬ Legacy dropdown state Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Legacy dropdown state ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
   const [legacyOpen, setLegacyOpen] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
@@ -539,9 +474,9 @@ const SalesIntelligencePlatform = () => {
       setContextInput(settingsData.company_context || '');
     } catch {
       setSuggestedQuestions([
-        'Hvad skal jeg fokusere pÃƒÂ¥ denne uge?',
+        'Hvad skal jeg fokusere pÃƒÆ’Ã‚Â¥ denne uge?',
         'Hvilke deals er mest i fare?',
-        'Hvilke leads bÃƒÂ¸r jeg kontakte i dag?',
+        'Hvilke leads bÃƒÆ’Ã‚Â¸r jeg kontakte i dag?',
         'Giv mig et overblik over min pipeline',
       ]);
     }
@@ -715,10 +650,10 @@ const SalesIntelligencePlatform = () => {
     setCmtSyncMsg(null);
     try {
       const data = await API.post('/connections/notion/sync');
-      setCmtSyncMsg(`Ã¢Å“â€œ Synced Ã¢â‚¬â€ ${data.created ?? 0} new, ${data.updated ?? 0} updated`);
+      setCmtSyncMsg(`ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Synced ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â ${data.created ?? 0} new, ${data.updated ?? 0} updated`);
       await fetchCmt();
     } catch (e) {
-      setCmtSyncMsg(`Ã¢Å“â€” ${e.message}`);
+      setCmtSyncMsg(`ÃƒÂ¢Ã…â€œÃ¢â‚¬â€ ${e.message}`);
     } finally {
       setCmtSyncing(false);
     }
@@ -750,142 +685,6 @@ const SalesIntelligencePlatform = () => {
     }
   };
 
-  const fetchGtmConfig = useCallback(async () => {
-    try {
-      const data = await API.get('/gtm/config');
-      setGtmConfig(data);
-      if (data.company_description !== undefined) {
-        setStrategyForm({
-          company_description: data.company_description || '',
-          value_proposition:   data.value_proposition   || '',
-          competitors:         data.competitors         || [],
-          offerings:           data.offerings           || [],
-        });
-      }
-      if (data.icp && Object.keys(data.icp).length) {
-        setIcpForm(prev => ({ ...prev, ...data.icp }));
-      }
-      if (data.goals && Object.keys(data.goals).length) {
-        setGoalsForm(prev => ({ ...prev, ...data.goals }));
-        // Restore % growth mode if it was saved
-        if (data.goals.input_mode === 'percent') {
-          setGoalsInputMode('percent');
-          setGrowthPct(data.goals.growth_pct || 0);
-        } else {
-          setGoalsInputMode('absolute');
-          setGrowthPct(0);
-        }
-      }
-    } catch { /* silent Ã¢â‚¬â€ use form defaults */ }
-  }, []);
-
-  const saveGtmConfig = async (section, formData) => {
-    setGtmSaving(true);
-    try {
-      const payload = section === 'strategy'
-        ? { company_description: formData.company_description, value_proposition: formData.value_proposition, competitors: formData.competitors, offerings: formData.offerings }
-        : section === 'icp'
-        ? { icp: formData }
-        : { goals: formData };
-      const updated = await API.put('/gtm/config', payload);
-      setGtmConfig(updated);
-      setGtmSaved(true);
-      setTimeout(() => setGtmSaved(false), 2500);
-    } catch (e) {
-      alert('Save failed: ' + e.message);
-    } finally {
-      setGtmSaving(false);
-    }
-  };
-
-  const fetchIntelligence = useCallback(async () => {
-    setIntelligenceLoading(true);
-    try {
-      const data = await API.get('/gtm/intelligence');
-      setIntelligenceData(data);
-    } catch {
-      setIntelligenceData(null);
-    } finally {
-      setIntelligenceLoading(false);
-    }
-  }, []);
-
-  const fetchGtmProgress = useCallback(async () => {
-    setProgressLoading(true);
-    try {
-      const data = await API.get('/gtm/progress');
-      setProgressData(data);
-    } catch {
-      setProgressData(null);
-    } finally {
-      setProgressLoading(false);
-    }
-  }, []);
-
-  const fetchDailyReport = useCallback(async () => {
-    setDailyReportLoading(true);
-    try {
-      const data = await API.get('/gtm/daily-report');
-      setDailyReport(data);
-    } catch { setDailyReport(null); }
-    finally { setDailyReportLoading(false); }
-  }, []);
-
-  const fetchForecast = useCallback(async () => {
-    setForecastLoading(true);
-    try {
-      const data = await API.get('/gtm/forecast');
-      setForecast(data);
-    } catch { setForecast(null); }
-    finally { setForecastLoading(false); }
-  }, []);
-
-  const fetchForecastHistory = useCallback(async () => {
-    setForecastHistoryLoading(true);
-    try {
-      const data = await API.get('/gtm/forecast/history');
-      setForecastHistory(data);
-    } catch { setForecastHistory(null); }
-    finally { setForecastHistoryLoading(false); }
-  }, []);
-
-  const saveSnapshot = useCallback(async () => {
-    setSnapshotSaving(true);
-    try {
-      await API.post('/gtm/forecast/snapshot', {});
-      await fetchForecastHistory();
-    } catch(e) { console.error(e); }
-    finally { setSnapshotSaving(false); }
-  }, [fetchForecastHistory]);
-
-  const fetchLearnings = useCallback(async () => {
-    setLearningsLoading(true);
-    try {
-      const data = await API.get('/gtm/learnings');
-      setLearnings(data);
-    } catch { setLearnings(null); }
-    finally { setLearningsLoading(false); }
-  }, []);
-
-  const fetchMgmtTasks = useCallback(async () => {
-    setMgmtTasksLoading(true);
-    try {
-      const data = await API.get('/gtm/management-tasks');
-      setMgmtTasks(data);
-    } catch { setMgmtTasks(null); }
-    finally { setMgmtTasksLoading(false); }
-  }, []);
-
-  const runAgent = useCallback(async () => {
-    setAgentLoading(true);
-    setAgentData(null);
-    try {
-      const data = await API.post('/gtm/agent/analyze', {});
-      setAgentData(data);
-    } catch (e) {
-      setAgentData({ thinking: [], insights: 'Agent fejlede: ' + e.message, tasks: [] });
-    } finally { setAgentLoading(false); }
-  }, []);
 
   useEffect(() => {
     // Legacy tab triggers (unchanged)
@@ -899,19 +698,8 @@ const SalesIntelligencePlatform = () => {
     if (activeTab === 'cmt') fetchCmt();
     if (activeTab === 'workflows') fetchWorkflows();
     if (activeTab === 'journey') fetchJourneyAccounts();
-    // New primary tab triggers
-    if (activeTab === 'gtm-setup')    { fetchGtmConfig(); fetchGtmProgress(); }
-    if (activeTab === 'intelligence') {
-      fetchIntelligence();
-      fetchDailyReport();
-      fetchForecast();
-      fetchForecastHistory();
-      fetchLearnings();
-      fetchMgmtTasks();
-    }
-    if (activeTab === 'pipeline')     { fetchPipelineData(); fetchAnalytics(); fetchLeads(); }
-    if (activeTab === 'signals')      { fetchAlerts(); fetchJourneyAccounts(); fetchLeads(); }
-  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution, fetchGtmConfig, fetchIntelligence, fetchGtmProgress, fetchDailyReport, fetchForecast, fetchForecastHistory, fetchLearnings, fetchMgmtTasks]);
+    // gtm-setup, intelligence, pipeline, signals → page components fetch their own data on mount
+  }, [activeTab, fetchAlerts, fetchLeads, fetchConnections, fetchChatContext, fetchPipelineData, fetchAnalytics, fetchWeeklyReport, fetchCmt, fetchWorkflows, fetchJourneyAccounts, fetchAttribution]);
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -962,7 +750,7 @@ const SalesIntelligencePlatform = () => {
     try {
       const params = new URLSearchParams(connectForm).toString();
       const data = await API.post(`/connections/${connectModal}?${params}`);
-      // OAuth services return an auth_url Ã¢â‚¬â€ open it in a new tab
+      // OAuth services return an auth_url ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â open it in a new tab
       if (data.auth_url) {
         window.open(data.auth_url, '_blank', 'noopener,noreferrer');
         setConnectModal(null);
@@ -973,7 +761,7 @@ const SalesIntelligencePlatform = () => {
       setConnectModal(null);
       setConnectForm({});
     } catch (e) {
-      setConnectError(e.message || 'Connection failed Ã¢â‚¬â€ check your credentials.');
+      setConnectError(e.message || 'Connection failed ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â check your credentials.');
     } finally {
       setConnectLoading(false);
     }
@@ -1019,14 +807,14 @@ const SalesIntelligencePlatform = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬ */}
+      {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Header ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Zap className="w-8 h-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Signal Intelligence</h1>
-              <p className="text-sm text-gray-500">GTM Intelligence Platform Ã‚Â· Board-level insights</p>
+              <p className="text-sm text-gray-500">GTM Intelligence Platform Ãƒâ€šÃ‚Â· Board-level insights</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -1040,7 +828,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         </div>
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ Primary Nav Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Primary Nav ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         <div className="flex items-center space-x-1 px-6">
           {PRIMARY_TABS.map(tab => {
             const Icon = tab.icon;
@@ -1114,7 +902,7 @@ const SalesIntelligencePlatform = () => {
 
       <div className="p-6">
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ DASHBOARD TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ DASHBOARD TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="grid grid-cols-4 gap-4">
@@ -1189,7 +977,7 @@ const SalesIntelligencePlatform = () => {
                           <p className="text-xs text-gray-500">{timeAgo(alert.created_at)}</p>
                           {(alert.context?.owner_name || alert.lead?.owner_name) && (
                             <span className="text-xs text-indigo-600 font-medium">
-                              Ã‚Â· {alert.context?.owner_name || alert.lead?.owner_name}
+                              Ãƒâ€šÃ‚Â· {alert.context?.owner_name || alert.lead?.owner_name}
                             </span>
                           )}
                         </div>
@@ -1205,7 +993,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ ALERTS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ ALERTS TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'alerts' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -1258,7 +1046,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ AI CHAT TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ AI CHAT TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'chat' && (() => {
           return (
             <div className="flex gap-6 h-[calc(100vh-200px)] min-h-[500px]">
@@ -1284,7 +1072,7 @@ const SalesIntelligencePlatform = () => {
                         <MessageSquare className="w-8 h-8 text-purple-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-700">SpÃƒÂ¸rg om din pipeline</p>
+                        <p className="font-medium text-gray-700">SpÃƒÆ’Ã‚Â¸rg om din pipeline</p>
                         <p className="text-sm text-gray-400 mt-1">AI'en har adgang til alle dine deals, leads og alerts</p>
                       </div>
                       <div className="flex flex-wrap gap-2 justify-center mt-2">
@@ -1357,7 +1145,7 @@ const SalesIntelligencePlatform = () => {
                       type="text"
                       value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
-                      placeholder="Stil et spÃƒÂ¸rgsmÃƒÂ¥l om din pipeline..."
+                      placeholder="Stil et spÃƒÆ’Ã‚Â¸rgsmÃƒÆ’Ã‚Â¥l om din pipeline..."
                       disabled={chatLoading}
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
                     />
@@ -1390,12 +1178,12 @@ const SalesIntelligencePlatform = () => {
                       ].map(({ label, value, warn }) => (
                         <div key={label} className="flex justify-between text-sm">
                           <span className="text-gray-500">{label}</span>
-                          <span className={`font-semibold ${warn ? 'text-red-600' : 'text-gray-900'}`}>{value ?? 'Ã¢â‚¬â€'}</span>
+                          <span className={`font-semibold ${warn ? 'text-red-600' : 'text-gray-900'}`}>{value ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400">IndlÃƒÂ¦ser...</p>
+                    <p className="text-sm text-gray-400">IndlÃƒÆ’Ã‚Â¦ser...</p>
                   )}
                 </div>
 
@@ -1418,13 +1206,13 @@ const SalesIntelligencePlatform = () => {
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold">{m.label}</span>
                             {m.tier === 'recommended' && (
-                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">Ã¢Å“â€œ Best</span>
+                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ Best</span>
                             )}
                             {m.tier === 'powerful' && (
-                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">Ã¢Å¡Â¡ Max</span>
+                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">ÃƒÂ¢Ã…Â¡Ã‚Â¡ Max</span>
                             )}
                             {m.tier === 'fast' && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">Ã°Å¸Å¡â‚¬ Fast</span>
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">ÃƒÂ°Ã…Â¸Ã…Â¡Ã¢â€šÂ¬ Fast</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>
@@ -1469,7 +1257,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Fx: Svar altid pÃƒÂ¥ dansk"
+                          placeholder="Fx: Svar altid pÃƒÆ’Ã‚Â¥ dansk"
                           value={skillInput}
                           onChange={e => setSkillInput(e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && addSkill()}
@@ -1489,7 +1277,7 @@ const SalesIntelligencePlatform = () => {
                         <p className="text-xs text-gray-500 font-medium mb-1.5">Virksomhedskontekst</p>
                         <textarea
                           rows={3}
-                          placeholder="Fx: Vi sÃƒÂ¦lger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
+                          placeholder="Fx: Vi sÃƒÆ’Ã‚Â¦lger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
                           value={contextInput}
                           onChange={e => setContextInput(e.target.value)}
                           className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
@@ -1507,9 +1295,9 @@ const SalesIntelligencePlatform = () => {
                       <div className="pt-1 border-t border-gray-100">
                         <p className="text-xs text-gray-400 mb-1.5">Forslag:</p>
                         {[
-                          'Svar altid pÃƒÂ¥ dansk',
-                          'FokusÃƒÂ©r pÃƒÂ¥ deals der lukker inden for 30 dage',
-                          'Brug MEDDIC salgsmÃƒÂ¸ntoden',
+                          'Svar altid pÃƒÆ’Ã‚Â¥ dansk',
+                          'FokusÃƒÆ’Ã‚Â©r pÃƒÆ’Ã‚Â¥ deals der lukker inden for 30 dage',
+                          'Brug MEDDIC salgsmÃƒÆ’Ã‚Â¸ntoden',
                           'Vores ICP: SaaS, 50-500 ansatte',
                         ].map((s, i) => (
                           <button
@@ -1548,7 +1336,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ WEEKLY REPORT TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ WEEKLY REPORT TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'report' && (() => {
           const report = weeklyReport;
           const hasReport = report && (report.section_what_happened || report.section_this_week || report.section_management);
@@ -1579,7 +1367,7 @@ const SalesIntelligencePlatform = () => {
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
                       {hasReport
-                        ? `Uge startende ${report.week_start} Ã‚Â· Genereret ${new Date(report.generated_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} Ã‚Â· ${report.model_used || 'AI'}`
+                        ? `Uge startende ${report.week_start} Ãƒâ€šÃ‚Â· Genereret ${new Date(report.generated_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} Ãƒâ€šÃ‚Â· ${report.model_used || 'AI'}`
                         : 'Klik "Generer rapport" for at lave denne uges analyse'}
                     </p>
                   </div>
@@ -1600,14 +1388,14 @@ const SalesIntelligencePlatform = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     >
                       <Sparkles className={`w-4 h-4 ${weeklyReportGenerating ? 'animate-spin' : ''}`} />
-                      {weeklyReportGenerating ? 'GenerererÃ¢â‚¬Â¦' : hasReport ? 'Regenerer' : 'Generer rapport'}
+                      {weeklyReportGenerating ? 'GenerererÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : hasReport ? 'Regenerer' : 'Generer rapport'}
                     </button>
                   </div>
                 </div>
 
                 {weeklyReportError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                    Ã¢Å¡Â Ã¯Â¸Â {weeklyReportError}
+                    ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â {weeklyReportError}
                   </div>
                 )}
 
@@ -1615,7 +1403,7 @@ const SalesIntelligencePlatform = () => {
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm text-blue-700">
-                      Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitetÃ¢â‚¬Â¦
+                      Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitetÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦
                     </span>
                   </div>
                 )}
@@ -1627,7 +1415,7 @@ const SalesIntelligencePlatform = () => {
                   <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 font-medium">Ingen rapport endnu</p>
                   <p className="text-sm text-gray-400 mt-1 mb-6">
-                    Klik "Generer rapport" ovenfor Ã¢â‚¬â€ AI analyserer din pipeline og skriver rapporten.
+                    Klik "Generer rapport" ovenfor ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â AI analyserer din pipeline og skriver rapporten.
                   </p>
                   <p className="text-xs text-gray-400">Rapporten opdateres automatisk mandag morgen kl. 8 (via Railway cron).</p>
                 </div>
@@ -1643,7 +1431,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <Activity className="w-4 h-4 text-blue-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">Ã°Å¸â€œÅ  Hvad skete der denne uge</h3>
+                      <h3 className="font-semibold text-gray-900">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã…Â  Hvad skete der denne uge</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_what_happened)}
@@ -1656,7 +1444,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                         <Target className="w-4 h-4 text-green-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">Ã°Å¸Å½Â¯ Hvad skal der ske denne uge</h3>
+                      <h3 className="font-semibold text-gray-900">ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â¯ Hvad skal der ske denne uge</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_this_week)}
@@ -1669,7 +1457,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                         <Award className="w-4 h-4 text-purple-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">Ã°Å¸Â¤Â Hvad kan sales management gÃƒÂ¸re</h3>
+                      <h3 className="font-semibold text-gray-900">ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â Hvad kan sales management gÃƒÆ’Ã‚Â¸re</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_management)}
@@ -1682,10 +1470,10 @@ const SalesIntelligencePlatform = () => {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Data grundlag</p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
-                          { label: 'Deals i pipeline', value: report.data_snapshot.pipeline?.total_deals ?? 'Ã¢â‚¬â€' },
-                          { label: 'Aktive deals (uge)', value: report.data_snapshot.pipeline?.recently_active_deals ?? 'Ã¢â‚¬â€' },
-                          { label: 'Alerts trigget', value: report.data_snapshot.alerts?.total ?? 'Ã¢â‚¬â€' },
-                          { label: 'HubSpot-opgaver', value: report.data_snapshot.tasks?.total ?? (report.data_snapshot.tasks?.available === false ? 'N/A' : 'Ã¢â‚¬â€') },
+                          { label: 'Deals i pipeline', value: report.data_snapshot.pipeline?.total_deals ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' },
+                          { label: 'Aktive deals (uge)', value: report.data_snapshot.pipeline?.recently_active_deals ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' },
+                          { label: 'Alerts trigget', value: report.data_snapshot.alerts?.total ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â' },
+                          { label: 'HubSpot-opgaver', value: report.data_snapshot.tasks?.total ?? (report.data_snapshot.tasks?.available === false ? 'N/A' : 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â') },
                         ].map(({ label, value }) => (
                           <div key={label} className="bg-white rounded-lg p-3 border border-gray-200 text-center">
                             <p className="text-lg font-bold text-gray-900">{value}</p>
@@ -1701,7 +1489,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ PIPELINE DATA TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ PIPELINE DATA TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'data' && (() => {
           const STAGE_COLORS = {
             closedwon: 'bg-green-100 text-green-800 border-green-200',
@@ -1716,7 +1504,7 @@ const SalesIntelligencePlatform = () => {
             ? s.replace(/([a-z])([A-Z])/g, '$1 $2')
                 .replace(/_/g, ' ')
                 .replace(/\b\w/g, c => c.toUpperCase())
-            : 'Ã¢â‚¬â€';
+            : 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â';
 
           const deals = (pipelineData?.deals || []).filter(d => {
             if (!pipelineSearch) return true;
@@ -1739,7 +1527,7 @@ const SalesIntelligencePlatform = () => {
           return (
             <div className="space-y-5">
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Summary cards Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Summary cards ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {summary && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {[
@@ -1747,18 +1535,18 @@ const SalesIntelligencePlatform = () => {
                     { label: 'Pipeline Value', value: summary.total_pipeline_display, color: 'text-green-600' },
                     { label: 'Stalled', value: summary.stalled_deals, color: summary.stalled_deals > 0 ? 'text-red-600' : 'text-gray-500' },
                     { label: 'Pending Alerts', value: summary.pending_alerts, color: summary.pending_alerts > 0 ? 'text-orange-600' : 'text-gray-500' },
-                    { label: 'Top Lead Score', value: summary.top_lead_score ?? 'Ã¢â‚¬â€', color: 'text-purple-600' },
+                    { label: 'Top Lead Score', value: summary.top_lead_score ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â', color: 'text-purple-600' },
                     { label: 'Urgent / High', value: summary.urgent_or_high_alerts, color: summary.urgent_or_high_alerts > 0 ? 'text-red-600' : 'text-gray-500' },
                   ].map(({ label, value, color }) => (
                     <div key={label} className="bg-white rounded-lg border border-gray-200 px-4 py-3">
                       <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-                      <p className={`text-xl font-bold ${color}`}>{value ?? 'Ã¢â‚¬â€'}</p>
+                      <p className={`text-xl font-bold ${color}`}>{value ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Stage distribution bar Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Stage distribution bar ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {summary?.deals_by_stage && Object.keys(summary.deals_by_stage).length > 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Deals by Stage</p>
@@ -1772,7 +1560,7 @@ const SalesIntelligencePlatform = () => {
                           <div key={stage}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs text-gray-700">{stageLabel(stage)}</span>
-                              <span className="text-xs font-semibold text-gray-900">{count} deal{count !== 1 ? 's' : ''} &nbsp;Ã‚Â·&nbsp; {pct}%</span>
+                              <span className="text-xs font-semibold text-gray-900">{count} deal{count !== 1 ? 's' : ''} &nbsp;Ãƒâ€šÃ‚Â·&nbsp; {pct}%</span>
                             </div>
                             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                               <div
@@ -1787,7 +1575,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ View toggle + search Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ View toggle + search ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex gap-2">
                   {[['deals', 'Deals'], ['leads', 'Leads']].map(([id, label]) => (
@@ -1826,7 +1614,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               </div>
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Deals table Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Deals table ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {pipelineView === 'deals' && (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   {pipelineLoading && !pipelineData ? (
@@ -1862,7 +1650,7 @@ const SalesIntelligencePlatform = () => {
                                 </span>
                               </td>
                               <td className="px-5 py-3.5">
-                                <span className="font-semibold text-gray-900 text-sm">{deal.amount_display || 'Ã¢â‚¬â€'}</span>
+                                <span className="font-semibold text-gray-900 text-sm">{deal.amount_display || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span>
                               </td>
                               <td className="px-5 py-3.5">
                                 {deal.owner ? (
@@ -1870,10 +1658,10 @@ const SalesIntelligencePlatform = () => {
                                     <Users className="w-3.5 h-3.5" />
                                     {deal.owner}
                                   </span>
-                                ) : <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-400">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                               <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">
-                                {deal.close_date || <span className="text-gray-400">Ã¢â‚¬â€</span>}
+                                {deal.close_date || <span className="text-gray-400">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 {deal.days_since_last_activity != null ? (
@@ -1883,7 +1671,7 @@ const SalesIntelligencePlatform = () => {
                                   }`}>
                                     {deal.days_since_last_activity}d ago
                                   </span>
-                                ) : <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-400">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -1910,14 +1698,14 @@ const SalesIntelligencePlatform = () => {
                         </tbody>
                       </table>
                       <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        {deals.length} deals Ã‚Â· {pipelineData?.generatedAt && `Synced ${pipelineData.generatedAt}`}
+                        {deals.length} deals Ãƒâ€šÃ‚Â· {pipelineData?.generatedAt && `Synced ${pipelineData.generatedAt}`}
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Leads table Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Leads table ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {pipelineView === 'leads' && (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   {pipelineLoading && !pipelineData ? (
@@ -1948,7 +1736,7 @@ const SalesIntelligencePlatform = () => {
                                 {lead.company_domain && <p className="text-xs text-gray-400">{lead.company_domain}</p>}
                               </td>
                               <td className="px-5 py-3.5">
-                                <p className="text-sm text-gray-800">{lead.contact_name || 'Ã¢â‚¬â€'}</p>
+                                <p className="text-sm text-gray-800">{lead.contact_name || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</p>
                                 <p className="text-xs text-gray-400">{lead.contact_title || ''}</p>
                               </td>
                               <td className="px-5 py-3.5">
@@ -1959,27 +1747,27 @@ const SalesIntelligencePlatform = () => {
                                   {(lead.priority || 'cold').toUpperCase()}
                                 </span>
                               </td>
-                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.industry || 'Ã¢â‚¬â€'}</td>
-                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.employee_count ?? 'Ã¢â‚¬â€'}</td>
+                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.industry || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</td>
+                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.employee_count ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</td>
                               <td className="px-5 py-3.5">
                                 {lead.owner_name ? (
                                   <span className="flex items-center gap-1.5 text-sm text-indigo-700 font-medium">
                                     <Users className="w-3.5 h-3.5" />
                                     {lead.owner_name}
                                   </span>
-                                ) : <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-400">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                   lead.source === 'hubspot' ? 'bg-orange-100 text-orange-700' :
                                   lead.source === 'clay' ? 'bg-blue-100 text-blue-700' :
                                   'bg-gray-100 text-gray-600'
-                                }`}>{lead.source || 'Ã¢â‚¬â€'}</span>
+                                }`}>{lead.source || 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}</span>
                               </td>
                               <td className="px-5 py-3.5 max-w-xs">
                                 {lead.recommendation ? (
                                   <p className="text-xs text-gray-500 truncate" title={lead.recommendation}>{lead.recommendation}</p>
-                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-300">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                             </tr>
                           ))}
@@ -1997,7 +1785,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ ANALYTICS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ ANALYTICS TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'analytics' && (() => {
           const ad = analyticsData;
           const fcast = ad?.forecast;
@@ -2066,7 +1854,7 @@ const SalesIntelligencePlatform = () => {
                   <div>
                     <p className="font-semibold text-red-800">Kunne ikke hente analytics data</p>
                     <p className="text-sm text-red-600 mt-1 font-mono">{analyticsError}</p>
-                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig Ã¢â‚¬â€ vent 1-2 min og klik Refresh</p>
+                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â vent 1-2 min og klik Refresh</p>
                   </div>
                 </div>
               )}
@@ -2078,14 +1866,14 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ REVENUE FORECAST Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ REVENUE FORECAST ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {analyticsView === 'forecast' && fcast && (
                 <div className="space-y-5">
                   {/* KPI cards */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { label: 'Weighted Forecast', value: fcast.weighted_forecast_display, sub: 'amount Ãƒâ€” stage probability', color: 'text-purple-600', bg: 'bg-purple-50' },
-                      { label: 'Commit Forecast',   value: fcast.commit_forecast_display,  sub: 'stages Ã¢â€°Â¥70% probability',    color: 'text-blue-600',   bg: 'bg-blue-50' },
+                      { label: 'Weighted Forecast', value: fcast.weighted_forecast_display, sub: 'amount ÃƒÆ’Ã¢â‚¬â€ stage probability', color: 'text-purple-600', bg: 'bg-purple-50' },
+                      { label: 'Commit Forecast',   value: fcast.commit_forecast_display,  sub: 'stages ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â¥70% probability',    color: 'text-blue-600',   bg: 'bg-blue-50' },
                       { label: 'Best Case',          value: fcast.best_case_display,        sub: '100% of open pipeline',      color: 'text-green-600',  bg: 'bg-green-50' },
                       { label: 'Already Won',        value: fcast.closed_won_display,       sub: `${fcast.open_deal_count} open deals`,  color: 'text-emerald-600', bg: 'bg-emerald-50' },
                     ].map(({ label, value, sub, color, bg }) => (
@@ -2109,7 +1897,7 @@ const SalesIntelligencePlatform = () => {
                             return (
                               <div key={m.month}>
                                 <div className="flex justify-between mb-0.5">
-                                  <span className="text-xs text-gray-700">{m.month === 'No Date' ? 'Ã¢â‚¬â€ No close date' : m.month}</span>
+                                  <span className="text-xs text-gray-700">{m.month === 'No Date' ? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â No close date' : m.month}</span>
                                   <span className="text-xs font-semibold text-gray-900">{m.display}</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -2195,7 +1983,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ FUNNEL Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ FUNNEL ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {analyticsView === 'funnel' && funnel && (
                 <div className="space-y-5">
                   {/* Summary */}
@@ -2253,7 +2041,7 @@ const SalesIntelligencePlatform = () => {
                               {/* Conversion arrow */}
                               {s.conversion_to_next_pct != null && (
                                 <div className="flex-shrink-0 text-right w-20">
-                                  <p className="text-xs text-gray-400">Ã¢â€ â€™ next</p>
+                                  <p className="text-xs text-gray-400">ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ next</p>
                                   <p className={`text-sm font-bold ${s.conversion_to_next_pct >= 50 ? 'text-green-600' : s.conversion_to_next_pct >= 25 ? 'text-orange-500' : 'text-red-500'}`}>
                                     {s.conversion_to_next_pct}%
                                   </p>
@@ -2268,7 +2056,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ CRM HEALTH Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ CRM HEALTH ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {analyticsView === 'health' && health && (
                 <div className="space-y-5">
                   {/* Score card */}
@@ -2293,7 +2081,7 @@ const SalesIntelligencePlatform = () => {
                       </div>
                       <div>
                         <p className="text-xl font-bold text-gray-900">{health.summary}</p>
-                        <p className="text-sm text-gray-500 mt-1">{health.total_deals} deals analysed Ã‚Â· {health.clean_deals ?? 'Ã¢â‚¬â€'} clean</p>
+                        <p className="text-sm text-gray-500 mt-1">{health.total_deals} deals analysed Ãƒâ€šÃ‚Â· {health.clean_deals ?? 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'} clean</p>
                         {health.issues.length === 0 && (
                           <p className="mt-3 flex items-center gap-2 text-green-700 font-medium">
                             <CheckCircle className="w-4 h-4" /> Your CRM data is in great shape!
@@ -2345,11 +2133,11 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ TOP ACCOUNTS Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ TOP ACCOUNTS ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {analyticsView === 'accounts' && accts && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">{accts.total} accounts ranked by priority score Ã‚Â· {accts.generated_at}</p>
+                    <p className="text-sm text-gray-500">{accts.total} accounts ranked by priority score Ãƒâ€šÃ‚Â· {accts.generated_at}</p>
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -2369,7 +2157,7 @@ const SalesIntelligencePlatform = () => {
                               <td className="px-4 py-3.5">
                                 <p className="font-semibold text-gray-900 text-sm">{acc.company}</p>
                                 {acc.contact && (
-                                  <p className="text-xs text-gray-400">{acc.contact}{acc.contact_title ? ` Ã‚Â· ${acc.contact_title}` : ''}</p>
+                                  <p className="text-xs text-gray-400">{acc.contact}{acc.contact_title ? ` Ãƒâ€šÃ‚Â· ${acc.contact_title}` : ''}</p>
                                 )}
                                 {acc.industry && <p className="text-xs text-gray-300">{acc.industry}</p>}
                               </td>
@@ -2394,7 +2182,7 @@ const SalesIntelligencePlatform = () => {
                                   <span className="flex items-center gap-1.5 text-xs text-indigo-700 font-medium">
                                     <Users className="w-3 h-3" />{acc.owner}
                                   </span>
-                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-300">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                               <td className="px-4 py-3.5">
                                 {acc.has_open_deal ? (
@@ -2404,7 +2192,7 @@ const SalesIntelligencePlatform = () => {
                                       <p className="text-xs text-green-700 font-semibold">{acc.deal_amount_display}</p>
                                     )}
                                     {acc.deal_close_date && (
-                                      <p className="text-xs text-gray-400">Ã¢â€ â€™ {acc.deal_close_date}</p>
+                                      <p className="text-xs text-gray-400">ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ {acc.deal_close_date}</p>
                                     )}
                                   </div>
                                 ) : <span className="text-xs text-gray-300">No deal</span>}
@@ -2414,16 +2202,16 @@ const SalesIntelligencePlatform = () => {
                                   <div className="space-y-1">
                                     {acc.urgency_signals.slice(0, 2).map((sig, si) => (
                                       <span key={si} className="block text-xs text-orange-700 bg-orange-50 border border-orange-100 rounded px-1.5 py-0.5 truncate">
-                                        Ã¢Å¡Â  {sig}
+                                        ÃƒÂ¢Ã…Â¡Ã‚Â  {sig}
                                       </span>
                                     ))}
                                   </div>
-                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-300">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                               <td className="px-4 py-3.5 max-w-[180px]">
                                 {acc.next_action ? (
                                   <p className="text-xs text-gray-500 truncate" title={acc.next_action}>{acc.next_action}</p>
-                                ) : <span className="text-xs text-gray-300">Ã¢â‚¬â€</span>}
+                                ) : <span className="text-xs text-gray-300">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>}
                               </td>
                             </tr>
                           ))}
@@ -2437,25 +2225,25 @@ const SalesIntelligencePlatform = () => {
                         </div>
                       )}
                       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        {accts.accounts.length} accounts Ã‚Â· sorted by priority score (lead score Ãƒâ€” stage probability Ãƒâ€” recency)
+                        {accts.accounts.length} accounts Ãƒâ€šÃ‚Â· sorted by priority score (lead score ÃƒÆ’Ã¢â‚¬â€ stage probability ÃƒÆ’Ã¢â‚¬â€ recency)
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ ATTRIBUTION VIEW Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ ATTRIBUTION VIEW ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {analyticsView === 'attribution' && (() => {
                 const attr = attributionData;
                 if (attributionLoading) return (
                   <div className="flex items-center justify-center py-16 text-gray-400">
-                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attributionÃ¢â‚¬Â¦
+                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attributionÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦
                   </div>
                 );
                 if (!attr) return (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-400">
                     <BarChart2 className="w-10 h-10 mb-3 opacity-40" />
-                    <p>No attribution data yet Ã¢â‚¬â€ connect HubSpot or Salesforce.</p>
+                    <p>No attribution data yet ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â connect HubSpot or Salesforce.</p>
                   </div>
                 );
                 const { summary, stage_breakdown, signal_attribution, owner_performance, forecast_narrative } = attr;
@@ -2467,7 +2255,7 @@ const SalesIntelligencePlatform = () => {
                         { label: 'Closed Won', value: summary.closed_won_display, sub: `${summary.closed_won_count} deals`, color: 'text-green-600' },
                         { label: 'Weighted Pipeline', value: summary.weighted_pipeline_display, sub: `${summary.active_count} active deals`, color: 'text-blue-600' },
                         { label: 'Win Rate', value: `${summary.win_rate}%`, sub: `${summary.closed_lost_count} lost`, color: summary.win_rate >= 30 ? 'text-green-600' : 'text-orange-600' },
-                        { label: 'Active Pipeline', value: summary.active_value ? `Ã¢â€šÂ¬${(summary.active_value/1000).toFixed(0)}k` : 'Ã¢â€šÂ¬0', sub: 'total value', color: 'text-indigo-600' },
+                        { label: 'Active Pipeline', value: summary.active_value ? `ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬${(summary.active_value/1000).toFixed(0)}k` : 'ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬0', sub: 'total value', color: 'text-indigo-600' },
                       ].map(({ label, value, sub, color }) => (
                         <div key={label} className="bg-white rounded-lg border border-gray-200 p-4 text-center">
                           <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -2492,7 +2280,7 @@ const SalesIntelligencePlatform = () => {
                               <div key={s.stage}>
                                 <div className="flex justify-between text-xs text-gray-600 mb-1">
                                   <span className="font-medium truncate mr-2">{s.stage}</span>
-                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals Ã‚Â· {s.value_display}</span>
+                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals Ãƒâ€šÃ‚Â· {s.value_display}</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                   <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
@@ -2565,7 +2353,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ BUYER JOURNEY TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ BUYER JOURNEY TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'journey' && (() => {
           const EVENT_COLORS = {
             blue: 'border-blue-400 bg-blue-50',
@@ -2584,12 +2372,12 @@ const SalesIntelligencePlatform = () => {
                   <Target className="w-5 h-5 text-blue-600" />
                   Buyer Journey
                 </h2>
-                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account Ã¢â‚¬â€ deals, signals, alerts in one view</p>
+                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â deals, signals, alerts in one view</p>
                 {/* Search */}
                 <div className="flex gap-3">
                   <input
                     type="text"
-                    placeholder="Search account nameÃ¢â‚¬Â¦"
+                    placeholder="Search account nameÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦"
                     value={journeyCompany}
                     onChange={e => setJourneyCompany(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && journeyCompany.trim() && fetchJourney(journeyCompany.trim())}
@@ -2633,13 +2421,13 @@ const SalesIntelligencePlatform = () => {
                         <p className="font-semibold text-blue-900 text-lg">{journeyData.deal.account_name}</p>
                         <p className="text-sm text-blue-700">
                           Stage: <strong>{journeyData.deal.stage}</strong>
-                          {journeyData.deal.amount ? ` Ã‚Â· Ã¢â€šÂ¬${journeyData.deal.amount.toLocaleString()}` : ''}
-                          {journeyData.deal.owner ? ` Ã‚Â· ${journeyData.deal.owner}` : ''}
+                          {journeyData.deal.amount ? ` Ãƒâ€šÃ‚Â· ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬${journeyData.deal.amount.toLocaleString()}` : ''}
+                          {journeyData.deal.owner ? ` Ãƒâ€šÃ‚Â· ${journeyData.deal.owner}` : ''}
                         </p>
                       </div>
                       <div className="flex gap-2">
                         {journeyData.deal.is_stalled && (
-                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">Ã¢Å¡Â Ã¯Â¸Â Stalled</span>
+                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â Stalled</span>
                         )}
                         {journeyData.deal.close_date && (
                           <span className="px-2 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-700">
@@ -2682,7 +2470,7 @@ const SalesIntelligencePlatform = () => {
                                       )}
                                       <span className="text-xs text-gray-400 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Ã¢â‚¬â€'}
+                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : 'ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â'}
                                       </span>
                                     </div>
                                   </div>
@@ -2702,7 +2490,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ WORKFLOWS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ WORKFLOWS TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'workflows' && (() => {
           const TRIGGER_LABELS = {
             manual: 'Manual only',
@@ -2716,7 +2504,7 @@ const SalesIntelligencePlatform = () => {
           };
           const FIELD_OPTIONS = ['score', 'priority', 'source', 'industry'];
           const OP_OPTIONS = ['gt', 'lt', 'eq', 'neq', 'contains'];
-          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: 'Ã¢â€°Â ', contains: 'contains' };
+          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: 'ÃƒÂ¢Ã¢â‚¬Â°Ã‚Â ', contains: 'contains' };
 
           const addCondition = () => setWfForm(f => ({ ...f, conditions: [...f.conditions, { field: 'score', op: 'gt', value: '' }] }));
           const removeCondition = (i) => setWfForm(f => ({ ...f, conditions: f.conditions.filter((_, idx) => idx !== i) }));
@@ -2783,7 +2571,7 @@ const SalesIntelligencePlatform = () => {
                     <Zap className="w-5 h-5 text-yellow-500" />
                     Workflow Automation
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules Ã¢â‚¬â€ automatically act on leads based on conditions</p>
+                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â automatically act on leads based on conditions</p>
                 </div>
                 <button
                   onClick={openCreate}
@@ -2796,7 +2584,7 @@ const SalesIntelligencePlatform = () => {
               {/* Workflow list */}
               {workflowsLoading ? (
                 <div className="flex items-center justify-center py-12 text-gray-400">
-                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> LoadingÃ¢â‚¬Â¦
+                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> LoadingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦
                 </div>
               ) : workflows.length === 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -2827,17 +2615,17 @@ const SalesIntelligencePlatform = () => {
                                   {c.field} {OP_LABELS[c.op] || c.op} {c.value}
                                 </span>
                               ))}
-                              {wf.conditions?.length > 0 && <span className="text-gray-400">Ã¢â€ â€™</span>}
+                              {wf.conditions?.length > 0 && <span className="text-gray-400">ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢</span>}
                               {(wf.actions || []).map((a, i) => (
                                 <span key={i} className="bg-green-50 border border-green-100 text-green-700 rounded px-2 py-0.5">
                                   {ACTION_LABELS[a.type] || a.type}
                                 </span>
                               ))}
                             </div>
-                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} Ã‚Â· {wf.run_count} runs total</p>}
+                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} Ãƒâ€šÃ‚Â· {wf.run_count} runs total</p>}
                             {result && (
                               <div className={`mt-2 text-xs rounded px-3 py-2 ${result.error ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
-                                {result.error ? `Ã¢Å“â€” ${result.error}` : `Ã¢Å“â€œ ${result.leads_matched}/${result.leads_evaluated} leads matched Ã‚Â· ${result.actions_fired} actions fired`}
+                                {result.error ? `ÃƒÂ¢Ã…â€œÃ¢â‚¬â€ ${result.error}` : `ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“ ${result.leads_matched}/${result.leads_evaluated} leads matched Ãƒâ€šÃ‚Â· ${result.actions_fired} actions fired`}
                               </div>
                             )}
                           </div>
@@ -2848,7 +2636,7 @@ const SalesIntelligencePlatform = () => {
                               className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                             >
                               <Zap className={`w-3 h-3 ${wfRunning === wf.id ? 'animate-pulse' : ''}`} />
-                              {wfRunning === wf.id ? 'RunningÃ¢â‚¬Â¦' : 'Run'}
+                              {wfRunning === wf.id ? 'RunningÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : 'Run'}
                             </button>
                             <button
                               onClick={() => handleToggle(wf)}
@@ -2866,7 +2654,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Create/Edit Modal Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Create/Edit Modal ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {wfModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                   <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -2898,11 +2686,11 @@ const SalesIntelligencePlatform = () => {
                       {/* Conditions */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF Ã¢â‚¬â€ Conditions (all must match)</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Conditions (all must match)</label>
                           <button onClick={addCondition} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add condition</button>
                         </div>
                         {wfForm.conditions.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">No conditions Ã¢â‚¬â€ workflow runs on ALL leads</p>
+                          <p className="text-xs text-gray-400 italic">No conditions ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â workflow runs on ALL leads</p>
                         ) : (
                           <div className="space-y-2">
                             {wfForm.conditions.map((c, i) => (
@@ -2924,11 +2712,11 @@ const SalesIntelligencePlatform = () => {
                       {/* Actions */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN Ã¢â‚¬â€ Actions</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â Actions</label>
                           <button onClick={addAction} className="text-xs text-green-600 hover:text-green-800 font-medium">+ Add action</button>
                         </div>
                         {wfForm.actions.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">No actions Ã¢â‚¬â€ add at least one</p>
+                          <p className="text-xs text-gray-400 italic">No actions ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â add at least one</p>
                         ) : (
                           <div className="space-y-3">
                             {wfForm.actions.map((a, i) => (
@@ -2980,7 +2768,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ CONNECTIONS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ CONNECTIONS TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'connections' && (() => {
           const INTEGRATION_DEFS = [
             {
@@ -3068,7 +2856,7 @@ const SalesIntelligencePlatform = () => {
                                 className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <RefreshCw className={`w-3.5 h-3.5 ${syncingId === conn.id ? 'animate-spin' : ''}`} />
-                                {syncingId === conn.id ? 'SyncingÃ¢â‚¬Â¦' : 'Sync now'}
+                                {syncingId === conn.id ? 'SyncingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : 'Sync now'}
                               </button>
                               <button
                                 onClick={() => handleDisconnect(conn.id)}
@@ -3080,7 +2868,7 @@ const SalesIntelligencePlatform = () => {
                           )}
                           {syncResult[conn?.id] && (
                             <span className={`text-xs ${syncResult[conn.id].ok ? 'text-green-600' : 'text-red-500'}`}>
-                              {syncResult[conn.id].ok ? 'Ã¢Å“â€œ' : 'Ã¢Å“â€”'} {syncResult[conn.id].msg}
+                              {syncResult[conn.id].ok ? 'ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“' : 'ÃƒÂ¢Ã…â€œÃ¢â‚¬â€'} {syncResult[conn.id].msg}
                             </span>
                           )}
                         </div>
@@ -3144,7 +2932,7 @@ const SalesIntelligencePlatform = () => {
                         disabled={connectLoading}
                         className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                       >
-                        {connectLoading ? 'ConnectingÃ¢â‚¬Â¦' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
+                        {connectLoading ? 'ConnectingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
                       </button>
                     </div>
                   </div>
@@ -3154,7 +2942,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ CMT DASHBOARD TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ CMT DASHBOARD TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'cmt' && (() => {
           const STATUS_STYLES = {
             done:        { badge: 'bg-green-100 text-green-700 border-green-200',       dot: 'bg-green-500',  label: 'Done' },
@@ -3178,7 +2966,7 @@ const SalesIntelligencePlatform = () => {
 
           return (
             <div className="space-y-6">
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Header Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Header ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                   <div>
@@ -3187,7 +2975,7 @@ const SalesIntelligencePlatform = () => {
                       CMT Dashboard
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
-                      Cross-department initiative progress Ã¢â‚¬â€ synced from Notion
+                      Cross-department initiative progress ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â synced from Notion
                     </p>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
@@ -3202,7 +2990,7 @@ const SalesIntelligencePlatform = () => {
                       className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${cmtSyncing ? 'animate-spin' : ''}`} />
-                      {cmtSyncing ? 'SyncingÃ¢â‚¬Â¦' : 'Sync Notion'}
+                      {cmtSyncing ? 'SyncingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : 'Sync Notion'}
                     </button>
                     <button
                       onClick={fetchCmt}
@@ -3217,7 +3005,7 @@ const SalesIntelligencePlatform = () => {
 
                 {/* Sync feedback */}
                 {cmtSyncMsg && (
-                  <p className={`mt-3 text-sm font-medium ${cmtSyncMsg.startsWith('Ã¢Å“â€œ') ? 'text-green-600' : 'text-red-500'}`}>
+                  <p className={`mt-3 text-sm font-medium ${cmtSyncMsg.startsWith('ÃƒÂ¢Ã…â€œÃ¢â‚¬Å“') ? 'text-green-600' : 'text-red-500'}`}>
                     {cmtSyncMsg}
                   </p>
                 )}
@@ -3264,7 +3052,7 @@ const SalesIntelligencePlatform = () => {
                 )}
               </div>
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Filters Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Filters ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               <div className="flex items-center gap-3 flex-wrap">
                 <Filter className="w-4 h-4 text-gray-400" />
                 {/* Status filter */}
@@ -3290,11 +3078,11 @@ const SalesIntelligencePlatform = () => {
                 </select>
               </div>
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Loading / Error Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Loading / Error ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {cmtLoading && (
                 <div className="flex items-center justify-center py-16 text-gray-400">
                   <RefreshCw className="w-6 h-6 animate-spin mr-3" />
-                  Loading initiativesÃ¢â‚¬Â¦
+                  Loading initiativesÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦
                 </div>
               )}
               {cmtError && !cmtLoading && (
@@ -3304,7 +3092,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Empty state Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Empty state ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {!cmtLoading && !cmtError && cmtDepartments.length === 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                   <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -3321,7 +3109,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* Ã¢â€â‚¬Ã¢â€â‚¬ Department Cards Ã¢â€â‚¬Ã¢â€â‚¬ */}
+              {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Department Cards ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
               {!cmtLoading && filteredDepts.map(dept => {
                 const pct = dept.total > 0 ? Math.round((dept.done / dept.total) * 100) : 0;
                 return (
@@ -3445,7 +3233,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ LEADS TAB Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ LEADS TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {activeTab === 'leads' && (() => {
           const owners = ['all', ...Array.from(new Set(leads.map(l => l.owner_name).filter(Boolean)))];
           const visibleLeads = filterOwner === 'all' ? leads : leads.filter(l => l.owner_name === filterOwner);
@@ -3500,7 +3288,7 @@ const SalesIntelligencePlatform = () => {
                               {lead.owner_name}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-400">Ã¢â‚¬â€</span>
+                            <span className="text-xs text-gray-400">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -3526,8 +3314,8 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-        {/* â”€â”€ GTM SETUP TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
+        {/* Ã¢â€â‚¬Ã¢â€â‚¬ GTM SETUP TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */
         {/* Extracted to src/pages/GTMSetupPage.jsx (P1.10) */}
         {activeTab === 'gtm-setup' && (
           <GTMSetupPage
@@ -3536,17 +3324,17 @@ const SalesIntelligencePlatform = () => {
         )}
 
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ INTELLIGENCE TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ INTELLIGENCE TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {/* Extracted to src/pages/IntelligencePage.jsx (P1.10) */}
         {activeTab === 'intelligence' && <IntelligencePage />}
 
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ PIPELINE TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ PIPELINE TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {/* Extracted to src/pages/PipelinePage.jsx (P1.10) */}
         {activeTab === 'pipeline' && <PipelinePage />}
 
-        {/* Ã¢â€â‚¬Ã¢â€â‚¬ SIGNALS TAB Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
+        {/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ SIGNALS TAB ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */}
         {/* Extracted to src/pages/SignalsPage.jsx (P1.10) */}
         {activeTab === 'signals' && <SignalsPage />}
 
@@ -3589,7 +3377,7 @@ const SalesIntelligencePlatform = () => {
                   </div>
                 ))}
               </div>
-              {/* Score Breakdown Ã¢â‚¬â€ HockeyStack-style explainable scoring */}
+              {/* Score Breakdown ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â HockeyStack-style explainable scoring */}
               {selectedLead.scoring_breakdown && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Score Breakdown</p>
@@ -3607,7 +3395,7 @@ const SalesIntelligencePlatform = () => {
                           <div className="flex justify-between items-center mb-0.5">
                             <div>
                               <span className="text-xs font-medium text-gray-700">{label}</span>
-                              <span className="text-xs text-gray-400 ml-1">Ã¢â‚¬â€ {desc}</span>
+                              <span className="text-xs text-gray-400 ml-1">ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â {desc}</span>
                             </div>
                             <span className="text-xs font-bold text-gray-900">{val}/{max}</span>
                           </div>
