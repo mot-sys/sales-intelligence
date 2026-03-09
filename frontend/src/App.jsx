@@ -11,14 +11,15 @@ import {
   Camera, History,
 } from 'lucide-react';
 
-// ── Page components (P1.10 extraction) ───────────────────────────────────────
-import PipelinePage from './pages/PipelinePage';
-import SignalsPage  from './pages/SignalsPage';
+// â”€â”€ Page components (P1.10 extraction) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+import IntelligencePage from './pages/IntelligencePage';
+import PipelinePage     from './pages/PipelinePage';
+import SignalsPage      from './pages/SignalsPage';
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // CHAT CHART RENDERER
 // Renders AI-generated chart specs from render_chart tool calls
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const CHART_PALETTE = [
   '#7c3aed', '#2563eb', '#059669', '#d97706', '#dc2626',
@@ -26,7 +27,7 @@ const CHART_PALETTE = [
 ];
 
 const formatChartValue = (value, prefix = '', suffix = '') => {
-  if (value === null || value === undefined) return '—';
+  if (value === null || value === undefined) return 'â€”';
   if (typeof value === 'number' && value >= 1000) {
     return `${prefix}${value >= 1000000
       ? (value / 1000000).toFixed(1) + 'M'
@@ -58,7 +59,7 @@ const ChatChart = ({ spec }) => {
         <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-3">{title}</p>
       )}
 
-      {/* ── Vertical bar chart ── */}
+      {/* â”€â”€ Vertical bar chart â”€â”€ */}
       {chart_type === 'bar' && (
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 40 }}>
@@ -85,7 +86,7 @@ const ChatChart = ({ spec }) => {
         </ResponsiveContainer>
       )}
 
-      {/* ── Horizontal bar chart ── */}
+      {/* â”€â”€ Horizontal bar chart â”€â”€ */}
       {chart_type === 'horizontal_bar' && (
         <div className="space-y-2">
           {data.map((item, i) => {
@@ -114,7 +115,7 @@ const ChatChart = ({ spec }) => {
         </div>
       )}
 
-      {/* ── Pie chart ── */}
+      {/* â”€â”€ Pie chart â”€â”€ */}
       {chart_type === 'pie' && (
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
@@ -139,7 +140,7 @@ const ChatChart = ({ spec }) => {
             <Tooltip
               formatter={(val) => [
                 formatChartValue(val, value_prefix, value_suffix),
-                'Værdi',
+                'VÃ¦rdi',
               ]}
             />
           </PieChart>
@@ -149,9 +150,9 @@ const ChatChart = ({ spec }) => {
   );
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // API HELPERS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 // API requests use relative URLs so Vercel proxies them to Railway server-side.
 // Override with VITE_API_URL only if you need to bypass the proxy.
@@ -189,9 +190,9 @@ const API = {
   },
 };
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // UTILITY HELPERS
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const PRIORITY_STYLES = {
   urgent: { badge: 'bg-red-100 text-red-700 border-red-300', dot: 'bg-red-500', border: 'border-l-red-500' },
@@ -237,9 +238,9 @@ function getScoreColor(score) {
   return 'text-gray-500';
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ALERT CARD COMPONENT
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function AlertCard({ alert, onAction, isActioning }) {
   const pStyle = PRIORITY_STYLES[alert.priority] || PRIORITY_STYLES.low;
@@ -343,9 +344,9 @@ function AlertCard({ alert, onAction, isActioning }) {
   );
 }
 
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // MAIN APP
-// ─────────────────────────────────────────────
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const SalesIntelligencePlatform = () => {
   const [activeTab, setActiveTab] = useState('gtm-setup');
@@ -396,7 +397,7 @@ const SalesIntelligencePlatform = () => {
   const [workflowsLoading, setWorkflowsLoading] = useState(false);
   const [wfModal, setWfModal] = useState(null);        // null | 'create' | workflow-object
   const [wfRunning, setWfRunning] = useState(null);    // workflow id being run
-  const [wfRunResult, setWfRunResult] = useState({});  // id → result
+  const [wfRunResult, setWfRunResult] = useState({});  // id â†’ result
   const [wfForm, setWfForm] = useState({ name: '', description: '', trigger_type: 'manual', conditions: [], actions: [] });
   // Buyer Journey tab
   const [journeyCompany, setJourneyCompany] = useState('');
@@ -416,7 +417,7 @@ const SalesIntelligencePlatform = () => {
   const [cmtStatusFilter, setCmtStatusFilter] = useState('all');
   const [cmtDeptFilter, setCmtDeptFilter] = useState('all');
 
-  // ── GTM Setup state ──────────────────────────────────────────────────────
+  // â”€â”€ GTM Setup state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [gtmTab, setGtmTab] = useState('strategy');
   const [gtmConfig, setGtmConfig] = useState(null);
   const [gtmSaving, setGtmSaving] = useState(false);
@@ -448,16 +449,16 @@ const SalesIntelligencePlatform = () => {
   const [progressData, setProgressData] = useState(null);
   const [progressLoading, setProgressLoading] = useState(false);
 
-  // ── Intelligence state ───────────────────────────────────────────────────
+  // â”€â”€ Intelligence state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [intelligenceData, setIntelligenceData] = useState(null);
   const [intelligenceLoading, setIntelligenceLoading] = useState(false);
   const [intelligenceSubTab, setIntelligenceSubTab] = useState('overblik');
 
-  // ── Daily report (scorekort) ─────────────────────────────────────────────
+  // â”€â”€ Daily report (scorekort) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [dailyReport, setDailyReport] = useState(null);
   const [dailyReportLoading, setDailyReportLoading] = useState(false);
 
-  // ── Forecast ─────────────────────────────────────────────────────────────
+  // â”€â”€ Forecast â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [forecast, setForecast] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
   const [forecastHistory, setForecastHistory] = useState(null);
@@ -465,24 +466,24 @@ const SalesIntelligencePlatform = () => {
   const [snapshotSaving, setSnapshotSaving] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // ── Learnings ────────────────────────────────────────────────────────────
+  // â”€â”€ Learnings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [learnings, setLearnings] = useState(null);
   const [learningsLoading, setLearningsLoading] = useState(false);
 
-  // ── Management Tasks ─────────────────────────────────────────────────────
+  // â”€â”€ Management Tasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [mgmtTasks, setMgmtTasks] = useState(null);
   const [mgmtTasksLoading, setMgmtTasksLoading] = useState(false);
   const [dismissedTaskIds, setDismissedTaskIds] = useState(new Set());
 
-  // ── AI Agent ─────────────────────────────────────────────────────────────
+  // â”€â”€ AI Agent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [agentData, setAgentData] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
 
-  // ── New sub-tab state ────────────────────────────────────────────────────
+  // â”€â”€ New sub-tab state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [pipelineSubTab, setPipelineSubTab] = useState('deals');
   const [signalsSubTab, setSignalsSubTab] = useState('alerts');
 
-  // ── Legacy dropdown state ────────────────────────────────────────────────
+  // â”€â”€ Legacy dropdown state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const [legacyOpen, setLegacyOpen] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
@@ -537,9 +538,9 @@ const SalesIntelligencePlatform = () => {
       setContextInput(settingsData.company_context || '');
     } catch {
       setSuggestedQuestions([
-        'Hvad skal jeg fokusere på denne uge?',
+        'Hvad skal jeg fokusere pÃ¥ denne uge?',
         'Hvilke deals er mest i fare?',
-        'Hvilke leads bør jeg kontakte i dag?',
+        'Hvilke leads bÃ¸r jeg kontakte i dag?',
         'Giv mig et overblik over min pipeline',
       ]);
     }
@@ -713,10 +714,10 @@ const SalesIntelligencePlatform = () => {
     setCmtSyncMsg(null);
     try {
       const data = await API.post('/connections/notion/sync');
-      setCmtSyncMsg(`✓ Synced — ${data.created ?? 0} new, ${data.updated ?? 0} updated`);
+      setCmtSyncMsg(`âœ“ Synced â€” ${data.created ?? 0} new, ${data.updated ?? 0} updated`);
       await fetchCmt();
     } catch (e) {
-      setCmtSyncMsg(`✗ ${e.message}`);
+      setCmtSyncMsg(`âœ— ${e.message}`);
     } finally {
       setCmtSyncing(false);
     }
@@ -774,7 +775,7 @@ const SalesIntelligencePlatform = () => {
           setGrowthPct(0);
         }
       }
-    } catch { /* silent — use form defaults */ }
+    } catch { /* silent â€” use form defaults */ }
   }, []);
 
   const saveGtmConfig = async (section, formData) => {
@@ -960,7 +961,7 @@ const SalesIntelligencePlatform = () => {
     try {
       const params = new URLSearchParams(connectForm).toString();
       const data = await API.post(`/connections/${connectModal}?${params}`);
-      // OAuth services return an auth_url — open it in a new tab
+      // OAuth services return an auth_url â€” open it in a new tab
       if (data.auth_url) {
         window.open(data.auth_url, '_blank', 'noopener,noreferrer');
         setConnectModal(null);
@@ -971,7 +972,7 @@ const SalesIntelligencePlatform = () => {
       setConnectModal(null);
       setConnectForm({});
     } catch (e) {
-      setConnectError(e.message || 'Connection failed — check your credentials.');
+      setConnectError(e.message || 'Connection failed â€” check your credentials.');
     } finally {
       setConnectLoading(false);
     }
@@ -1017,14 +1018,14 @@ const SalesIntelligencePlatform = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* ── Header ── */}
+      {/* â”€â”€ Header â”€â”€ */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Zap className="w-8 h-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Signal Intelligence</h1>
-              <p className="text-sm text-gray-500">GTM Intelligence Platform · Board-level insights</p>
+              <p className="text-sm text-gray-500">GTM Intelligence Platform Â· Board-level insights</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -1038,7 +1039,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         </div>
 
-        {/* ── Primary Nav ── */}
+        {/* â”€â”€ Primary Nav â”€â”€ */}
         <div className="flex items-center space-x-1 px-6">
           {PRIMARY_TABS.map(tab => {
             const Icon = tab.icon;
@@ -1112,7 +1113,7 @@ const SalesIntelligencePlatform = () => {
 
       <div className="p-6">
 
-        {/* ── DASHBOARD TAB ── */}
+        {/* â”€â”€ DASHBOARD TAB â”€â”€ */}
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             <div className="grid grid-cols-4 gap-4">
@@ -1187,7 +1188,7 @@ const SalesIntelligencePlatform = () => {
                           <p className="text-xs text-gray-500">{timeAgo(alert.created_at)}</p>
                           {(alert.context?.owner_name || alert.lead?.owner_name) && (
                             <span className="text-xs text-indigo-600 font-medium">
-                              · {alert.context?.owner_name || alert.lead?.owner_name}
+                              Â· {alert.context?.owner_name || alert.lead?.owner_name}
                             </span>
                           )}
                         </div>
@@ -1203,7 +1204,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* ── ALERTS TAB ── */}
+        {/* â”€â”€ ALERTS TAB â”€â”€ */}
         {activeTab === 'alerts' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -1256,7 +1257,7 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* ── AI CHAT TAB ── */}
+        {/* â”€â”€ AI CHAT TAB â”€â”€ */}
         {activeTab === 'chat' && (() => {
           return (
             <div className="flex gap-6 h-[calc(100vh-200px)] min-h-[500px]">
@@ -1282,7 +1283,7 @@ const SalesIntelligencePlatform = () => {
                         <MessageSquare className="w-8 h-8 text-purple-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-700">Spørg om din pipeline</p>
+                        <p className="font-medium text-gray-700">SpÃ¸rg om din pipeline</p>
                         <p className="text-sm text-gray-400 mt-1">AI'en har adgang til alle dine deals, leads og alerts</p>
                       </div>
                       <div className="flex flex-wrap gap-2 justify-center mt-2">
@@ -1355,7 +1356,7 @@ const SalesIntelligencePlatform = () => {
                       type="text"
                       value={chatInput}
                       onChange={e => setChatInput(e.target.value)}
-                      placeholder="Stil et spørgsmål om din pipeline..."
+                      placeholder="Stil et spÃ¸rgsmÃ¥l om din pipeline..."
                       disabled={chatLoading}
                       className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
                     />
@@ -1388,12 +1389,12 @@ const SalesIntelligencePlatform = () => {
                       ].map(({ label, value, warn }) => (
                         <div key={label} className="flex justify-between text-sm">
                           <span className="text-gray-500">{label}</span>
-                          <span className={`font-semibold ${warn ? 'text-red-600' : 'text-gray-900'}`}>{value ?? '—'}</span>
+                          <span className={`font-semibold ${warn ? 'text-red-600' : 'text-gray-900'}`}>{value ?? 'â€”'}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400">Indlæser...</p>
+                    <p className="text-sm text-gray-400">IndlÃ¦ser...</p>
                   )}
                 </div>
 
@@ -1416,13 +1417,13 @@ const SalesIntelligencePlatform = () => {
                           <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold">{m.label}</span>
                             {m.tier === 'recommended' && (
-                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">✓ Best</span>
+                              <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">âœ“ Best</span>
                             )}
                             {m.tier === 'powerful' && (
-                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">⚡ Max</span>
+                              <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded font-medium">âš¡ Max</span>
                             )}
                             {m.tier === 'fast' && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">🚀 Fast</span>
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">ðŸš€ Fast</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-400 mt-0.5">{m.description}</p>
@@ -1467,7 +1468,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="flex gap-2">
                         <input
                           type="text"
-                          placeholder="Fx: Svar altid på dansk"
+                          placeholder="Fx: Svar altid pÃ¥ dansk"
                           value={skillInput}
                           onChange={e => setSkillInput(e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && addSkill()}
@@ -1487,7 +1488,7 @@ const SalesIntelligencePlatform = () => {
                         <p className="text-xs text-gray-500 font-medium mb-1.5">Virksomhedskontekst</p>
                         <textarea
                           rows={3}
-                          placeholder="Fx: Vi sælger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
+                          placeholder="Fx: Vi sÃ¦lger B2B SaaS til nordiske virksomheder med 50-500 ansatte. Vores ICP er Operations directors..."
                           value={contextInput}
                           onChange={e => setContextInput(e.target.value)}
                           className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
@@ -1505,9 +1506,9 @@ const SalesIntelligencePlatform = () => {
                       <div className="pt-1 border-t border-gray-100">
                         <p className="text-xs text-gray-400 mb-1.5">Forslag:</p>
                         {[
-                          'Svar altid på dansk',
-                          'Fokusér på deals der lukker inden for 30 dage',
-                          'Brug MEDDIC salgsmøntoden',
+                          'Svar altid pÃ¥ dansk',
+                          'FokusÃ©r pÃ¥ deals der lukker inden for 30 dage',
+                          'Brug MEDDIC salgsmÃ¸ntoden',
                           'Vores ICP: SaaS, 50-500 ansatte',
                         ].map((s, i) => (
                           <button
@@ -1546,7 +1547,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── WEEKLY REPORT TAB ── */}
+        {/* â”€â”€ WEEKLY REPORT TAB â”€â”€ */}
         {activeTab === 'report' && (() => {
           const report = weeklyReport;
           const hasReport = report && (report.section_what_happened || report.section_this_week || report.section_management);
@@ -1577,7 +1578,7 @@ const SalesIntelligencePlatform = () => {
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
                       {hasReport
-                        ? `Uge startende ${report.week_start} · Genereret ${new Date(report.generated_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${report.model_used || 'AI'}`
+                        ? `Uge startende ${report.week_start} Â· Genereret ${new Date(report.generated_at).toLocaleString('da-DK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} Â· ${report.model_used || 'AI'}`
                         : 'Klik "Generer rapport" for at lave denne uges analyse'}
                     </p>
                   </div>
@@ -1598,14 +1599,14 @@ const SalesIntelligencePlatform = () => {
                       className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                     >
                       <Sparkles className={`w-4 h-4 ${weeklyReportGenerating ? 'animate-spin' : ''}`} />
-                      {weeklyReportGenerating ? 'Genererer…' : hasReport ? 'Regenerer' : 'Generer rapport'}
+                      {weeklyReportGenerating ? 'Generererâ€¦' : hasReport ? 'Regenerer' : 'Generer rapport'}
                     </button>
                   </div>
                 </div>
 
                 {weeklyReportError && (
                   <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                    ⚠️ {weeklyReportError}
+                    âš ï¸ {weeklyReportError}
                   </div>
                 )}
 
@@ -1613,7 +1614,7 @@ const SalesIntelligencePlatform = () => {
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
                     <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm text-blue-700">
-                      Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitet…
+                      Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitetâ€¦
                     </span>
                   </div>
                 )}
@@ -1625,7 +1626,7 @@ const SalesIntelligencePlatform = () => {
                   <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 font-medium">Ingen rapport endnu</p>
                   <p className="text-sm text-gray-400 mt-1 mb-6">
-                    Klik "Generer rapport" ovenfor — AI analyserer din pipeline og skriver rapporten.
+                    Klik "Generer rapport" ovenfor â€” AI analyserer din pipeline og skriver rapporten.
                   </p>
                   <p className="text-xs text-gray-400">Rapporten opdateres automatisk mandag morgen kl. 8 (via Railway cron).</p>
                 </div>
@@ -1641,7 +1642,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                         <Activity className="w-4 h-4 text-blue-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">📊 Hvad skete der denne uge</h3>
+                      <h3 className="font-semibold text-gray-900">ðŸ“Š Hvad skete der denne uge</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_what_happened)}
@@ -1654,7 +1655,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                         <Target className="w-4 h-4 text-green-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">🎯 Hvad skal der ske denne uge</h3>
+                      <h3 className="font-semibold text-gray-900">ðŸŽ¯ Hvad skal der ske denne uge</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_this_week)}
@@ -1667,7 +1668,7 @@ const SalesIntelligencePlatform = () => {
                       <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                         <Award className="w-4 h-4 text-purple-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900">🤝 Hvad kan sales management gøre</h3>
+                      <h3 className="font-semibold text-gray-900">ðŸ¤ Hvad kan sales management gÃ¸re</h3>
                     </div>
                     <div className="prose-sm text-gray-700 space-y-0.5">
                       {renderMd(report.section_management)}
@@ -1680,10 +1681,10 @@ const SalesIntelligencePlatform = () => {
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Data grundlag</p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         {[
-                          { label: 'Deals i pipeline', value: report.data_snapshot.pipeline?.total_deals ?? '—' },
-                          { label: 'Aktive deals (uge)', value: report.data_snapshot.pipeline?.recently_active_deals ?? '—' },
-                          { label: 'Alerts trigget', value: report.data_snapshot.alerts?.total ?? '—' },
-                          { label: 'HubSpot-opgaver', value: report.data_snapshot.tasks?.total ?? (report.data_snapshot.tasks?.available === false ? 'N/A' : '—') },
+                          { label: 'Deals i pipeline', value: report.data_snapshot.pipeline?.total_deals ?? 'â€”' },
+                          { label: 'Aktive deals (uge)', value: report.data_snapshot.pipeline?.recently_active_deals ?? 'â€”' },
+                          { label: 'Alerts trigget', value: report.data_snapshot.alerts?.total ?? 'â€”' },
+                          { label: 'HubSpot-opgaver', value: report.data_snapshot.tasks?.total ?? (report.data_snapshot.tasks?.available === false ? 'N/A' : 'â€”') },
                         ].map(({ label, value }) => (
                           <div key={label} className="bg-white rounded-lg p-3 border border-gray-200 text-center">
                             <p className="text-lg font-bold text-gray-900">{value}</p>
@@ -1699,7 +1700,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── PIPELINE DATA TAB ── */}
+        {/* â”€â”€ PIPELINE DATA TAB â”€â”€ */}
         {activeTab === 'data' && (() => {
           const STAGE_COLORS = {
             closedwon: 'bg-green-100 text-green-800 border-green-200',
@@ -1714,7 +1715,7 @@ const SalesIntelligencePlatform = () => {
             ? s.replace(/([a-z])([A-Z])/g, '$1 $2')
                 .replace(/_/g, ' ')
                 .replace(/\b\w/g, c => c.toUpperCase())
-            : '—';
+            : 'â€”';
 
           const deals = (pipelineData?.deals || []).filter(d => {
             if (!pipelineSearch) return true;
@@ -1737,7 +1738,7 @@ const SalesIntelligencePlatform = () => {
           return (
             <div className="space-y-5">
 
-              {/* ── Summary cards ── */}
+              {/* â”€â”€ Summary cards â”€â”€ */}
               {summary && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                   {[
@@ -1745,18 +1746,18 @@ const SalesIntelligencePlatform = () => {
                     { label: 'Pipeline Value', value: summary.total_pipeline_display, color: 'text-green-600' },
                     { label: 'Stalled', value: summary.stalled_deals, color: summary.stalled_deals > 0 ? 'text-red-600' : 'text-gray-500' },
                     { label: 'Pending Alerts', value: summary.pending_alerts, color: summary.pending_alerts > 0 ? 'text-orange-600' : 'text-gray-500' },
-                    { label: 'Top Lead Score', value: summary.top_lead_score ?? '—', color: 'text-purple-600' },
+                    { label: 'Top Lead Score', value: summary.top_lead_score ?? 'â€”', color: 'text-purple-600' },
                     { label: 'Urgent / High', value: summary.urgent_or_high_alerts, color: summary.urgent_or_high_alerts > 0 ? 'text-red-600' : 'text-gray-500' },
                   ].map(({ label, value, color }) => (
                     <div key={label} className="bg-white rounded-lg border border-gray-200 px-4 py-3">
                       <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-                      <p className={`text-xl font-bold ${color}`}>{value ?? '—'}</p>
+                      <p className={`text-xl font-bold ${color}`}>{value ?? 'â€”'}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* ── Stage distribution bar ── */}
+              {/* â”€â”€ Stage distribution bar â”€â”€ */}
               {summary?.deals_by_stage && Object.keys(summary.deals_by_stage).length > 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-4">
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Deals by Stage</p>
@@ -1770,7 +1771,7 @@ const SalesIntelligencePlatform = () => {
                           <div key={stage}>
                             <div className="flex justify-between items-center mb-0.5">
                               <span className="text-xs text-gray-700">{stageLabel(stage)}</span>
-                              <span className="text-xs font-semibold text-gray-900">{count} deal{count !== 1 ? 's' : ''} &nbsp;·&nbsp; {pct}%</span>
+                              <span className="text-xs font-semibold text-gray-900">{count} deal{count !== 1 ? 's' : ''} &nbsp;Â·&nbsp; {pct}%</span>
                             </div>
                             <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                               <div
@@ -1785,7 +1786,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── View toggle + search ── */}
+              {/* â”€â”€ View toggle + search â”€â”€ */}
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex gap-2">
                   {[['deals', 'Deals'], ['leads', 'Leads']].map(([id, label]) => (
@@ -1824,7 +1825,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               </div>
 
-              {/* ── Deals table ── */}
+              {/* â”€â”€ Deals table â”€â”€ */}
               {pipelineView === 'deals' && (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   {pipelineLoading && !pipelineData ? (
@@ -1860,7 +1861,7 @@ const SalesIntelligencePlatform = () => {
                                 </span>
                               </td>
                               <td className="px-5 py-3.5">
-                                <span className="font-semibold text-gray-900 text-sm">{deal.amount_display || '—'}</span>
+                                <span className="font-semibold text-gray-900 text-sm">{deal.amount_display || 'â€”'}</span>
                               </td>
                               <td className="px-5 py-3.5">
                                 {deal.owner ? (
@@ -1868,10 +1869,10 @@ const SalesIntelligencePlatform = () => {
                                     <Users className="w-3.5 h-3.5" />
                                     {deal.owner}
                                   </span>
-                                ) : <span className="text-xs text-gray-400">—</span>}
+                                ) : <span className="text-xs text-gray-400">â€”</span>}
                               </td>
                               <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">
-                                {deal.close_date || <span className="text-gray-400">—</span>}
+                                {deal.close_date || <span className="text-gray-400">â€”</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 {deal.days_since_last_activity != null ? (
@@ -1881,7 +1882,7 @@ const SalesIntelligencePlatform = () => {
                                   }`}>
                                     {deal.days_since_last_activity}d ago
                                   </span>
-                                ) : <span className="text-xs text-gray-400">—</span>}
+                                ) : <span className="text-xs text-gray-400">â€”</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
@@ -1908,14 +1909,14 @@ const SalesIntelligencePlatform = () => {
                         </tbody>
                       </table>
                       <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        {deals.length} deals · {pipelineData?.generatedAt && `Synced ${pipelineData.generatedAt}`}
+                        {deals.length} deals Â· {pipelineData?.generatedAt && `Synced ${pipelineData.generatedAt}`}
                       </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* ── Leads table ── */}
+              {/* â”€â”€ Leads table â”€â”€ */}
               {pipelineView === 'leads' && (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   {pipelineLoading && !pipelineData ? (
@@ -1946,7 +1947,7 @@ const SalesIntelligencePlatform = () => {
                                 {lead.company_domain && <p className="text-xs text-gray-400">{lead.company_domain}</p>}
                               </td>
                               <td className="px-5 py-3.5">
-                                <p className="text-sm text-gray-800">{lead.contact_name || '—'}</p>
+                                <p className="text-sm text-gray-800">{lead.contact_name || 'â€”'}</p>
                                 <p className="text-xs text-gray-400">{lead.contact_title || ''}</p>
                               </td>
                               <td className="px-5 py-3.5">
@@ -1957,27 +1958,27 @@ const SalesIntelligencePlatform = () => {
                                   {(lead.priority || 'cold').toUpperCase()}
                                 </span>
                               </td>
-                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.industry || '—'}</td>
-                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.employee_count ?? '—'}</td>
+                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.industry || 'â€”'}</td>
+                              <td className="px-5 py-3.5 text-sm text-gray-600">{lead.employee_count ?? 'â€”'}</td>
                               <td className="px-5 py-3.5">
                                 {lead.owner_name ? (
                                   <span className="flex items-center gap-1.5 text-sm text-indigo-700 font-medium">
                                     <Users className="w-3.5 h-3.5" />
                                     {lead.owner_name}
                                   </span>
-                                ) : <span className="text-xs text-gray-400">—</span>}
+                                ) : <span className="text-xs text-gray-400">â€”</span>}
                               </td>
                               <td className="px-5 py-3.5">
                                 <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                                   lead.source === 'hubspot' ? 'bg-orange-100 text-orange-700' :
                                   lead.source === 'clay' ? 'bg-blue-100 text-blue-700' :
                                   'bg-gray-100 text-gray-600'
-                                }`}>{lead.source || '—'}</span>
+                                }`}>{lead.source || 'â€”'}</span>
                               </td>
                               <td className="px-5 py-3.5 max-w-xs">
                                 {lead.recommendation ? (
                                   <p className="text-xs text-gray-500 truncate" title={lead.recommendation}>{lead.recommendation}</p>
-                                ) : <span className="text-xs text-gray-300">—</span>}
+                                ) : <span className="text-xs text-gray-300">â€”</span>}
                               </td>
                             </tr>
                           ))}
@@ -1995,7 +1996,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── ANALYTICS TAB ── */}
+        {/* â”€â”€ ANALYTICS TAB â”€â”€ */}
         {activeTab === 'analytics' && (() => {
           const ad = analyticsData;
           const fcast = ad?.forecast;
@@ -2064,7 +2065,7 @@ const SalesIntelligencePlatform = () => {
                   <div>
                     <p className="font-semibold text-red-800">Kunne ikke hente analytics data</p>
                     <p className="text-sm text-red-600 mt-1 font-mono">{analyticsError}</p>
-                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig — vent 1-2 min og klik Refresh</p>
+                    <p className="text-xs text-red-500 mt-2">Railway deployer muligvis stadig â€” vent 1-2 min og klik Refresh</p>
                   </div>
                 </div>
               )}
@@ -2076,14 +2077,14 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── REVENUE FORECAST ── */}
+              {/* â”€â”€ REVENUE FORECAST â”€â”€ */}
               {analyticsView === 'forecast' && fcast && (
                 <div className="space-y-5">
                   {/* KPI cards */}
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                      { label: 'Weighted Forecast', value: fcast.weighted_forecast_display, sub: 'amount × stage probability', color: 'text-purple-600', bg: 'bg-purple-50' },
-                      { label: 'Commit Forecast',   value: fcast.commit_forecast_display,  sub: 'stages ≥70% probability',    color: 'text-blue-600',   bg: 'bg-blue-50' },
+                      { label: 'Weighted Forecast', value: fcast.weighted_forecast_display, sub: 'amount Ã— stage probability', color: 'text-purple-600', bg: 'bg-purple-50' },
+                      { label: 'Commit Forecast',   value: fcast.commit_forecast_display,  sub: 'stages â‰¥70% probability',    color: 'text-blue-600',   bg: 'bg-blue-50' },
                       { label: 'Best Case',          value: fcast.best_case_display,        sub: '100% of open pipeline',      color: 'text-green-600',  bg: 'bg-green-50' },
                       { label: 'Already Won',        value: fcast.closed_won_display,       sub: `${fcast.open_deal_count} open deals`,  color: 'text-emerald-600', bg: 'bg-emerald-50' },
                     ].map(({ label, value, sub, color, bg }) => (
@@ -2107,7 +2108,7 @@ const SalesIntelligencePlatform = () => {
                             return (
                               <div key={m.month}>
                                 <div className="flex justify-between mb-0.5">
-                                  <span className="text-xs text-gray-700">{m.month === 'No Date' ? '— No close date' : m.month}</span>
+                                  <span className="text-xs text-gray-700">{m.month === 'No Date' ? 'â€” No close date' : m.month}</span>
                                   <span className="text-xs font-semibold text-gray-900">{m.display}</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -2193,7 +2194,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── FUNNEL ── */}
+              {/* â”€â”€ FUNNEL â”€â”€ */}
               {analyticsView === 'funnel' && funnel && (
                 <div className="space-y-5">
                   {/* Summary */}
@@ -2251,7 +2252,7 @@ const SalesIntelligencePlatform = () => {
                               {/* Conversion arrow */}
                               {s.conversion_to_next_pct != null && (
                                 <div className="flex-shrink-0 text-right w-20">
-                                  <p className="text-xs text-gray-400">→ next</p>
+                                  <p className="text-xs text-gray-400">â†’ next</p>
                                   <p className={`text-sm font-bold ${s.conversion_to_next_pct >= 50 ? 'text-green-600' : s.conversion_to_next_pct >= 25 ? 'text-orange-500' : 'text-red-500'}`}>
                                     {s.conversion_to_next_pct}%
                                   </p>
@@ -2266,7 +2267,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── CRM HEALTH ── */}
+              {/* â”€â”€ CRM HEALTH â”€â”€ */}
               {analyticsView === 'health' && health && (
                 <div className="space-y-5">
                   {/* Score card */}
@@ -2291,7 +2292,7 @@ const SalesIntelligencePlatform = () => {
                       </div>
                       <div>
                         <p className="text-xl font-bold text-gray-900">{health.summary}</p>
-                        <p className="text-sm text-gray-500 mt-1">{health.total_deals} deals analysed · {health.clean_deals ?? '—'} clean</p>
+                        <p className="text-sm text-gray-500 mt-1">{health.total_deals} deals analysed Â· {health.clean_deals ?? 'â€”'} clean</p>
                         {health.issues.length === 0 && (
                           <p className="mt-3 flex items-center gap-2 text-green-700 font-medium">
                             <CheckCircle className="w-4 h-4" /> Your CRM data is in great shape!
@@ -2343,11 +2344,11 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── TOP ACCOUNTS ── */}
+              {/* â”€â”€ TOP ACCOUNTS â”€â”€ */}
               {analyticsView === 'accounts' && accts && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-500">{accts.total} accounts ranked by priority score · {accts.generated_at}</p>
+                    <p className="text-sm text-gray-500">{accts.total} accounts ranked by priority score Â· {accts.generated_at}</p>
                   </div>
 
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -2367,7 +2368,7 @@ const SalesIntelligencePlatform = () => {
                               <td className="px-4 py-3.5">
                                 <p className="font-semibold text-gray-900 text-sm">{acc.company}</p>
                                 {acc.contact && (
-                                  <p className="text-xs text-gray-400">{acc.contact}{acc.contact_title ? ` · ${acc.contact_title}` : ''}</p>
+                                  <p className="text-xs text-gray-400">{acc.contact}{acc.contact_title ? ` Â· ${acc.contact_title}` : ''}</p>
                                 )}
                                 {acc.industry && <p className="text-xs text-gray-300">{acc.industry}</p>}
                               </td>
@@ -2392,7 +2393,7 @@ const SalesIntelligencePlatform = () => {
                                   <span className="flex items-center gap-1.5 text-xs text-indigo-700 font-medium">
                                     <Users className="w-3 h-3" />{acc.owner}
                                   </span>
-                                ) : <span className="text-xs text-gray-300">—</span>}
+                                ) : <span className="text-xs text-gray-300">â€”</span>}
                               </td>
                               <td className="px-4 py-3.5">
                                 {acc.has_open_deal ? (
@@ -2402,7 +2403,7 @@ const SalesIntelligencePlatform = () => {
                                       <p className="text-xs text-green-700 font-semibold">{acc.deal_amount_display}</p>
                                     )}
                                     {acc.deal_close_date && (
-                                      <p className="text-xs text-gray-400">→ {acc.deal_close_date}</p>
+                                      <p className="text-xs text-gray-400">â†’ {acc.deal_close_date}</p>
                                     )}
                                   </div>
                                 ) : <span className="text-xs text-gray-300">No deal</span>}
@@ -2412,16 +2413,16 @@ const SalesIntelligencePlatform = () => {
                                   <div className="space-y-1">
                                     {acc.urgency_signals.slice(0, 2).map((sig, si) => (
                                       <span key={si} className="block text-xs text-orange-700 bg-orange-50 border border-orange-100 rounded px-1.5 py-0.5 truncate">
-                                        ⚠ {sig}
+                                        âš  {sig}
                                       </span>
                                     ))}
                                   </div>
-                                ) : <span className="text-xs text-gray-300">—</span>}
+                                ) : <span className="text-xs text-gray-300">â€”</span>}
                               </td>
                               <td className="px-4 py-3.5 max-w-[180px]">
                                 {acc.next_action ? (
                                   <p className="text-xs text-gray-500 truncate" title={acc.next_action}>{acc.next_action}</p>
-                                ) : <span className="text-xs text-gray-300">—</span>}
+                                ) : <span className="text-xs text-gray-300">â€”</span>}
                               </td>
                             </tr>
                           ))}
@@ -2435,25 +2436,25 @@ const SalesIntelligencePlatform = () => {
                         </div>
                       )}
                       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 text-xs text-gray-400">
-                        {accts.accounts.length} accounts · sorted by priority score (lead score × stage probability × recency)
+                        {accts.accounts.length} accounts Â· sorted by priority score (lead score Ã— stage probability Ã— recency)
                       </div>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* ── ATTRIBUTION VIEW ── */}
+              {/* â”€â”€ ATTRIBUTION VIEW â”€â”€ */}
               {analyticsView === 'attribution' && (() => {
                 const attr = attributionData;
                 if (attributionLoading) return (
                   <div className="flex items-center justify-center py-16 text-gray-400">
-                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attribution…
+                    <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading attributionâ€¦
                   </div>
                 );
                 if (!attr) return (
                   <div className="flex flex-col items-center justify-center py-16 text-gray-400">
                     <BarChart2 className="w-10 h-10 mb-3 opacity-40" />
-                    <p>No attribution data yet — connect HubSpot or Salesforce.</p>
+                    <p>No attribution data yet â€” connect HubSpot or Salesforce.</p>
                   </div>
                 );
                 const { summary, stage_breakdown, signal_attribution, owner_performance, forecast_narrative } = attr;
@@ -2465,7 +2466,7 @@ const SalesIntelligencePlatform = () => {
                         { label: 'Closed Won', value: summary.closed_won_display, sub: `${summary.closed_won_count} deals`, color: 'text-green-600' },
                         { label: 'Weighted Pipeline', value: summary.weighted_pipeline_display, sub: `${summary.active_count} active deals`, color: 'text-blue-600' },
                         { label: 'Win Rate', value: `${summary.win_rate}%`, sub: `${summary.closed_lost_count} lost`, color: summary.win_rate >= 30 ? 'text-green-600' : 'text-orange-600' },
-                        { label: 'Active Pipeline', value: summary.active_value ? `€${(summary.active_value/1000).toFixed(0)}k` : '€0', sub: 'total value', color: 'text-indigo-600' },
+                        { label: 'Active Pipeline', value: summary.active_value ? `â‚¬${(summary.active_value/1000).toFixed(0)}k` : 'â‚¬0', sub: 'total value', color: 'text-indigo-600' },
                       ].map(({ label, value, sub, color }) => (
                         <div key={label} className="bg-white rounded-lg border border-gray-200 p-4 text-center">
                           <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -2490,7 +2491,7 @@ const SalesIntelligencePlatform = () => {
                               <div key={s.stage}>
                                 <div className="flex justify-between text-xs text-gray-600 mb-1">
                                   <span className="font-medium truncate mr-2">{s.stage}</span>
-                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals · {s.value_display}</span>
+                                  <span className="text-gray-500 flex-shrink-0">{s.count} deals Â· {s.value_display}</span>
                                 </div>
                                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                                   <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${pct}%` }} />
@@ -2563,7 +2564,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── BUYER JOURNEY TAB ── */}
+        {/* â”€â”€ BUYER JOURNEY TAB â”€â”€ */}
         {activeTab === 'journey' && (() => {
           const EVENT_COLORS = {
             blue: 'border-blue-400 bg-blue-50',
@@ -2582,12 +2583,12 @@ const SalesIntelligencePlatform = () => {
                   <Target className="w-5 h-5 text-blue-600" />
                   Buyer Journey
                 </h2>
-                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account — deals, signals, alerts in one view</p>
+                <p className="text-sm text-gray-500 mb-5">Full touchpoint timeline for any account â€” deals, signals, alerts in one view</p>
                 {/* Search */}
                 <div className="flex gap-3">
                   <input
                     type="text"
-                    placeholder="Search account name…"
+                    placeholder="Search account nameâ€¦"
                     value={journeyCompany}
                     onChange={e => setJourneyCompany(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && journeyCompany.trim() && fetchJourney(journeyCompany.trim())}
@@ -2631,13 +2632,13 @@ const SalesIntelligencePlatform = () => {
                         <p className="font-semibold text-blue-900 text-lg">{journeyData.deal.account_name}</p>
                         <p className="text-sm text-blue-700">
                           Stage: <strong>{journeyData.deal.stage}</strong>
-                          {journeyData.deal.amount ? ` · €${journeyData.deal.amount.toLocaleString()}` : ''}
-                          {journeyData.deal.owner ? ` · ${journeyData.deal.owner}` : ''}
+                          {journeyData.deal.amount ? ` Â· â‚¬${journeyData.deal.amount.toLocaleString()}` : ''}
+                          {journeyData.deal.owner ? ` Â· ${journeyData.deal.owner}` : ''}
                         </p>
                       </div>
                       <div className="flex gap-2">
                         {journeyData.deal.is_stalled && (
-                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">⚠️ Stalled</span>
+                          <span className="px-2 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-semibold">âš ï¸ Stalled</span>
                         )}
                         {journeyData.deal.close_date && (
                           <span className="px-2 py-1 bg-white border border-blue-200 rounded-full text-xs text-blue-700">
@@ -2680,7 +2681,7 @@ const SalesIntelligencePlatform = () => {
                                       )}
                                       <span className="text-xs text-gray-400 flex items-center gap-1">
                                         <Clock className="w-3 h-3" />
-                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                                        {evt.timestamp ? new Date(evt.timestamp).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' }) : 'â€”'}
                                       </span>
                                     </div>
                                   </div>
@@ -2700,7 +2701,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── WORKFLOWS TAB ── */}
+        {/* â”€â”€ WORKFLOWS TAB â”€â”€ */}
         {activeTab === 'workflows' && (() => {
           const TRIGGER_LABELS = {
             manual: 'Manual only',
@@ -2714,7 +2715,7 @@ const SalesIntelligencePlatform = () => {
           };
           const FIELD_OPTIONS = ['score', 'priority', 'source', 'industry'];
           const OP_OPTIONS = ['gt', 'lt', 'eq', 'neq', 'contains'];
-          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: '≠', contains: 'contains' };
+          const OP_LABELS = { gt: '>', lt: '<', eq: '=', neq: 'â‰ ', contains: 'contains' };
 
           const addCondition = () => setWfForm(f => ({ ...f, conditions: [...f.conditions, { field: 'score', op: 'gt', value: '' }] }));
           const removeCondition = (i) => setWfForm(f => ({ ...f, conditions: f.conditions.filter((_, idx) => idx !== i) }));
@@ -2781,7 +2782,7 @@ const SalesIntelligencePlatform = () => {
                     <Zap className="w-5 h-5 text-yellow-500" />
                     Workflow Automation
                   </h2>
-                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules — automatically act on leads based on conditions</p>
+                  <p className="text-sm text-gray-500 mt-1">If-this-then-that rules â€” automatically act on leads based on conditions</p>
                 </div>
                 <button
                   onClick={openCreate}
@@ -2794,7 +2795,7 @@ const SalesIntelligencePlatform = () => {
               {/* Workflow list */}
               {workflowsLoading ? (
                 <div className="flex items-center justify-center py-12 text-gray-400">
-                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loading…
+                  <RefreshCw className="w-5 h-5 animate-spin mr-2" /> Loadingâ€¦
                 </div>
               ) : workflows.length === 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
@@ -2825,17 +2826,17 @@ const SalesIntelligencePlatform = () => {
                                   {c.field} {OP_LABELS[c.op] || c.op} {c.value}
                                 </span>
                               ))}
-                              {wf.conditions?.length > 0 && <span className="text-gray-400">→</span>}
+                              {wf.conditions?.length > 0 && <span className="text-gray-400">â†’</span>}
                               {(wf.actions || []).map((a, i) => (
                                 <span key={i} className="bg-green-50 border border-green-100 text-green-700 rounded px-2 py-0.5">
                                   {ACTION_LABELS[a.type] || a.type}
                                 </span>
                               ))}
                             </div>
-                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} · {wf.run_count} runs total</p>}
+                            {wf.last_run && <p className="text-xs text-gray-400 mt-2">Last run: {new Date(wf.last_run).toLocaleString()} Â· {wf.run_count} runs total</p>}
                             {result && (
                               <div className={`mt-2 text-xs rounded px-3 py-2 ${result.error ? 'bg-red-50 text-red-700 border border-red-100' : 'bg-green-50 text-green-700 border border-green-100'}`}>
-                                {result.error ? `✗ ${result.error}` : `✓ ${result.leads_matched}/${result.leads_evaluated} leads matched · ${result.actions_fired} actions fired`}
+                                {result.error ? `âœ— ${result.error}` : `âœ“ ${result.leads_matched}/${result.leads_evaluated} leads matched Â· ${result.actions_fired} actions fired`}
                               </div>
                             )}
                           </div>
@@ -2846,7 +2847,7 @@ const SalesIntelligencePlatform = () => {
                               className="flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 disabled:opacity-50"
                             >
                               <Zap className={`w-3 h-3 ${wfRunning === wf.id ? 'animate-pulse' : ''}`} />
-                              {wfRunning === wf.id ? 'Running…' : 'Run'}
+                              {wfRunning === wf.id ? 'Runningâ€¦' : 'Run'}
                             </button>
                             <button
                               onClick={() => handleToggle(wf)}
@@ -2864,7 +2865,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── Create/Edit Modal ── */}
+              {/* â”€â”€ Create/Edit Modal â”€â”€ */}
               {wfModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                   <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -2896,11 +2897,11 @@ const SalesIntelligencePlatform = () => {
                       {/* Conditions */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF — Conditions (all must match)</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">IF â€” Conditions (all must match)</label>
                           <button onClick={addCondition} className="text-xs text-blue-600 hover:text-blue-800 font-medium">+ Add condition</button>
                         </div>
                         {wfForm.conditions.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">No conditions — workflow runs on ALL leads</p>
+                          <p className="text-xs text-gray-400 italic">No conditions â€” workflow runs on ALL leads</p>
                         ) : (
                           <div className="space-y-2">
                             {wfForm.conditions.map((c, i) => (
@@ -2922,11 +2923,11 @@ const SalesIntelligencePlatform = () => {
                       {/* Actions */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN — Actions</label>
+                          <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide">THEN â€” Actions</label>
                           <button onClick={addAction} className="text-xs text-green-600 hover:text-green-800 font-medium">+ Add action</button>
                         </div>
                         {wfForm.actions.length === 0 ? (
-                          <p className="text-xs text-gray-400 italic">No actions — add at least one</p>
+                          <p className="text-xs text-gray-400 italic">No actions â€” add at least one</p>
                         ) : (
                           <div className="space-y-3">
                             {wfForm.actions.map((a, i) => (
@@ -2978,7 +2979,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── CONNECTIONS TAB ── */}
+        {/* â”€â”€ CONNECTIONS TAB â”€â”€ */}
         {activeTab === 'connections' && (() => {
           const INTEGRATION_DEFS = [
             {
@@ -3066,7 +3067,7 @@ const SalesIntelligencePlatform = () => {
                                 className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
                               >
                                 <RefreshCw className={`w-3.5 h-3.5 ${syncingId === conn.id ? 'animate-spin' : ''}`} />
-                                {syncingId === conn.id ? 'Syncing…' : 'Sync now'}
+                                {syncingId === conn.id ? 'Syncingâ€¦' : 'Sync now'}
                               </button>
                               <button
                                 onClick={() => handleDisconnect(conn.id)}
@@ -3078,7 +3079,7 @@ const SalesIntelligencePlatform = () => {
                           )}
                           {syncResult[conn?.id] && (
                             <span className={`text-xs ${syncResult[conn.id].ok ? 'text-green-600' : 'text-red-500'}`}>
-                              {syncResult[conn.id].ok ? '✓' : '✗'} {syncResult[conn.id].msg}
+                              {syncResult[conn.id].ok ? 'âœ“' : 'âœ—'} {syncResult[conn.id].msg}
                             </span>
                           )}
                         </div>
@@ -3142,7 +3143,7 @@ const SalesIntelligencePlatform = () => {
                         disabled={connectLoading}
                         className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50"
                       >
-                        {connectLoading ? 'Connecting…' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
+                        {connectLoading ? 'Connectingâ€¦' : activeDef.oauth ? `Authorize with ${activeDef.name}` : `Connect ${activeDef.name}`}
                       </button>
                     </div>
                   </div>
@@ -3152,7 +3153,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── CMT DASHBOARD TAB ── */}
+        {/* â”€â”€ CMT DASHBOARD TAB â”€â”€ */}
         {activeTab === 'cmt' && (() => {
           const STATUS_STYLES = {
             done:        { badge: 'bg-green-100 text-green-700 border-green-200',       dot: 'bg-green-500',  label: 'Done' },
@@ -3176,7 +3177,7 @@ const SalesIntelligencePlatform = () => {
 
           return (
             <div className="space-y-6">
-              {/* ── Header ── */}
+              {/* â”€â”€ Header â”€â”€ */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-start justify-between flex-wrap gap-4">
                   <div>
@@ -3185,7 +3186,7 @@ const SalesIntelligencePlatform = () => {
                       CMT Dashboard
                     </h2>
                     <p className="text-sm text-gray-500 mt-1">
-                      Cross-department initiative progress — synced from Notion
+                      Cross-department initiative progress â€” synced from Notion
                     </p>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
@@ -3200,7 +3201,7 @@ const SalesIntelligencePlatform = () => {
                       className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
                     >
                       <RefreshCw className={`w-3.5 h-3.5 ${cmtSyncing ? 'animate-spin' : ''}`} />
-                      {cmtSyncing ? 'Syncing…' : 'Sync Notion'}
+                      {cmtSyncing ? 'Syncingâ€¦' : 'Sync Notion'}
                     </button>
                     <button
                       onClick={fetchCmt}
@@ -3215,7 +3216,7 @@ const SalesIntelligencePlatform = () => {
 
                 {/* Sync feedback */}
                 {cmtSyncMsg && (
-                  <p className={`mt-3 text-sm font-medium ${cmtSyncMsg.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>
+                  <p className={`mt-3 text-sm font-medium ${cmtSyncMsg.startsWith('âœ“') ? 'text-green-600' : 'text-red-500'}`}>
                     {cmtSyncMsg}
                   </p>
                 )}
@@ -3262,7 +3263,7 @@ const SalesIntelligencePlatform = () => {
                 )}
               </div>
 
-              {/* ── Filters ── */}
+              {/* â”€â”€ Filters â”€â”€ */}
               <div className="flex items-center gap-3 flex-wrap">
                 <Filter className="w-4 h-4 text-gray-400" />
                 {/* Status filter */}
@@ -3288,11 +3289,11 @@ const SalesIntelligencePlatform = () => {
                 </select>
               </div>
 
-              {/* ── Loading / Error ── */}
+              {/* â”€â”€ Loading / Error â”€â”€ */}
               {cmtLoading && (
                 <div className="flex items-center justify-center py-16 text-gray-400">
                   <RefreshCw className="w-6 h-6 animate-spin mr-3" />
-                  Loading initiatives…
+                  Loading initiativesâ€¦
                 </div>
               )}
               {cmtError && !cmtLoading && (
@@ -3302,7 +3303,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── Empty state ── */}
+              {/* â”€â”€ Empty state â”€â”€ */}
               {!cmtLoading && !cmtError && cmtDepartments.length === 0 && (
                 <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                   <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -3319,7 +3320,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
               )}
 
-              {/* ── Department Cards ── */}
+              {/* â”€â”€ Department Cards â”€â”€ */}
               {!cmtLoading && filteredDepts.map(dept => {
                 const pct = dept.total > 0 ? Math.round((dept.done / dept.total) * 100) : 0;
                 return (
@@ -3443,7 +3444,7 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ── LEADS TAB ── */}
+        {/* â”€â”€ LEADS TAB â”€â”€ */}
         {activeTab === 'leads' && (() => {
           const owners = ['all', ...Array.from(new Set(leads.map(l => l.owner_name).filter(Boolean)))];
           const visibleLeads = filterOwner === 'all' ? leads : leads.filter(l => l.owner_name === filterOwner);
@@ -3498,7 +3499,7 @@ const SalesIntelligencePlatform = () => {
                               {lead.owner_name}
                             </span>
                           ) : (
-                            <span className="text-xs text-gray-400">—</span>
+                            <span className="text-xs text-gray-400">â€”</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -3524,15 +3525,15 @@ const SalesIntelligencePlatform = () => {
           );
         })()}
 
-        {/* ─────────────────────────────────────────────────────── */}
-        {/* ── GTM SETUP TAB ───────────────────────────────────── */}
-        {/* ─────────────────────────────────────────────────────── */}
+        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* â”€â”€ GTM SETUP TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {activeTab === 'gtm-setup' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">GTM Setup</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Konfigurer din go-to-market strategi, ICP og målsætninger</p>
+                <p className="text-sm text-gray-500 mt-0.5">Konfigurer din go-to-market strategi, ICP og mÃ¥lsÃ¦tninger</p>
               </div>
               {gtmSaved && (
                 <span className="flex items-center gap-1.5 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-lg">
@@ -3546,7 +3547,7 @@ const SalesIntelligencePlatform = () => {
               {[
                 { id: 'strategy',     label: 'Strategi',     icon: Target },
                 { id: 'icp',          label: 'ICP & TAM',    icon: Users },
-                { id: 'goals',        label: 'Målsætninger', icon: TrendingUp },
+                { id: 'goals',        label: 'MÃ¥lsÃ¦tninger', icon: TrendingUp },
                 { id: 'integrations', label: 'Integrationer', icon: Database },
               ].map(({ id, label, icon: Icon }) => (
                 <button
@@ -3562,18 +3563,18 @@ const SalesIntelligencePlatform = () => {
               ))}
             </div>
 
-            {/* ── Strategy ── */}
+            {/* â”€â”€ Strategy â”€â”€ */}
             {gtmTab === 'strategy' && (
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Virksomhedsbeskrivelse</label>
-                    <p className="text-xs text-gray-400 mb-3">Hvad gør I? Elevator pitch til AI-analysen.</p>
+                    <p className="text-xs text-gray-400 mb-3">Hvad gÃ¸r I? Elevator pitch til AI-analysen.</p>
                     <textarea
                       rows={4}
                       value={strategyForm.company_description}
                       onChange={e => setStrategyForm(f => ({ ...f, company_description: e.target.value }))}
-                      placeholder="Vi tilbyder en SaaS-platform der hjælper B2B-salgshold med at..."
+                      placeholder="Vi tilbyder en SaaS-platform der hjÃ¦lper B2B-salgshold med at..."
                       className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
                   </div>
@@ -3597,7 +3598,7 @@ const SalesIntelligencePlatform = () => {
                         onClick={() => setStrategyForm(f => ({ ...f, competitors: [...f.competitors, { name: '', weakness: '', how_we_win: '' }] }))}
                         className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
                       >
-                        <Plus className="w-3 h-3" /> Tilføj
+                        <Plus className="w-3 h-3" /> TilfÃ¸j
                       </button>
                     </div>
                     <div className="space-y-3">
@@ -3611,7 +3612,7 @@ const SalesIntelligencePlatform = () => {
                           </div>
                         </div>
                       ))}
-                      {!strategyForm.competitors?.length && <p className="text-xs text-gray-400 italic">Ingen konkurrenter tilføjet endnu.</p>}
+                      {!strategyForm.competitors?.length && <p className="text-xs text-gray-400 italic">Ingen konkurrenter tilfÃ¸jet endnu.</p>}
                     </div>
                   </div>
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
@@ -3621,7 +3622,7 @@ const SalesIntelligencePlatform = () => {
                         onClick={() => setStrategyForm(f => ({ ...f, offerings: [...f.offerings, { name: '', description: '', price_range: '' }] }))}
                         className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"
                       >
-                        <Plus className="w-3 h-3" /> Tilføj
+                        <Plus className="w-3 h-3" /> TilfÃ¸j
                       </button>
                     </div>
                     <div className="space-y-2">
@@ -3635,7 +3636,7 @@ const SalesIntelligencePlatform = () => {
                           </div>
                         </div>
                       ))}
-                      {!strategyForm.offerings?.length && <p className="text-xs text-gray-400 italic">Ingen produkter tilføjet endnu.</p>}
+                      {!strategyForm.offerings?.length && <p className="text-xs text-gray-400 italic">Ingen produkter tilfÃ¸jet endnu.</p>}
                     </div>
                   </div>
                 </div>
@@ -3652,13 +3653,13 @@ const SalesIntelligencePlatform = () => {
               </div>
             )}
 
-            {/* ── ICP & TAM ── */}
+            {/* â”€â”€ ICP & TAM â”€â”€ */}
             {gtmTab === 'icp' && (
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <label className="block text-sm font-semibold text-gray-700 mb-1">Industrier</label>
-                    <p className="text-xs text-gray-400 mb-3">Tryk Enter for at tilføje en industri</p>
+                    <p className="text-xs text-gray-400 mb-3">Tryk Enter for at tilfÃ¸je en industri</p>
                     <div className="flex flex-wrap gap-2 mb-2">
                       {(icpForm.company_filters?.industries || []).map((ind, i) => (
                         <span key={i} className="flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
@@ -3676,7 +3677,7 @@ const SalesIntelligencePlatform = () => {
                     />
                   </div>
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-3">Virksomhedsstørrelse (antal ansatte)</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">VirksomhedsstÃ¸rrelse (antal ansatte)</label>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-gray-500 mb-1 block">Min</label>
@@ -3709,7 +3710,7 @@ const SalesIntelligencePlatform = () => {
                 </div>
                 <div className="space-y-4">
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">TAM — Total Addressable Market</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">TAM â€” Total Addressable Market</label>
                     <p className="text-xs text-gray-400 mb-3">Hvor mange virksomheder matcher jeres ICP i alt (eksternt estimat)?</p>
                     <input
                       type="number"
@@ -3729,7 +3730,7 @@ const SalesIntelligencePlatform = () => {
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <label className="text-sm font-semibold text-gray-700">Buyer Personas</label>
-                      <button onClick={() => setIcpForm(f => ({ ...f, personas: [...(f.personas || []), { title: '', department: '', pain_points: '' }] }))} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"><Plus className="w-3 h-3" /> Tilføj</button>
+                      <button onClick={() => setIcpForm(f => ({ ...f, personas: [...(f.personas || []), { title: '', department: '', pain_points: '' }] }))} className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1"><Plus className="w-3 h-3" /> TilfÃ¸j</button>
                     </div>
                     <div className="space-y-3">
                       {(icpForm.personas || []).map((p, i) => (
@@ -3744,7 +3745,7 @@ const SalesIntelligencePlatform = () => {
                           </div>
                         </div>
                       ))}
-                      {!icpForm.personas?.length && <p className="text-xs text-gray-400 italic">Ingen personas tilføjet endnu.</p>}
+                      {!icpForm.personas?.length && <p className="text-xs text-gray-400 italic">Ingen personas tilfÃ¸jet endnu.</p>}
                     </div>
                   </div>
                 </div>
@@ -3756,7 +3757,7 @@ const SalesIntelligencePlatform = () => {
               </div>
             )}
 
-            {/* ── Goals / Activity Calculator ── */}
+            {/* â”€â”€ Goals / Activity Calculator â”€â”€ */}
             {gtmTab === 'goals' && (() => {
               const g = goalsForm;
               // Effective revenue target: either absolute amount or % growth of current ARR
@@ -3765,14 +3766,14 @@ const SalesIntelligencePlatform = () => {
                 : parseFloat(g.revenue_target) || 0;
               const acv  = parseFloat(g.acv) || 0;
               const wr   = parseFloat(g.win_rate_pct) / 100 || 0.01;
-              // meeting_to_opp_rate: % af møder der kvalificerer som opportunity
+              // meeting_to_opp_rate: % af mÃ¸der der kvalificerer som opportunity
               const mor  = parseFloat(g.opp_to_meeting_rate_pct) / 100 || 0.01;
-              // outreach_to_meeting_rate: % af kontaktede accounts der siger ja til møde
+              // outreach_to_meeting_rate: % af kontaktede accounts der siger ja til mÃ¸de
               const rr   = parseFloat(g.outreach_response_rate_pct) / 100 || 0.01;
               const weeks  = g.period === 'quarterly' ? 13 : 52;
               const workdays = weeks * 5;
 
-              // ── Top-down (fra mål → aktivitet) ──
+              // â”€â”€ Top-down (fra mÃ¥l â†’ aktivitet) â”€â”€
               const deals  = acv > 0 ? Math.ceil(rev / acv) : 0;
               const opps   = wr > 0 ? Math.ceil(deals / wr) : 0;
               const mtgs   = mor > 0 ? Math.ceil(opps / mor) : 0;
@@ -3780,7 +3781,7 @@ const SalesIntelligencePlatform = () => {
               const acctsPrDay = workdays > 0 ? (accts / workdays).toFixed(1) : 0;
               const mtgsPrDay  = workdays > 0 ? (mtgs / workdays).toFixed(1) : 0;
 
-              // ── Bottom-up (fra aktivitet → forventet omsætning) ──
+              // â”€â”€ Bottom-up (fra aktivitet â†’ forventet omsÃ¦tning) â”€â”€
               const buPerDay  = parseFloat(bottomUpPerDay) || 0;
               const buTotal   = buPerDay * workdays;
               const buMtgs    = Math.floor(buTotal * rr);
@@ -3796,20 +3797,20 @@ const SalesIntelligencePlatform = () => {
 
               return (
                 <div className="grid grid-cols-5 gap-6">
-                  {/* ── Left: Inputs ── */}
+                  {/* â”€â”€ Left: Inputs â”€â”€ */}
                   <div className="col-span-2 bg-white p-6 rounded-lg border border-gray-200 space-y-4">
-                    <h3 className="text-sm font-semibold text-gray-700">Konverteringsrater & mål</h3>
+                    <h3 className="text-sm font-semibold text-gray-700">Konverteringsrater & mÃ¥l</h3>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs font-medium text-gray-700 block mb-0.5">Periode</label>
                         <select value={g.period} onChange={e => setGoalsForm(f => ({ ...f, period: e.target.value }))} className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none">
-                          <option value="annual">Årlig (52 uger)</option>
+                          <option value="annual">Ã…rlig (52 uger)</option>
                           <option value="quarterly">Kvartal (13 uger)</option>
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-700 block mb-0.5">Nuværende ARR</label>
+                        <label className="text-xs font-medium text-gray-700 block mb-0.5">NuvÃ¦rende ARR</label>
                         <div className="flex items-center">
                           <input type="number" value={g.current_arr || ''} onChange={e => setGoalsForm(f => ({ ...f, current_arr: parseFloat(e.target.value) || 0 }))} placeholder="0" className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none" />
                           <span className="px-2 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500">kr</span>
@@ -3817,25 +3818,25 @@ const SalesIntelligencePlatform = () => {
                       </div>
                     </div>
 
-                    {/* ── Revenue target: toggle absolute / % growth ── */}
+                    {/* â”€â”€ Revenue target: toggle absolute / % growth â”€â”€ */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-medium text-gray-700">Omsætningsmål (ny ARR)</label>
+                        <label className="text-xs font-medium text-gray-700">OmsÃ¦tningsmÃ¥l (ny ARR)</label>
                         <div className="flex items-center gap-0.5 bg-gray-100 rounded-lg p-0.5">
                           <button
                             onClick={() => setGoalsInputMode('absolute')}
                             className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${goalsInputMode === 'absolute' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >Beløb</button>
+                          >BelÃ¸b</button>
                           <button
                             onClick={() => setGoalsInputMode('percent')}
                             className={`text-xs px-2.5 py-1 rounded-md transition-colors font-medium ${goalsInputMode === 'percent' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                          >% vækst</button>
+                          >% vÃ¦kst</button>
                         </div>
                       </div>
 
                       {goalsInputMode === 'absolute' ? (
                         <>
-                          <p className="text-xs text-gray-400 mb-1">Ny omsætning der skal genereres i perioden</p>
+                          <p className="text-xs text-gray-400 mb-1">Ny omsÃ¦tning der skal genereres i perioden</p>
                           <div className="flex items-center">
                             <input type="number" value={g.revenue_target || ''} onChange={e => setGoalsForm(f => ({ ...f, revenue_target: parseFloat(e.target.value) || 0 }))} placeholder="5000000" className="flex-1 text-sm border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-lg text-xs text-gray-500 font-medium">kr</span>
@@ -3843,7 +3844,7 @@ const SalesIntelligencePlatform = () => {
                         </>
                       ) : (
                         <>
-                          <p className="text-xs text-gray-400 mb-1">Vækst ift. nuværende ARR ({fmtKr(parseFloat(g.current_arr) || 0)})</p>
+                          <p className="text-xs text-gray-400 mb-1">VÃ¦kst ift. nuvÃ¦rende ARR ({fmtKr(parseFloat(g.current_arr) || 0)})</p>
                           <div className="flex gap-2 items-stretch">
                             <div className="flex items-center flex-1">
                               <input
@@ -3856,7 +3857,7 @@ const SalesIntelligencePlatform = () => {
                             </div>
                             <div className="flex items-center flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                               <div>
-                                <div className="text-xs text-gray-400 mb-0.5">= nyt mål</div>
+                                <div className="text-xs text-gray-400 mb-0.5">= nyt mÃ¥l</div>
                                 <div className="text-sm font-bold text-gray-800">{fmtKr(rev)}</div>
                               </div>
                             </div>
@@ -3865,30 +3866,30 @@ const SalesIntelligencePlatform = () => {
                       )}
                     </div>
 
-                    {/* ── Other conversion rate inputs ── */}
+                    {/* â”€â”€ Other conversion rate inputs â”€â”€ */}
                     {[
                       {
                         key: 'acv',
-                        label: 'Gns. kontraktværdi (ACV)',
-                        hint: 'Gennemsnitlig årlig kontraktværdi pr. ny kunde',
+                        label: 'Gns. kontraktvÃ¦rdi (ACV)',
+                        hint: 'Gennemsnitlig Ã¥rlig kontraktvÃ¦rdi pr. ny kunde',
                         placeholder: '250000', suffix: 'kr',
                       },
                       {
                         key: 'win_rate_pct',
-                        label: 'Opportunity → Deal (win rate)',
+                        label: 'Opportunity â†’ Deal (win rate)',
                         hint: '% af opportunities der lukkes som betalende kunde',
                         placeholder: '25', suffix: '%',
                       },
                       {
                         key: 'opp_to_meeting_rate_pct',
-                        label: 'Møde → Opportunity (kvalificeringsrate)',
-                        hint: '% af møder der kvalificerer og åbnes som opportunity i CRM',
+                        label: 'MÃ¸de â†’ Opportunity (kvalificeringsrate)',
+                        hint: '% af mÃ¸der der kvalificerer og Ã¥bnes som opportunity i CRM',
                         placeholder: '40', suffix: '%',
                       },
                       {
                         key: 'outreach_response_rate_pct',
-                        label: 'Account kontaktet → Møde booket',
-                        hint: '% af kontaktede accounts der siger ja til et møde',
+                        label: 'Account kontaktet â†’ MÃ¸de booket',
+                        hint: '% af kontaktede accounts der siger ja til et mÃ¸de',
                         placeholder: '5', suffix: '%',
                       },
                     ].map(({ key, label, hint, placeholder, suffix }) => (
@@ -3914,52 +3915,52 @@ const SalesIntelligencePlatform = () => {
                       }
                       saveGtmConfig('goals', payload);
                     }} disabled={gtmSaving} className="w-full flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm font-medium">
-                      <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem Målsætninger'}
+                      <Save className="w-4 h-4" />{gtmSaving ? 'Gemmer...' : 'Gem MÃ¥lsÃ¦tninger'}
                     </button>
                   </div>
 
-                  {/* ── Right: Top-down + Bottom-up ── */}
+                  {/* â”€â”€ Right: Top-down + Bottom-up â”€â”€ */}
                   <div className="col-span-3 space-y-4">
 
                     {/* Top-down waterfall */}
                     <div className="bg-white p-5 rounded-lg border border-gray-200">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">⬇ Top-down — hvad kræver det?</h3>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra mål → daglig aktivitet</span>
+                        <h3 className="text-sm font-semibold text-gray-700">â¬‡ Top-down â€” hvad krÃ¦ver det?</h3>
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra mÃ¥l â†’ daglig aktivitet</span>
                       </div>
                       {deals > 0 ? (
                         <>
                           <div className="space-y-1.5">
                             {[
                               {
-                                step: '🎯', label: 'Omsætningsmål',
+                                step: 'ðŸŽ¯', label: 'OmsÃ¦tningsmÃ¥l',
                                 value: fmtKr(rev),
-                                sub: `${g.period === 'quarterly' ? 'kvartal' : 'år'}`,
+                                sub: `${g.period === 'quarterly' ? 'kvartal' : 'Ã¥r'}`,
                                 color: 'bg-slate-700 text-white',
                               },
                               {
-                                step: '÷', label: `ACV ${fmtKr(acv)} pr. kunde`,
+                                step: 'Ã·', label: `ACV ${fmtKr(acv)} pr. kunde`,
                                 value: `${deals} nye kunder`,
                                 sub: 'skal lukkes',
                                 color: 'bg-blue-600 text-white',
                                 arrow: true,
                               },
                               {
-                                step: '÷', label: `Win rate ${g.win_rate_pct}%  (opportunity → deal)`,
+                                step: 'Ã·', label: `Win rate ${g.win_rate_pct}%  (opportunity â†’ deal)`,
                                 value: `${opps} opportunities`,
                                 sub: 'skal oprettes i CRM',
                                 color: 'bg-indigo-500 text-white',
                                 arrow: true,
                               },
                               {
-                                step: '÷', label: `Kvalificeringsrate ${g.opp_to_meeting_rate_pct}%  (møde → opportunity)`,
-                                value: `${mtgs} møder`,
+                                step: 'Ã·', label: `Kvalificeringsrate ${g.opp_to_meeting_rate_pct}%  (mÃ¸de â†’ opportunity)`,
+                                value: `${mtgs} mÃ¸der`,
                                 sub: 'skal holdes',
                                 color: 'bg-violet-500 text-white',
                                 arrow: true,
                               },
                               {
-                                step: '÷', label: `Møde-rate ${g.outreach_response_rate_pct}%  (kontakt → møde)`,
+                                step: 'Ã·', label: `MÃ¸de-rate ${g.outreach_response_rate_pct}%  (kontakt â†’ mÃ¸de)`,
                                 value: `${accts} accounts`,
                                 sub: 'skal kontaktes i alt',
                                 color: 'bg-orange-500 text-white',
@@ -3988,20 +3989,20 @@ const SalesIntelligencePlatform = () => {
                             </div>
                             <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
                               <div className="text-2xl font-bold text-violet-600">{mtgsPrDay}</div>
-                              <div className="text-xs text-violet-700 font-medium">møder/dag</div>
+                              <div className="text-xs text-violet-700 font-medium">mÃ¸der/dag</div>
                               <div className="text-xs text-violet-500">du skal holde</div>
                             </div>
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
                               <div className="text-2xl font-bold text-blue-600">{(opps/weeks).toFixed(1)}</div>
                               <div className="text-xs text-blue-700 font-medium">opps/uge</div>
-                              <div className="text-xs text-blue-500">der skal åbnes</div>
+                              <div className="text-xs text-blue-500">der skal Ã¥bnes</div>
                             </div>
                           </div>
                         </>
                       ) : (
                         <div className="text-center py-6 text-gray-400">
                           <TrendingUp className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                          <p className="text-sm">Udfyld omsætningsmål og ACV for at se formlen</p>
+                          <p className="text-sm">Udfyld omsÃ¦tningsmÃ¥l og ACV for at se formlen</p>
                         </div>
                       )}
                     </div>
@@ -4009,8 +4010,8 @@ const SalesIntelligencePlatform = () => {
                     {/* Bottom-up calculator */}
                     <div className="bg-white p-5 rounded-lg border border-gray-200">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">⬆ Bottom-up — hvad kan I nå?</h3>
-                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra kapacitet → forventet omsætning</span>
+                        <h3 className="text-sm font-semibold text-gray-700">â¬† Bottom-up â€” hvad kan I nÃ¥?</h3>
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">Fra kapacitet â†’ forventet omsÃ¦tning</span>
                       </div>
                       <div className="flex items-end gap-4 mb-4">
                         <div className="flex-1">
@@ -4030,7 +4031,7 @@ const SalesIntelligencePlatform = () => {
                         {acv > 0 && buPerDay > 0 && (
                           <div className={`px-4 py-2.5 rounded-lg text-center border-2 ${buPct >= 100 ? 'bg-green-50 border-green-400' : buPct >= 70 ? 'bg-amber-50 border-amber-400' : 'bg-red-50 border-red-300'}`}>
                             <div className={`text-3xl font-black ${buPct >= 100 ? 'text-green-600' : buPct >= 70 ? 'text-amber-600' : 'text-red-500'}`}>{buPct}%</div>
-                            <div className="text-xs text-gray-500">af mål</div>
+                            <div className="text-xs text-gray-500">af mÃ¥l</div>
                           </div>
                         )}
                       </div>
@@ -4039,18 +4040,18 @@ const SalesIntelligencePlatform = () => {
                         <>
                           <div className="space-y-1.5">
                             {[
-                              { emoji: '📞', label: `${buPerDay} accounts/dag × ${workdays} arbejdsdage`, value: `${buTotal.toLocaleString()} accounts kontaktet`, color: 'bg-gray-100 text-gray-800' },
-                              { emoji: '📅', label: `× møde-rate ${g.outreach_response_rate_pct}%`, value: `${buMtgs.toLocaleString()} møder holdt`, color: 'bg-orange-50 text-orange-800', border: 'border border-orange-200' },
-                              { emoji: '🔍', label: `× kvalificeringsrate ${g.opp_to_meeting_rate_pct}%`, value: `${buOpps.toLocaleString()} opportunities åbnet`, color: 'bg-violet-50 text-violet-800', border: 'border border-violet-200' },
-                              { emoji: '🏆', label: `× win rate ${g.win_rate_pct}%`, value: `${buDeals.toLocaleString()} nye kunder`, color: 'bg-blue-50 text-blue-800', border: 'border border-blue-200' },
-                              { emoji: '💰', label: `× ACV ${fmtKr(acv)}`, value: fmtKr(buRev), color: buPct >= 100 ? 'bg-green-100 text-green-900' : 'bg-amber-50 text-amber-900', border: buPct >= 100 ? 'border border-green-300' : 'border border-amber-300' },
+                              { emoji: 'ðŸ“ž', label: `${buPerDay} accounts/dag Ã— ${workdays} arbejdsdage`, value: `${buTotal.toLocaleString()} accounts kontaktet`, color: 'bg-gray-100 text-gray-800' },
+                              { emoji: 'ðŸ“…', label: `Ã— mÃ¸de-rate ${g.outreach_response_rate_pct}%`, value: `${buMtgs.toLocaleString()} mÃ¸der holdt`, color: 'bg-orange-50 text-orange-800', border: 'border border-orange-200' },
+                              { emoji: 'ðŸ”', label: `Ã— kvalificeringsrate ${g.opp_to_meeting_rate_pct}%`, value: `${buOpps.toLocaleString()} opportunities Ã¥bnet`, color: 'bg-violet-50 text-violet-800', border: 'border border-violet-200' },
+                              { emoji: 'ðŸ†', label: `Ã— win rate ${g.win_rate_pct}%`, value: `${buDeals.toLocaleString()} nye kunder`, color: 'bg-blue-50 text-blue-800', border: 'border border-blue-200' },
+                              { emoji: 'ðŸ’°', label: `Ã— ACV ${fmtKr(acv)}`, value: fmtKr(buRev), color: buPct >= 100 ? 'bg-green-100 text-green-900' : 'bg-amber-50 text-amber-900', border: buPct >= 100 ? 'border border-green-300' : 'border border-amber-300' },
                             ].map(({ emoji, label, value, color, border = '' }, idx, arr) => (
                               <div key={idx}>
                                 <div className={`flex items-center justify-between px-3 py-2 rounded-lg ${color} ${border}`}>
                                   <span className="text-xs">{emoji} {label}</span>
                                   <span className="text-sm font-bold">{value}</span>
                                 </div>
-                                {idx < arr.length - 1 && <div className="text-center text-gray-300 text-xs">↓</div>}
+                                {idx < arr.length - 1 && <div className="text-center text-gray-300 text-xs">â†“</div>}
                               </div>
                             ))}
                           </div>
@@ -4058,16 +4059,16 @@ const SalesIntelligencePlatform = () => {
                           {buGap > 0 && (
                             <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                               <p className="text-xs font-semibold text-red-700">
-                                ⚠ Gap: du mangler {fmtKr(buGap)} for at nå målet
+                                âš  Gap: du mangler {fmtKr(buGap)} for at nÃ¥ mÃ¥let
                               </p>
                               <p className="text-xs text-red-500 mt-0.5">
-                                Løsninger: øg til {Math.ceil(accts / workdays * (rev / Math.max(buRev, 1))).toFixed(0)} accounts/dag · eller forbedr win rate · eller hæv ACV
+                                LÃ¸sninger: Ã¸g til {Math.ceil(accts / workdays * (rev / Math.max(buRev, 1))).toFixed(0)} accounts/dag Â· eller forbedr win rate Â· eller hÃ¦v ACV
                               </p>
                             </div>
                           )}
                           {buPct >= 100 && (
                             <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                              <p className="text-xs font-semibold text-green-700">✓ Med {buPerDay} accounts/dag når du dit omsætningsmål!</p>
+                              <p className="text-xs font-semibold text-green-700">âœ“ Med {buPerDay} accounts/dag nÃ¥r du dit omsÃ¦tningsmÃ¥l!</p>
                             </div>
                           )}
                         </>
@@ -4078,13 +4079,13 @@ const SalesIntelligencePlatform = () => {
                       )}
                     </div>
 
-                    {/* ── CRM Fremdrift panel ── */}
+                    {/* â”€â”€ CRM Fremdrift panel â”€â”€ */}
                     <div className="bg-white p-5 rounded-lg border border-gray-200">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-gray-700">📊 CRM Fremdrift — er vi på sporet?</h3>
+                        <h3 className="text-sm font-semibold text-gray-700">ðŸ“Š CRM Fremdrift â€” er vi pÃ¥ sporet?</h3>
                         {progressData && progressData.revenue?.target > 0 && (
                           <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${progressData.revenue.on_track ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                            {progressData.revenue.on_track ? '✓ På sporet' : '⚠ Bagud'}
+                            {progressData.revenue.on_track ? 'âœ“ PÃ¥ sporet' : 'âš  Bagud'}
                           </span>
                         )}
                       </div>
@@ -4099,7 +4100,7 @@ const SalesIntelligencePlatform = () => {
                             {/* Period progress bar */}
                             <div className="mb-4">
                               <div className="flex justify-between text-xs text-gray-500 mb-1">
-                                <span>Tid brugt: <strong>{pr.elapsed_pct}%</strong> af {pr.period === 'quarterly' ? 'kvartalet' : 'året'}</span>
+                                <span>Tid brugt: <strong>{pr.elapsed_pct}%</strong> af {pr.period === 'quarterly' ? 'kvartalet' : 'Ã¥ret'}</span>
                                 <span><strong>{pr.weeks_remaining}</strong> uger tilbage</span>
                               </div>
                               <div className="h-4 bg-gray-100 rounded-full overflow-hidden relative">
@@ -4107,7 +4108,7 @@ const SalesIntelligencePlatform = () => {
                                 <div className={`h-full rounded-full absolute inset-0 transition-all ${pr.revenue.on_track ? 'bg-green-500' : 'bg-amber-400'}`} style={{ width: `${Math.min(pr.revenue.achieved_pct, 100)}%` }} />
                               </div>
                               <div className="flex justify-between text-xs mt-1">
-                                <span className={`font-semibold ${pr.revenue.on_track ? 'text-green-600' : 'text-amber-600'}`}>{pr.revenue.achieved_pct}% af mål nået</span>
+                                <span className={`font-semibold ${pr.revenue.on_track ? 'text-green-600' : 'text-amber-600'}`}>{pr.revenue.achieved_pct}% af mÃ¥l nÃ¥et</span>
                                 <span className="text-gray-400">{pr.elapsed_pct}% forventet nu</span>
                               </div>
                             </div>
@@ -4115,9 +4116,9 @@ const SalesIntelligencePlatform = () => {
                             {/* 3 metric cards */}
                             <div className="grid grid-cols-3 gap-2 mb-4">
                               {[
-                                { label: 'Deals lukket', display: String(pr.deals.won), sub: `/ ${pr.deals.needed_total} mål`, ok: pr.deals.on_track },
-                                { label: 'Omsætning vundet', display: `${fmtK(pr.revenue.won)}kr`, sub: `/ ${fmtK(pr.revenue.target)}kr mål`, ok: pr.revenue.on_track },
-                                { label: 'Pipeline (vægtet)', display: `${fmtK(pr.pipeline.weighted_value)}kr`, sub: `dækker ${pr.pipeline.covers_gap_pct}%`, ok: pr.pipeline.covers_gap_pct >= 100 },
+                                { label: 'Deals lukket', display: String(pr.deals.won), sub: `/ ${pr.deals.needed_total} mÃ¥l`, ok: pr.deals.on_track },
+                                { label: 'OmsÃ¦tning vundet', display: `${fmtK(pr.revenue.won)}kr`, sub: `/ ${fmtK(pr.revenue.target)}kr mÃ¥l`, ok: pr.revenue.on_track },
+                                { label: 'Pipeline (vÃ¦gtet)', display: `${fmtK(pr.pipeline.weighted_value)}kr`, sub: `dÃ¦kker ${pr.pipeline.covers_gap_pct}%`, ok: pr.pipeline.covers_gap_pct >= 100 },
                               ].map(({ label, display, sub, ok }) => (
                                 <div key={label} className={`p-3 rounded-lg border text-center ${ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                                   <div className="text-xs text-gray-500 mb-1">{label}</div>
@@ -4130,7 +4131,7 @@ const SalesIntelligencePlatform = () => {
                             {/* What's still needed */}
                             {pr.deals.remaining > 0 && (
                               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg mb-3">
-                                <p className="text-xs font-semibold text-amber-800 mb-2">Hvad mangler du de næste {pr.weeks_remaining} uger?</p>
+                                <p className="text-xs font-semibold text-amber-800 mb-2">Hvad mangler du de nÃ¦ste {pr.weeks_remaining} uger?</p>
                                 <div className="grid grid-cols-3 gap-2 text-center">
                                   <div className="bg-white rounded-lg p-2 border border-amber-100">
                                     <div className="text-lg font-black text-amber-700">{pr.deals.remaining}</div>
@@ -4138,7 +4139,7 @@ const SalesIntelligencePlatform = () => {
                                   </div>
                                   <div className="bg-white rounded-lg p-2 border border-amber-100">
                                     <div className="text-lg font-black text-amber-700">{pr.activity_remaining.meetings_needed}</div>
-                                    <div className="text-xs text-amber-600">møder</div>
+                                    <div className="text-xs text-amber-600">mÃ¸der</div>
                                   </div>
                                   <div className="bg-white rounded-lg p-2 border border-amber-100">
                                     <div className="text-lg font-black text-amber-700">{pr.activity_remaining.accounts_needed}</div>
@@ -4153,7 +4154,7 @@ const SalesIntelligencePlatform = () => {
                               <div className="space-y-1.5">
                                 {pr.alerts.map((a, i) => (
                                   <div key={i} className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                                    <span className="text-gray-400 text-xs mt-0.5">•</span>
+                                    <span className="text-gray-400 text-xs mt-0.5">â€¢</span>
                                     <p className="text-xs text-gray-600">{a}</p>
                                   </div>
                                 ))}
@@ -4162,16 +4163,16 @@ const SalesIntelligencePlatform = () => {
 
                             {pr.deals.remaining === 0 && (
                               <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                                <p className="text-xs font-semibold text-green-700">✓ Du har nået dit omsætningsmål for perioden!</p>
+                                <p className="text-xs font-semibold text-green-700">âœ“ Du har nÃ¥et dit omsÃ¦tningsmÃ¥l for perioden!</p>
                               </div>
                             )}
                           </>
                         );
                       })() : (
                         <div className="text-center py-8 text-gray-400">
-                          <p className="text-sm font-medium mb-1">Gem dine målsætninger</p>
+                          <p className="text-sm font-medium mb-1">Gem dine mÃ¥lsÃ¦tninger</p>
                           <p className="text-xs">Forbind dit CRM (HubSpot/Salesforce) for at se fremdriften automatisk</p>
-                          <button onClick={fetchGtmProgress} className="mt-3 text-xs text-blue-500 hover:text-blue-700 underline">Genindlæs</button>
+                          <button onClick={fetchGtmProgress} className="mt-3 text-xs text-blue-500 hover:text-blue-700 underline">GenindlÃ¦s</button>
                         </div>
                       )}
                     </div>
@@ -4181,15 +4182,15 @@ const SalesIntelligencePlatform = () => {
               );
             })()}
 
-            {/* ── Integrations (reuse connections content) ── */}
+            {/* â”€â”€ Integrations (reuse connections content) â”€â”€ */}
             {gtmTab === 'integrations' && (() => {
               // Inline the connections tab content (same logic, different entry point)
               const INTEGRATION_DEFS = [
-                { id: 'salesforce', name: 'Salesforce', icon: '☁️', desc: 'CRM deals, accounts, contacts', color: 'bg-blue-50 border-blue-200' },
-                { id: 'hubspot', name: 'HubSpot', icon: '🟠', desc: 'Deals, companies, contacts', color: 'bg-orange-50 border-orange-200' },
-                { id: 'clay', name: 'Clay', icon: '🧱', desc: 'Lead enrichment & signals', color: 'bg-purple-50 border-purple-200' },
-                { id: 'snitcher', name: 'Snitcher', icon: '👁️', desc: 'Website visitor intent', color: 'bg-green-50 border-green-200' },
-                { id: 'notion', name: 'Notion', icon: '📓', desc: 'Project & initiative tracking', color: 'bg-gray-50 border-gray-200' },
+                { id: 'salesforce', name: 'Salesforce', icon: 'â˜ï¸', desc: 'CRM deals, accounts, contacts', color: 'bg-blue-50 border-blue-200' },
+                { id: 'hubspot', name: 'HubSpot', icon: 'ðŸŸ ', desc: 'Deals, companies, contacts', color: 'bg-orange-50 border-orange-200' },
+                { id: 'clay', name: 'Clay', icon: 'ðŸ§±', desc: 'Lead enrichment & signals', color: 'bg-purple-50 border-purple-200' },
+                { id: 'snitcher', name: 'Snitcher', icon: 'ðŸ‘ï¸', desc: 'Website visitor intent', color: 'bg-green-50 border-green-200' },
+                { id: 'notion', name: 'Notion', icon: 'ðŸ““', desc: 'Project & initiative tracking', color: 'bg-gray-50 border-gray-200' },
               ];
               return (
                 <div>
@@ -4208,13 +4209,13 @@ const SalesIntelligencePlatform = () => {
                               </div>
                             </div>
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${conn?.status === 'connected' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                              {conn?.status === 'connected' ? '● Forbundet' : '○ Ikke forbundet'}
+                              {conn?.status === 'connected' ? 'â— Forbundet' : 'â—‹ Ikke forbundet'}
                             </span>
                           </div>
                           {conn?.status === 'connected' ? (
                             <div className="flex gap-2">
                               <button onClick={() => handleSync(def.id, conn.id)} disabled={syncingId === conn.id} className="flex-1 text-xs py-1.5 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50">
-                                {syncingId === conn.id ? 'Synkroniserer...' : '↻ Sync'}
+                                {syncingId === conn.id ? 'Synkroniserer...' : 'â†» Sync'}
                               </button>
                               <button onClick={() => handleDisconnect(conn.id)} className="text-xs py-1.5 px-3 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50">
                                 Fjern
@@ -4238,584 +4239,17 @@ const SalesIntelligencePlatform = () => {
           </div>
         )}
 
-        {/* ─────────────────────────────────────────────────────── */}
-        {/* ── INTELLIGENCE TAB ────────────────────────────────── */}
-        {/* ─────────────────────────────────────────────────────── */}
-        {activeTab === 'intelligence' && (
-          <div className="space-y-6">
-            {/* Header + Sub-tabs */}
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">Intelligence</h2>
-                <p className="text-sm text-gray-500 mt-0.5">Board-level GTM indsigter, daglig rapport og CRM-mønstre</p>
-              </div>
-              <button onClick={() => { fetchIntelligence(); fetchDailyReport(); fetchForecast(); fetchLearnings(); fetchMgmtTasks(); }} disabled={intelligenceLoading} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm">
-                <RefreshCw className={`w-4 h-4 ${intelligenceLoading ? 'animate-spin' : ''}`} /> Opdater
-              </button>
-            </div>
+        {/* â”€â”€ INTELLIGENCE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* Extracted to src/pages/IntelligencePage.jsx (P1.10) */}
+        {activeTab === 'intelligence' && <IntelligencePage />}
 
-            {/* Sub-tab pills */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
-              {[
-                { id: 'overblik', label: '🎯 Overblik', icon: null },
-                { id: 'daglig',   label: '📅 Daglig Rapport', icon: null },
-                { id: 'forecast', label: '📈 Forecast', icon: null },
-                { id: 'learnings',label: '💡 Learnings', icon: null },
-                { id: 'tasks',    label: '✅ Tasks', icon: null, badge: mgmtTasks?.counts?.urgent },
-                { id: 'agent',    label: '🤖 AI Agent', icon: null },
-              ].map(({ id, label, badge }) => (
-                <button key={id} onClick={() => setIntelligenceSubTab(id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${intelligenceSubTab === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  {label}
-                  {badge > 0 && <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">{badge}</span>}
-                </button>
-              ))}
-            </div>
 
-            {/* ── Overblik sub-tab ─────────────────────────────── */}
-            {intelligenceSubTab === 'overblik' && (() => {
-              if (intelligenceLoading && !intelligenceData) return (
-                <div className="flex items-center justify-center py-20 text-gray-400">
-                  <RefreshCw className="w-6 h-6 animate-spin mr-2" /> Beregner indsigter...
-                </div>
-              );
-              if (!intelligenceData) return null;
-              const intel = intelligenceData;
-              const tam   = intel.tam_coverage       || {};
-              const act   = intel.account_activation || {};
-              const icp   = intel.icp_match          || {};
-              const pipe  = intel.pipeline_coverage  || {};
-              const wl    = intel.win_loss           || {};
-              const actReq = intel.activity_requirements || {};
-              const patterns = intel.win_patterns   || [];
-              const boardAlerts = intel.board_alerts || [];
-              const statusColor = (s) => ({
-                strong: 'text-green-700 bg-green-50 border-green-200',
-                ok:     'text-blue-700 bg-blue-50 border-blue-200',
-                low:    'text-amber-700 bg-amber-50 border-amber-200',
-                critical: 'text-red-700 bg-red-50 border-red-200',
-              }[s] || 'text-gray-700 bg-gray-50 border-gray-200');
-              const kpiCards = [
-                { label: 'TAM Dækning', value: `${tam.pct || 0}%`, sub: `${tam.crm_icp_accounts || 0} af ${tam.tam_total || 0} ICP-virksomheder i CRM`, status: tam.status, icon: Target, detail: tam.gap > 0 ? `Mangler ${tam.gap} virksomheder` : 'Komplet dækning' },
-                { label: 'Account Aktivering', value: `${act.pct || 0}%`, sub: `${act.activated || 0} af ${act.target || 0} accounts aktiveret`, status: act.status, icon: Zap, detail: act.gap > 0 ? `${act.gap} accounts mangler aktivering` : 'Mål nået' },
-                { label: 'ICP Match Rate', value: `${icp.pct || 0}%`, sub: `${icp.icp_deals || 0} af ${icp.total_deals || 0} åbne deals er ICP`, status: icp.pct >= 70 ? 'ok' : icp.pct >= 40 ? 'low' : 'critical', icon: Users, detail: `${icp.non_icp_deals || 0} non-ICP deals` },
-                { label: 'Pipeline Dækning', value: `${pipe.pct || 0}%`, sub: `${(pipe.weighted_pipeline/1000 || 0).toFixed(0)}k af ${(pipe.revenue_target/1000 || 0).toFixed(0)}k mål`, status: pipe.status, icon: TrendingUp, detail: pipe.gap > 0 ? `Mangler ${(pipe.gap/1000).toFixed(0)}k` : 'Over mål' },
-              ];
-              return (
-                <div className="space-y-6">
-                  {boardAlerts.length > 0 && <div className="space-y-2">{boardAlerts.map((msg, i) => <div key={i} className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg"><AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" /><p className="text-sm text-amber-800">{msg}</p></div>)}</div>}
-                  <div className="grid grid-cols-4 gap-4">
-                    {kpiCards.map(({ label, value, sub, status, icon: Icon, detail }) => (
-                      <div key={label} className={`p-5 rounded-lg border-2 ${statusColor(status)}`}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2"><Icon className="w-5 h-5 opacity-70" /><span className="text-xs font-semibold uppercase tracking-wide opacity-70">{label}</span></div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${statusColor(status)}`}>{{ strong: '✓ Stærk', ok: '✓ OK', low: '⚠ Lav', critical: '✗ Kritisk' }[status] || status}</span>
-                        </div>
-                        <div className="text-3xl font-bold mb-1">{value}</div>
-                        <p className="text-xs opacity-70 mb-1">{sub}</p>
-                        <p className="text-xs font-medium opacity-80">{detail}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    {actReq.deals_needed > 0 && (
-                      <div className="bg-white p-6 rounded-lg border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-blue-500" /> Aktivitetskrav</h3>
-                        <div className="space-y-3">
-                          {[
-                            { label: 'Deals der skal lukkes', value: actReq.deals_needed, weekly: actReq.weekly_opps, color: 'bg-blue-500' },
-                            { label: 'Opportunities', value: actReq.opps_needed, weekly: actReq.weekly_opps, color: 'bg-purple-500' },
-                            { label: 'Møder', value: actReq.meetings_needed, weekly: actReq.weekly_meetings, color: 'bg-orange-500' },
-                            { label: 'Accounts kontaktet', value: actReq.accounts_to_contact, weekly: actReq.weekly_accounts, color: 'bg-green-500' },
-                          ].map(({ label, value, weekly, color }) => (
-                            <div key={label} className="flex items-center justify-between">
-                              <div className="flex items-center gap-2"><div className={`w-2.5 h-2.5 rounded-full ${color}`} /><span className="text-sm text-gray-600">{label}</span></div>
-                              <div className="text-right"><span className="text-sm font-bold text-gray-900">{value?.toLocaleString()}</span><span className="text-xs text-gray-400 ml-1">({weekly}/uge)</span></div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    <div className="space-y-4">
-                      <div className="bg-white p-5 rounded-lg border border-gray-200">
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Win / Loss</h3>
-                        <div className="flex items-center gap-6">
-                          <div className="text-center"><div className="text-2xl font-bold text-green-600">{wl.won || 0}</div><div className="text-xs text-gray-500">Vundne</div></div>
-                          <div className="text-center"><div className="text-2xl font-bold text-red-500">{wl.lost || 0}</div><div className="text-xs text-gray-500">Tabte</div></div>
-                          <div className="text-center"><div className="text-2xl font-bold text-blue-600">{wl.win_rate_actual || 0}%</div><div className="text-xs text-gray-500">Win rate</div></div>
-                        </div>
-                      </div>
-                      {patterns.length > 0 && (
-                        <div className="bg-white p-5 rounded-lg border border-gray-200">
-                          <h3 className="text-sm font-semibold text-gray-700 mb-3">Win Signal Mønstre</h3>
-                          <div className="space-y-2">{patterns.map(p => <div key={p.signal_type} className="flex items-center gap-3"><span className="text-xs text-gray-500 w-20 capitalize">{p.signal_type}</span><div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-green-500 rounded-full" style={{ width: `${p.correlation_pct}%` }} /></div><span className="text-xs font-medium text-gray-700 w-10 text-right">{p.correlation_pct}%</span></div>)}</div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {(act.by_rep || []).length > 0 && (
-                    <div className="bg-white rounded-lg border border-gray-200">
-                      <div className="px-6 py-4 border-b border-gray-200"><h3 className="text-sm font-semibold text-gray-700">Sælger Aktivering</h3></div>
-                      <table className="w-full">
-                        <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide"><tr><th className="px-6 py-3 text-left">Sælger</th><th className="px-6 py-3 text-right">Aktive</th><th className="px-6 py-3 text-right">Total</th><th className="px-6 py-3 text-right">Pipeline</th><th className="px-6 py-3 text-right">%</th></tr></thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {act.by_rep.map(rep => (
-                            <tr key={rep.name} className="hover:bg-gray-50">
-                              <td className="px-6 py-3 text-sm font-medium text-gray-900">{rep.name}</td>
-                              <td className="px-6 py-3 text-sm text-right text-gray-700">{rep.activated}</td>
-                              <td className="px-6 py-3 text-sm text-right text-gray-500">{rep.total_deals}</td>
-                              <td className="px-6 py-3 text-sm text-right text-gray-700">{(rep.pipeline_value/1000).toFixed(0)}k</td>
-                              <td className="px-6 py-3 text-right"><div className="flex items-center justify-end gap-2"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className={`h-full rounded-full ${rep.pct >= 75 ? 'bg-green-500' : rep.pct >= 40 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${rep.pct}%` }} /></div><span className="text-sm font-medium text-gray-700 w-10 text-right">{rep.pct}%</span></div></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                  {!actReq.deals_needed && patterns.length === 0 && boardAlerts.length === 0 && (
-                    <div className="text-center py-12 text-gray-400"><Brain className="w-12 h-12 mx-auto mb-3 opacity-30" /><p className="text-sm">Gå til <strong>GTM Setup → Målsætninger</strong> og udfyld dine mål for at se aktivitetsanalysen</p></div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* ── Daglig Rapport sub-tab ─────────────────────────── */}
-            {intelligenceSubTab === 'daglig' && (() => {
-              if (dailyReportLoading && !dailyReport) return <div className="flex items-center justify-center py-20 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mr-2" /> Henter ugerapport...</div>;
-              const dr = dailyReport;
-              const statusCls = { strong: 'bg-green-50 border-green-300 text-green-800', ok: 'bg-blue-50 border-blue-300 text-blue-800', low: 'bg-amber-50 border-amber-300 text-amber-800', critical: 'bg-red-50 border-red-300 text-red-800' };
-              const statusBadge = { strong: '✓ Stærk', ok: '✓ OK', low: '⚠ Lav', critical: '✗ Kritisk' };
-              const barColor = { strong: 'bg-green-500', ok: 'bg-blue-500', low: 'bg-amber-400', critical: 'bg-red-500' };
-              const fmtVal = (n, suffix, isCurrency) => isCurrency ? (n >= 1000 ? `${Math.round(n)}k` : `${n}`) : `${n}`;
-              return (
-                <div className="space-y-6">
-                  {/* Overall score header */}
-                  {dr && (
-                    <div className="bg-white p-6 rounded-xl border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="text-lg font-bold text-gray-900">Ugerapport Scorekort</h3>
-                          <p className="text-sm text-gray-500">Denne uge vs. ugentligt aktivitetsmål</p>
-                        </div>
-                        <div className={`text-center px-6 py-3 rounded-xl border-2 ${dr.overall_pct >= 80 ? 'bg-green-50 border-green-400' : dr.overall_pct >= 50 ? 'bg-amber-50 border-amber-400' : 'bg-red-50 border-red-300'}`}>
-                          <div className={`text-4xl font-black ${dr.overall_pct >= 80 ? 'text-green-600' : dr.overall_pct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>{dr.overall_pct}%</div>
-                          <div className="text-xs text-gray-500">{dr.items_on_track}/{dr.total_items} på sporet</div>
-                        </div>
-                      </div>
-                      {/* Scorecard items */}
-                      <div className="space-y-3">
-                        {(dr.scorecard || []).map(item => (
-                          <div key={item.label} className="flex items-center gap-4">
-                            <div className="w-6 text-center text-base">{item.emoji}</div>
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-sm font-medium text-gray-700">{item.label}</span>
-                                <div className="flex items-center gap-3">
-                                  <span className="text-sm text-gray-500">{item.actual} {item.suffix} / {item.target} {item.suffix}</span>
-                                  <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${(statusCls[item.status] || statusCls.ok)}`}>{statusBadge[item.status]}</span>
-                                </div>
-                              </div>
-                              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full transition-all ${barColor[item.status] || 'bg-blue-500'}`} style={{ width: `${Math.min(item.pct, 100)}%` }} />
-                              </div>
-                              <p className="text-xs text-gray-400 mt-0.5">{item.note}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {/* Quick stats row */}
-                  {dr && (
-                    <div className="grid grid-cols-3 gap-4">
-                      {[
-                        { label: 'Åbne deals', value: dr.open_deals, color: 'text-blue-600' },
-                        { label: 'Stagnerende deals', value: dr.stalled_deals, color: dr.stalled_deals > 0 ? 'text-red-600' : 'text-green-600' },
-                        { label: 'Pipeline (vægtet)', value: `${Math.round((dr.weighted_pipeline || 0)/1000)}k kr`, color: 'text-purple-600' },
-                      ].map(({ label, value, color }) => (
-                        <div key={label} className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                          <div className={`text-2xl font-bold ${color}`}>{value}</div>
-                          <div className="text-xs text-gray-500 mt-1">{label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {!dr && !dailyReportLoading && (
-                    <div className="text-center py-12 text-gray-400"><p className="text-sm">Udfyld dine mål i GTM Setup for at se ugerapport</p></div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* ── Forecast sub-tab ─────────────────────────────────── */}
-            {intelligenceSubTab === 'forecast' && (() => {
-              if (forecastLoading && !forecast) return <div className="flex items-center justify-center py-20 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mr-2" /> Beregner forecast...</div>;
-              if (!forecast) return null;
-              const fc = forecast;
-              const fh = forecastHistory;
-              const maxVal = Math.max(...fc.months.map(m => m.optimistic), 1);
-              const fmtKr = (n) => n >= 1000000 ? `${(n/1000000).toFixed(1)}M` : n >= 1000 ? `${Math.round(n/1000)}k` : `${n}`;
-              const formatCurrency = (n) => n != null ? `${fmtKr(n)} kr` : '—';
-              return (
-                <div className="space-y-6">
-                  {/* Action bar */}
-                  <div className="flex items-center justify-end">
-                    <button onClick={saveSnapshot} disabled={snapshotSaving}
-                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 text-sm font-medium transition-colors">
-                      <Camera className="w-4 h-4" />
-                      {snapshotSaving ? 'Gemmer...' : 'Gem Snapshot'}
-                    </button>
-                  </div>
-                  {/* Scenario summary */}
-                  <div className="grid grid-cols-3 gap-4">
-                    {[
-                      { label: 'Konservativ', value: fc.totals.conservative, color: 'text-red-600', bg: 'bg-red-50 border-red-200', hint: '60% af stage-sandsynlighed' },
-                      { label: 'Base', value: fc.totals.base, color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200', hint: 'Stage-vægtet pipeline' },
-                      { label: 'Optimistisk', value: fc.totals.optimistic, color: 'text-green-600', bg: 'bg-green-50 border-green-200', hint: '135% af stage-sandsynlighed' },
-                    ].map(({ label, value, color, bg, hint }) => {
-                      const pct = fc.totals.revenue_target > 0 ? Math.round(value / fc.totals.revenue_target * 100) : 0;
-                      return (
-                        <div key={label} className={`p-5 rounded-xl border-2 ${bg}`}>
-                          <div className="text-xs text-gray-500 mb-1">{label}</div>
-                          <div className={`text-2xl font-bold ${color}`}>{fmtKr(value)} kr</div>
-                          <div className="text-xs text-gray-400 mt-1">{pct}% af mål ({fmtKr(fc.totals.revenue_target)}kr)</div>
-                          <div className={`mt-2 h-1.5 ${bg.split(' ')[0].replace('bg-', 'bg-').replace('50', '200')} rounded-full overflow-hidden`}>
-                            <div className={`h-full ${color.replace('text-', 'bg-').replace('600', '500')} rounded-full`} style={{ width: `${Math.min(pct, 100)}%` }} />
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1">{hint}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* Won YTD callout */}
-                  <div className="bg-white p-4 rounded-lg border border-gray-200 flex items-center justify-between">
-                    <div><p className="text-sm font-medium text-gray-700">Allerede vundet (inkluderet i alle scenarier)</p><p className="text-xs text-gray-400">Closed Won YTD</p></div>
-                    <div className="text-xl font-bold text-green-600">{fmtKr(fc.totals.won_ytd)} kr</div>
-                  </div>
-                  {/* Monthly bar chart */}
-                  <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <h3 className="text-sm font-semibold text-gray-700 mb-4">Månedlig Pipeline Fordeling (åbne deals × stage-sandsynlighed)</h3>
-                    <div className="space-y-2">
-                      {fc.months.filter(m => m.count > 0 || m.base > 0).slice(0, 8).map(m => {
-                        const basePct = Math.round(m.base / maxVal * 100);
-                        const optPct  = Math.round(m.optimistic / maxVal * 100);
-                        return (
-                          <div key={m.key} className="flex items-center gap-3">
-                            <div className="w-16 text-xs text-gray-500 text-right">{m.label}</div>
-                            <div className="flex-1 relative h-7">
-                              {/* Optimistic (light) */}
-                              <div className="absolute inset-0 bg-green-100 rounded-full" style={{ width: `${optPct}%` }} />
-                              {/* Base (darker) */}
-                              <div className="absolute inset-0 bg-blue-400 rounded-full" style={{ width: `${basePct}%` }} />
-                              {m.count > 0 && <div className="absolute right-0 inset-y-0 flex items-center pr-1"><span className="text-xs text-gray-600 font-medium pl-2">{fmtKr(m.base)} kr ({m.count} deals)</span></div>}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
-                      <span className="flex items-center gap-1"><span className="w-3 h-3 bg-blue-400 rounded-sm inline-block" /> Base</span>
-                      <span className="flex items-center gap-1"><span className="w-3 h-3 bg-green-100 rounded-sm inline-block" /> Optimistisk</span>
-                    </div>
-                    {fc.no_close_date?.count > 0 && (
-                      <p className="text-xs text-amber-600 mt-3">⚠ {fc.no_close_date.count} deals mangler close dato — ikke inkluderet i månedlig fordeling</p>
-                    )}
-                  </div>
-
-                  {/* ── Forecast Historik & Nøjagtighed ─────────────── */}
-                  <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    {/* Collapsible header */}
-                    <button onClick={() => setShowHistory(h => !h)}
-                      className="w-full flex items-center justify-between px-5 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left">
-                      <span className="font-medium text-sm text-gray-700 flex items-center gap-2">
-                        <History className="w-4 h-4 text-gray-500" />
-                        Forecast Historik &amp; Nøjagtighed
-                        {(fh?.summary?.n_months || 0) > 0 && (
-                          <span className="text-xs text-gray-400">({fh.summary.n_months} afsluttede måneder)</span>
-                        )}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        {/* MAE badge */}
-                        {fh?.summary?.mae_pct != null && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            fh.summary.mae_pct < 10 ? 'bg-green-100 text-green-700'
-                            : fh.summary.mae_pct < 25 ? 'bg-amber-100 text-amber-700'
-                            : 'bg-red-100 text-red-700'}`}>
-                            Ø {fh.summary.mae_pct}% afvigelse
-                          </span>
-                        )}
-                        {/* Bias badge */}
-                        {fh?.summary?.bias_pct != null && fh.summary.bias_direction !== 'accurate' && (
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">
-                            {fh.summary.bias_direction === 'over' ? '↑ Over' : '↓ Under'}-forecast {fh.summary.bias_pct > 0 ? '+' : ''}{fh.summary.bias_pct}%
-                          </span>
-                        )}
-                        {fh?.summary?.bias_direction === 'accurate' && (fh?.summary?.n_months || 0) > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">✓ Kalibreret</span>
-                        )}
-                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showHistory ? 'rotate-180' : ''}`} />
-                      </div>
-                    </button>
-
-                    {/* Expanded content */}
-                    {showHistory && (
-                      <div className="divide-y divide-gray-100">
-                        {forecastHistoryLoading && (
-                          <div className="py-8 text-center text-gray-400 text-sm flex items-center justify-center gap-2">
-                            <RefreshCw className="w-4 h-4 animate-spin" /> Henter historik...
-                          </div>
-                        )}
-                        {!forecastHistoryLoading && (!fh?.snapshots?.length) && (
-                          <div className="py-10 text-center text-gray-400">
-                            <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                            <p className="text-sm font-medium">Ingen snapshots gemt endnu</p>
-                            <p className="text-xs mt-1">Klik "Gem Snapshot" for at starte tracking af forecast-nøjagtighed</p>
-                          </div>
-                        )}
-                        {(fh?.snapshots || []).map(snap => (
-                          <div key={snap.id} className="px-5 py-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-xs font-semibold text-gray-600">
-                                Snapshot: {snap.snapshot_date}
-                              </span>
-                              {snap.revenue_target && (
-                                <span className="text-xs text-gray-400">Mål på tidspunktet: {formatCurrency(snap.revenue_target)}</span>
-                              )}
-                            </div>
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-xs">
-                                <thead>
-                                  <tr className="text-gray-400 border-b border-gray-100">
-                                    <th className="text-left py-1.5 pr-4 font-medium">Måned</th>
-                                    <th className="text-right pr-4 font-medium">Forecast (base)</th>
-                                    <th className="text-right pr-4 font-medium">Faktisk</th>
-                                    <th className="text-right pr-4 font-medium">Afvigelse</th>
-                                    <th className="text-right font-medium">Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {snap.months_data.map(m => {
-                                    const errAbs = m.error_pct != null ? Math.abs(m.error_pct) : null;
-                                    const color = !m.is_complete ? 'text-gray-400'
-                                      : errAbs == null ? 'text-gray-400'
-                                      : errAbs < 10 ? 'text-green-600'
-                                      : errAbs < 25 ? 'text-amber-600' : 'text-red-600';
-                                    const statusIcon = !m.is_complete ? '⏳'
-                                      : m.error_pct == null ? '—'
-                                      : errAbs < 10 ? '✓'
-                                      : errAbs < 25 ? '⚠' : '✗';
-                                    return (
-                                      <tr key={m.month || m.key} className="border-b border-gray-50 last:border-0">
-                                        <td className="py-1.5 pr-4 text-gray-700">{m.label}</td>
-                                        <td className="text-right pr-4 text-gray-700">{formatCurrency(m.base)}</td>
-                                        <td className="text-right pr-4 text-gray-700">{m.actual != null ? formatCurrency(m.actual) : '—'}</td>
-                                        <td className={`text-right pr-4 font-medium ${color}`}>
-                                          {m.error_pct != null ? `${m.error_pct > 0 ? '+' : ''}${m.error_pct}%` : '—'}
-                                        </td>
-                                        <td className={`text-right font-medium ${color}`}>{statusIcon}</td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* ── Learnings sub-tab ────────────────────────────────── */}
-            {intelligenceSubTab === 'learnings' && (() => {
-              if (learningsLoading && !learnings) return <div className="flex items-center justify-center py-20 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mr-2" /> Analyserer mønstre...</div>;
-              if (!learnings) return null;
-              const impactBg = { high: 'bg-red-100 text-red-700 border-red-200', medium: 'bg-amber-100 text-amber-700 border-amber-200', low: 'bg-gray-100 text-gray-600 border-gray-200' };
-              return (
-                <div className="space-y-4">
-                  {/* Summary bar */}
-                  <div className="grid grid-cols-4 gap-3">
-                    {[
-                      { label: 'Vundne deals', value: learnings.summary?.won || 0, color: 'text-green-600' },
-                      { label: 'Tabte deals', value: learnings.summary?.lost || 0, color: 'text-red-500' },
-                      { label: 'Åbne deals', value: learnings.summary?.open || 0, color: 'text-blue-600' },
-                      { label: 'Stagnerende', value: learnings.summary?.stalled || 0, color: learnings.summary?.stalled > 0 ? 'text-amber-600' : 'text-gray-400' },
-                    ].map(({ label, value, color }) => (
-                      <div key={label} className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                        <div className={`text-2xl font-bold ${color}`}>{value}</div>
-                        <div className="text-xs text-gray-500 mt-1">{label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Learning cards */}
-                  {(learnings.learnings || []).length === 0 ? (
-                    <div className="text-center py-12 text-gray-400"><p className="text-sm">Ikke nok CRM data endnu til at generere learnings</p><p className="text-xs mt-1">Sync mindst 3+ deals (vundne og tabte) for at se mønstre</p></div>
-                  ) : (
-                    <div className="grid grid-cols-2 gap-4">
-                      {(learnings.learnings || []).map(l => (
-                        <div key={l.id} className="bg-white p-5 rounded-xl border border-gray-200 hover:border-blue-200 transition-colors">
-                          <div className="flex items-start justify-between mb-2">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold border ${impactBg[l.impact] || impactBg.low}`}>
-                              {l.impact === 'high' ? 'High Impact' : l.impact === 'medium' ? 'Medium Impact' : 'Low Impact'}
-                            </span>
-                            <span className="text-xs text-gray-400">{l.date}</span>
-                          </div>
-                          <h4 className="text-sm font-bold text-gray-900 mb-1 leading-snug">{l.title}</h4>
-                          <p className="text-xs text-gray-500 mb-3 leading-relaxed">{l.body}</p>
-                          <div className="pt-2 border-t border-gray-100">
-                            <p className="text-xs text-blue-600 font-medium">→ {l.action}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* ── Management Tasks sub-tab ─────────────────────────── */}
-            {intelligenceSubTab === 'tasks' && (() => {
-              if (mgmtTasksLoading && !mgmtTasks) return <div className="flex items-center justify-center py-20 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mr-2" /> Genererer tasks...</div>;
-              const tasks = (mgmtTasks?.tasks || []).filter(t => !dismissedTaskIds.has(t.id));
-              const counts = mgmtTasks?.counts || {};
-              const prioCls = { urgent: 'bg-red-50 border-red-300', high: 'bg-amber-50 border-amber-300', medium: 'bg-blue-50 border-blue-200' };
-              const prioBadge = { urgent: 'bg-red-500 text-white', high: 'bg-amber-500 text-white', medium: 'bg-blue-500 text-white' };
-              const prioLabel = { urgent: '🔴 Urgent', high: '🟡 High', medium: '🔵 Medium' };
-              return (
-                <div className="space-y-4">
-                  {/* Counts summary */}
-                  {counts.total > 0 && (
-                    <div className="flex items-center gap-3">
-                      {[['urgent', counts.urgent], ['high', counts.high], ['medium', counts.medium]].filter(([,n]) => n > 0).map(([p, n]) => (
-                        <span key={p} className={`text-xs px-3 py-1 rounded-full font-semibold ${prioBadge[p]}`}>{n} {prioLabel[p]}</span>
-                      ))}
-                      <button onClick={fetchMgmtTasks} className="ml-auto text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1">
-                        <RefreshCw className="w-3 h-3" /> Genindlæs
-                      </button>
-                    </div>
-                  )}
-                  {tasks.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400">
-                      <p className="text-lg mb-2">✅</p>
-                      <p className="text-sm font-medium">Ingen management tasks</p>
-                      <p className="text-xs mt-1">Alt ser godt ud — ingen stagnerende deals eller kritiske handlingspunkter</p>
-                    </div>
-                  ) : tasks.map(t => (
-                    <div key={t.id} className={`p-4 rounded-xl border-2 ${prioCls[t.priority] || prioCls.medium}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${prioBadge[t.priority]}`}>{prioLabel[t.priority]}</span>
-                            <span className="text-xs text-gray-500">{t.rep}</span>
-                          </div>
-                          <p className="text-sm font-semibold text-gray-900 mb-1">{t.headline}</p>
-                          <p className="text-xs text-gray-500 mb-2">📁 {t.deal}</p>
-                          <p className="text-xs text-gray-600 bg-white rounded-lg px-3 py-2 border border-gray-200">{t.action}</p>
-                        </div>
-                        <button onClick={() => setDismissedTaskIds(prev => new Set([...prev, t.id]))} className="text-gray-300 hover:text-gray-500 flex-shrink-0 mt-1 text-lg leading-none">✕</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-
-            {/* ── AI Agent sub-tab ─────────────────────────────────── */}
-            {intelligenceSubTab === 'agent' && (
-              <div className="space-y-4">
-                {/* Trigger button */}
-                <div className="bg-white p-6 rounded-xl border border-gray-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <h3 className="text-sm font-bold text-gray-900">🤖 AI Agent Analyse</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">Analysér hele din pipeline med AI og få prioriterede handlinger</p>
-                    </div>
-                    <button onClick={runAgent} disabled={agentLoading} className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-60 text-sm font-medium">
-                      {agentLoading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Analyserer...</> : <><Brain className="w-4 h-4" /> Kør Agent</>}
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-400">Agenten gennemgår alle åbne deals, signaler og leads — og returnerer de 3 vigtigste handlinger du bør tage nu.</p>
-                </div>
-
-                {agentLoading && (
-                  <div className="bg-purple-50 border border-purple-200 rounded-xl p-5 space-y-2">
-                    <p className="text-sm font-medium text-purple-800 flex items-center gap-2"><Brain className="w-4 h-4 animate-pulse" /> Agent Thinking...</p>
-                    {['Indlæser pipeline snapshot...', 'Analyserer deal health signaler...', 'Finder mønstre i vundne og tabte deals...', 'Genererer handlingsanbefalinger...'].map((step, i) => (
-                      <div key={i} className="flex items-center gap-2 text-xs text-purple-600 pl-6">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
-                        {step}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {agentData && !agentLoading && (
-                  <>
-                    {/* Thinking steps */}
-                    {agentData.thinking?.length > 0 && (
-                      <div className="bg-purple-50 border border-purple-200 rounded-xl p-5">
-                        <p className="text-xs font-semibold text-purple-700 mb-2 flex items-center gap-1"><Brain className="w-3.5 h-3.5" /> Agent Reasoning</p>
-                        <div className="space-y-1.5">
-                          {agentData.thinking.map((step, i) => (
-                            <div key={i} className="flex items-start gap-2 text-xs text-purple-600">
-                              <span className="text-purple-400 font-bold">{i + 1}.</span>
-                              <span>{step}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {/* Main insight */}
-                    {agentData.insights && (
-                      <div className="bg-white p-5 rounded-xl border-2 border-purple-200">
-                        <p className="text-xs font-semibold text-purple-700 mb-1">🎯 Vigtigste Indsigt</p>
-                        <p className="text-sm text-gray-800">{agentData.insights}</p>
-                      </div>
-                    )}
-                    {/* AI-generated tasks */}
-                    {agentData.tasks?.length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="text-sm font-semibold text-gray-700">Prioriterede Handlinger</h4>
-                        {agentData.tasks.map((t, i) => {
-                          const p = t.priority || 'high';
-                          const prioCls2 = { urgent: 'border-l-red-500 bg-red-50', high: 'border-l-amber-500 bg-amber-50', medium: 'border-l-blue-500 bg-blue-50' };
-                          return (
-                            <div key={i} className={`p-4 rounded-lg border border-gray-200 border-l-4 ${prioCls2[p] || prioCls2.high}`}>
-                              <div className="flex items-start gap-3">
-                                <span className="text-lg font-black text-gray-300">{i + 1}</span>
-                                <div>
-                                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">{t.deal}</p>
-                                  <p className="text-sm font-medium text-gray-900">{t.action}</p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {!agentData && !agentLoading && (
-                  <div className="text-center py-8 text-gray-400">
-                    <Brain className="w-10 h-10 mx-auto mb-3 opacity-20" />
-                    <p className="text-sm">Klik "Kør Agent" for at starte AI-analysen</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ─────────────────────────────────────────────────────── */}
-        {/* ── PIPELINE TAB ────────────────────────────────────── */}
+        {/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* â”€â”€ PIPELINE TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {/* Extracted to src/pages/PipelinePage.jsx (P1.10) */}
         {activeTab === 'pipeline' && <PipelinePage />}
 
-        {/* ── SIGNALS TAB ─────────────────────────────────────── */}
+        {/* â”€â”€ SIGNALS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         {/* Extracted to src/pages/SignalsPage.jsx (P1.10) */}
         {activeTab === 'signals' && <SignalsPage />}
 
@@ -4858,7 +4292,7 @@ const SalesIntelligencePlatform = () => {
                   </div>
                 ))}
               </div>
-              {/* Score Breakdown — HockeyStack-style explainable scoring */}
+              {/* Score Breakdown â€” HockeyStack-style explainable scoring */}
               {selectedLead.scoring_breakdown && (
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Score Breakdown</p>
@@ -4876,7 +4310,7 @@ const SalesIntelligencePlatform = () => {
                           <div className="flex justify-between items-center mb-0.5">
                             <div>
                               <span className="text-xs font-medium text-gray-700">{label}</span>
-                              <span className="text-xs text-gray-400 ml-1">— {desc}</span>
+                              <span className="text-xs text-gray-400 ml-1">â€” {desc}</span>
                             </div>
                             <span className="text-xs font-bold text-gray-900">{val}/{max}</span>
                           </div>
