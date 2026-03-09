@@ -121,6 +121,10 @@ const INITIAL = {
   mgmtTasks: null,
   mgmtTasksLoading: false,
 
+  // ── CRM Activity Summary (P1.6) ────────────────────────────────────────────
+  activitySummary: null,
+  activitySummaryLoading: false,
+
   // ── AI Agent ─────────────────────────────────────────────────────────────
   agentData: null,
   agentLoading: false,
@@ -652,6 +656,22 @@ const useDataStore = create((set, getStore) => ({
   },
 
   // ══════════════════════════════════════════════════════════════════════════
+  // CRM ACTIVITY SUMMARY  (P1.6)
+  // ══════════════════════════════════════════════════════════════════════════
+
+  fetchActivitySummary: async (days = 30) => {
+    set({ activitySummaryLoading: true });
+    try {
+      const data = await get(`/gtm/activities?days=${days}`);
+      set({ activitySummary: data });
+    } catch {
+      set({ activitySummary: null });
+    } finally {
+      set({ activitySummaryLoading: false });
+    }
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
   // AI AGENT
   // ══════════════════════════════════════════════════════════════════════════
 
@@ -681,6 +701,7 @@ const useDataStore = create((set, getStore) => ({
       s.fetchForecastHistory(),
       s.fetchLearnings(),
       s.fetchMgmtTasks(),
+      s.fetchActivitySummary(),
     ]);
   },
 

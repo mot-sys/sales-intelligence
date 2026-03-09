@@ -40,11 +40,13 @@ export default function IntelligencePage() {
     learnings,         learningsLoading,
     mgmtTasks,         mgmtTasksLoading,
     agentData,         agentLoading,
+    activitySummary,   activitySummaryLoading,
     // actions
     fetchIntelligenceTab,
     fetchIntelligence, fetchDailyReport, fetchForecast,
     fetchForecastHistory, saveSnapshot,
     fetchLearnings, fetchMgmtTasks,
+    fetchActivitySummary,
     runAgent,
   } = useDataStore();
 
@@ -58,6 +60,7 @@ export default function IntelligencePage() {
     fetchForecastHistory();
     fetchLearnings();
     fetchMgmtTasks();
+    fetchActivitySummary();
   };
 
   // ── Render ──────────────────────────────────────────────────────────────
@@ -109,6 +112,8 @@ export default function IntelligencePage() {
       {subTab === 'overblik' && <OverblikSubTab
         data={intelligenceData}
         loading={intelligenceLoading}
+        activitySummary={activitySummary}
+        activitySummaryLoading={activitySummaryLoading}
       />}
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -166,7 +171,17 @@ export default function IntelligencePage() {
 
 // ─── Sub-tab: Overblik ─────────────────────────────────────────────────────
 
-function OverblikSubTab({ data, loading }) {
+// Activity type display config
+const ACTIVITY_LABELS = {
+  call:    { label: 'Opkald',  color: 'bg-blue-500',   icon: '📞' },
+  email:   { label: 'E-mail',  color: 'bg-purple-500', icon: '✉️' },
+  meeting: { label: 'Møde',    color: 'bg-green-500',  icon: '🤝' },
+  task:    { label: 'Opgave',  color: 'bg-amber-500',  icon: '☑️' },
+  note:    { label: 'Note',    color: 'bg-gray-400',   icon: '📝' },
+  other:   { label: 'Andet',   color: 'bg-gray-300',   icon: '•'  },
+};
+
+function OverblikSubTab({ data, loading, activitySummary, activitySummaryLoading }) {
   if (loading && !data) return (
     <div className="flex items-center justify-center py-20 text-gray-400">
       <RefreshCw className="w-6 h-6 animate-spin mr-2" /> Beregner indsigter...
@@ -350,6 +365,87 @@ function OverblikSubTab({ data, loading }) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* CRM Activity Summary (P1.6) */}
+      {(activitySummary || activitySummaryLoading) && (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <Users className="w-4 h-4 text-indigo-500" />
+              CRM Aktivitet — seneste 30 dage
+            </h3>
+            {activitySummary?.total != null && (
+              <span className="text-xs text-gray-500 font-medium">{activitySummary.total} aktiviteter totalt</span>
+            )}
+          </div>
+
+          {activitySummaryLoading && !activitySummary && (
+            <div className="py-8 text-center text-gray-400 text-sm">Henter aktivitetsdata...</div>
+          )}
+
+          {activitySummary && (
+            <div className="p-6">
+              {/* Breakdown bars */}
+              {activitySummary.total > 0 ? (
+                <div className="space-y-2.5 mb-6">
+                  {Object.entries(activitySummary.breakdown || {})
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([type, count]) => {
+                      const cfg = ACTIVITY_LABELS[type] || ACTIVITY_LABELS.other;
+                      const pct = activitySummary.total > 0 ? Math.round(count / activitySummary.total * 100) : 0;
+                      return (
+                        <div key={type} className="flex items-center gap-3">
+                          <span className="text-sm w-5 text-center">{cfg.icon}</span>
+                          <span className="text-xs text-gray-600 w-14">{cfg.label}</span>
+                          <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div className={`h-full ${cfg.color} rounded-full`} style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-xs font-medium text-gray-700 w-6 text-right">{count}</span>
+                          <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+                        </div>
+                      );
+                    })
+                  }
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 mb-4">
+                  Ingen aktiviteter synkroniseret endnu. Klik "Sync" på en tilsluttet integration for at hente aktiviteter.
+                </p>
+              )}
+
+              {/* Recent feed */}
+              {(activitySummary.recent || []).length > 0 && (
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">Seneste aktiviteter</p>
+                  <div className="space-y-2">
+                    {activitySummary.recent.slice(0, 5).map(act => {
+                      const cfg = ACTIVITY_LABELS[act.activity_type] || ACTIVITY_LABELS.other;
+                      const dateStr = act.occurred_at ? new Date(act.occurred_at).toLocaleDateString('da-DK', { day: 'numeric', month: 'short' }) : '—';
+                      return (
+                        <div key={act.id} className="flex items-start gap-2.5 text-xs">
+                          <span className="mt-0.5 text-sm">{cfg.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-gray-800 font-medium truncate">{act.subject || cfg.label}</p>
+                            <p className="text-gray-400 truncate">
+                              {act.owner_name && <span>{act.owner_name}</span>}
+                              {act.company_name && <span className="mx-1">·</span>}
+                              {act.company_name && <span>{act.company_name}</span>}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-gray-500">{dateStr}</p>
+                            <p className="text-gray-300 capitalize">{act.source}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

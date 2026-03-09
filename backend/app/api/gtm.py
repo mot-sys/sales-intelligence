@@ -1536,3 +1536,31 @@ Maks 3 tasks. Vær konkret — brug rigtige deal-navne og beløb fra data.
             "tasks":        [],
             "generated_at": now.isoformat(),
         }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /api/gtm/activities  — CRM activity summary (P1.6)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/activities")
+async def get_activity_summary(
+    days: int = 30,
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Return a summary of CRM activities (calls, emails, meetings, tasks, notes)
+    synced from HubSpot engagements and Salesforce Task/Event objects.
+
+    Query params:
+        days (int, default 30): look-back window in days.
+
+    Response:
+        {
+          "total": int,
+          "breakdown": {"call": int, "email": int, ...},
+          "recent": [{ id, source, activity_type, occurred_at, owner_name,
+                       contact_name, company_name, subject, deal_id }, ...]
+        }
+    """
+    return await crud.get_activity_summary(db, customer_id, days=days)
