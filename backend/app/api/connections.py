@@ -594,10 +594,109 @@ async def trigger_sync(
     if integration.service == "clay":
         return await _sync_clay(db, integration, customer_id)
 
-    # Other services: Week 3
+    if integration.service == "salesforce":
+        # Re-use the dedicated sync endpoint logic
+        if integration.status != "connected":
+            raise HTTPException(status_code=400, detail="Salesforce integration is not connected")
+        from app.integrations.salesforce import SalesforceIntegration
+        t0 = time.monotonic()
+        try:
+            sf = SalesforceIntegration(decrypt_credentials(integration.credentials))
+            opps = await sf.sync_opportunities()
+            accs = await sf.sync_accounts()
+            activities = await sf.sync_activities()
+            opps_upserted = 0
+            for opp in opps:
+                sf_id = opp.pop("sf_opportunity_id")
+                opp_row = await crud.upsert_sf_opportunity(db, customer_id, sf_id, opp)
+                await crud.update_opp_health(db, opp_row)
+                if opp_row.account_name:
+                    await crud.refresh_account_deal_flag(db, customer_id, opp_row.account_name)
+                opps_upserted += 1
+            accs_upserted = 0
+            for acc in accs:
+                sf_id = acc.pop("sf_account_id")
+                await crud.upsert_sf_account(db, customer_id, sf_id, acc)
+                await crud.upsert_account(db, customer_id, name=acc.get("name") or sf_id,
+                    domain=acc.get("domain"), industry=acc.get("industry"),
+                    employee_count=acc.get("employee_count"), in_crm=True, source="salesforce")
+                accs_upserted += 1
+            acts_upserted = 0
+            for act in activities:
+                ext_id = act.pop("external_id")
+                if ext_id:
+                    await crud.upsert_crm_activity(db, customer_id, "salesforce", ext_id, act)
+                    acts_upserted += 1
+            await crud.compute_and_save_recommendations(db, customer_id)
+            await _write_sync_log(db, integration, status="success",
+                records_created=opps_upserted + accs_upserted + acts_upserted,
+                duration_ms=int((time.monotonic() - t0) * 1000))
+        except Exception as exc:
+            await _write_sync_log(db, integration, status="failed",
+                duration_ms=int((time.monotonic() - t0) * 1000), error_summary=str(exc))
+            raise
+        await db.execute(sa_update(Integration).where(Integration.id == integration.id)
+            .values(last_sync=datetime.utcnow()))
+        await db.commit()
+        return {"message": "Salesforce sync complete", "opportunities_synced": opps_upserted,
+                "accounts_synced": accs_upserted, "activities_synced": acts_upserted}
+
+    if integration.service == "hubspot":
+        if integration.status != "connected":
+            raise HTTPException(status_code=400, detail="HubSpot integration is not connected")
+        from app.integrations.hubspot import HubSpotIntegration
+        deals_cursor = await crud.get_sync_cursor(db, str(integration.id), "deals")
+        engagements_cursor = await crud.get_sync_cursor(db, str(integration.id), "engagements")
+        sync_start_ts = datetime.utcnow().isoformat()
+        t0 = time.monotonic()
+        try:
+            hs = HubSpotIntegration(credentials=decrypt_credentials(integration.credentials))
+            deals = await hs.sync_deals(modified_after=deals_cursor)
+            companies = await hs.sync_companies()
+            engagements = await hs.sync_engagements(modified_after=engagements_cursor)
+            deals_upserted = 0
+            for deal in deals:
+                sf_id = deal.pop("sf_opportunity_id")
+                opp_row = await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
+                await crud.update_opp_health(db, opp_row)
+                if opp_row.account_name:
+                    await crud.refresh_account_deal_flag(db, customer_id, opp_row.account_name)
+                deals_upserted += 1
+            companies_upserted = 0
+            for company in companies:
+                sf_id = company.pop("sf_account_id")
+                await crud.upsert_sf_account(db, customer_id, sf_id, company)
+                await crud.upsert_account(db, customer_id, name=company.get("name") or sf_id,
+                    domain=company.get("domain"), industry=company.get("industry"),
+                    employee_count=company.get("employee_count"), in_crm=True, source="hubspot")
+                companies_upserted += 1
+            acts_upserted = 0
+            for eng in engagements:
+                ext_id = eng.pop("external_id")
+                if ext_id:
+                    await crud.upsert_crm_activity(db, customer_id, "hubspot", ext_id, eng)
+                    acts_upserted += 1
+            await crud.compute_and_save_recommendations(db, customer_id)
+            await crud.save_sync_cursor(db, str(integration.id), customer_id, "deals", sync_start_ts)
+            await crud.save_sync_cursor(db, str(integration.id), customer_id, "engagements", sync_start_ts)
+            await _write_sync_log(db, integration, status="success",
+                records_created=deals_upserted + companies_upserted + acts_upserted,
+                duration_ms=int((time.monotonic() - t0) * 1000))
+        except Exception as exc:
+            await _write_sync_log(db, integration, status="failed",
+                duration_ms=int((time.monotonic() - t0) * 1000), error_summary=str(exc))
+            raise
+        await db.execute(sa_update(Integration).where(Integration.id == integration.id)
+            .values(last_sync=datetime.utcnow()))
+        await db.commit()
+        return {"message": "HubSpot sync complete", "deals_synced": deals_upserted,
+                "companies_synced": companies_upserted, "activities_synced": acts_upserted,
+                "incremental": deals_cursor is not None}
+
     return {
-        "message": f"Sync triggered for {integration.service} (background job not yet implemented)",
+        "message": f"No sync handler for service '{integration.service}' via generic trigger. Use the service-specific sync endpoint.",
         "integration_id": str(integration_id),
+        "service": integration.service,
     }
 
 
