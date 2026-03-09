@@ -16,6 +16,7 @@ from app.db.models import (
     SalesforceOpportunity, SalesforceAccount,
     ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings, WeeklyReport,
     NotionInitiative, IntegrationSyncState, KpiSnapshot,
+    Account, AccountSource, Recommendation, GTMConfig,
 )
 
 
@@ -1111,3 +1112,622 @@ async def get_kpi_snapshots(
         .limit(limit)
     )
     return list(rows.scalars().all())
+
+
+# ─────────────────────────────────────────────────────────
+# P1.1  CANONICAL ACCOUNT CRUD
+# ─────────────────────────────────────────────────────────
+
+async def get_account_by_domain(
+    db: AsyncSession,
+    customer_id: str,
+    domain: str,
+) -> Optional[Account]:
+    """Look up an account by domain (the canonical dedup key)."""
+    return await db.scalar(
+        select(Account).where(
+            Account.customer_id == customer_id,
+            Account.domain == domain,
+        )
+    )
+
+
+async def upsert_account(
+    db: AsyncSession,
+    customer_id: str,
+    *,
+    name: str,
+    domain: Optional[str] = None,
+    industry: Optional[str] = None,
+    employee_count: Optional[int] = None,
+    revenue: Optional[int] = None,
+    location: Optional[str] = None,
+    website: Optional[str] = None,
+    linkedin_url: Optional[str] = None,
+    technologies: Optional[list] = None,
+    in_crm: bool = False,
+    source: Optional[str] = None,
+) -> Account:
+    """
+    Create or update a canonical Account.
+
+    Dedup logic:
+      - If domain is provided → look for existing account with same domain.
+      - If no match (or no domain) → create a new Account.
+
+    After upsert the ICP score is (re)computed from the customer's GTMConfig.
+    """
+    account: Optional[Account] = None
+    if domain:
+        account = await get_account_by_domain(db, customer_id, domain)
+
+    if account:
+        # Merge: keep most informative value (non-null wins)
+        account.name = name or account.name
+        account.industry = industry or account.industry
+        account.employee_count = employee_count or account.employee_count
+        account.revenue = revenue or account.revenue
+        account.location = location or account.location
+        account.website = website or account.website
+        account.linkedin_url = linkedin_url or account.linkedin_url
+        if technologies:
+            account.technologies = technologies
+        if in_crm:
+            account.in_crm = True
+        # Merge source list
+        existing_sources: list = account.sources or []
+        if source and source not in existing_sources:
+            existing_sources.append(source)
+            account.sources = existing_sources
+    else:
+        account = Account(
+            customer_id=customer_id,
+            domain=domain,
+            name=name,
+            industry=industry,
+            employee_count=employee_count,
+            revenue=revenue,
+            location=location,
+            website=website,
+            linkedin_url=linkedin_url,
+            technologies=technologies,
+            in_crm=in_crm,
+            sources=[source] if source else [],
+        )
+        db.add(account)
+        await db.flush()
+
+    # P1.2 — recompute ICP score immediately
+    gtm = await db.scalar(select(GTMConfig).where(GTMConfig.customer_id == customer_id))
+    score, tier = compute_icp_score(account, gtm)
+    account.icp_score = score
+    account.icp_tier = tier
+
+    await db.flush()
+    await db.refresh(account)
+    return account
+
+
+async def upsert_account_source(
+    db: AsyncSession,
+    account_id,
+    customer_id: str,
+    source: str,
+    external_id: str,
+    lead_id=None,
+) -> AccountSource:
+    """Record a source system row that contributed to this Account."""
+    from sqlalchemy.dialects.postgresql import insert as pg_insert
+    stmt = (
+        pg_insert(AccountSource)
+        .values(
+            id=uuid.uuid4(),
+            account_id=account_id,
+            customer_id=customer_id,
+            source=source,
+            external_id=external_id,
+            lead_id=lead_id,
+            synced_at=datetime.utcnow(),
+        )
+        .on_conflict_do_update(
+            index_elements=["account_id", "source", "external_id"],
+            set_={"synced_at": datetime.utcnow()},
+        )
+    )
+    await db.execute(stmt)
+
+
+async def get_accounts(
+    db: AsyncSession,
+    customer_id: str,
+    icp_tier: Optional[str] = None,
+    has_open_deal: Optional[bool] = None,
+    search: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> List[Account]:
+    """List canonical accounts for a customer with optional filters."""
+    q = select(Account).where(Account.customer_id == customer_id)
+    if icp_tier:
+        q = q.where(Account.icp_tier == icp_tier)
+    if has_open_deal is not None:
+        q = q.where(Account.has_open_deal == has_open_deal)
+    if search:
+        q = q.where(Account.name.ilike(f"%{search}%"))
+    q = q.order_by(Account.icp_score.desc().nullslast(), Account.name.asc())
+    q = q.offset(skip).limit(limit)
+    return list((await db.execute(q)).scalars().all())
+
+
+async def get_account(
+    db: AsyncSession,
+    account_id: str,
+    customer_id: str,
+) -> Optional[Account]:
+    """Get a single account by ID."""
+    return await db.scalar(
+        select(Account).where(
+            Account.id == account_id,
+            Account.customer_id == customer_id,
+        )
+    )
+
+
+async def refresh_account_deal_flag(
+    db: AsyncSession,
+    customer_id: str,
+    account_name: str,
+) -> None:
+    """
+    After a sync, update Account.has_open_deal for the account that matches
+    account_name. Called after each opportunity upsert.
+    """
+    # Find any open (non-closed) opportunities for this account_name
+    open_stages = ("Closed Won", "Closed Lost")
+    has_deal = await db.scalar(
+        select(func.count(SalesforceOpportunity.id)).where(
+            SalesforceOpportunity.customer_id == customer_id,
+            SalesforceOpportunity.account_name == account_name,
+            SalesforceOpportunity.stage.notin_(open_stages),
+        )
+    ) or 0
+
+    # Find the account by domain heuristic: match on name
+    acct = await db.scalar(
+        select(Account).where(
+            Account.customer_id == customer_id,
+            Account.name.ilike(account_name),
+        )
+    )
+    if acct:
+        acct.has_open_deal = has_deal > 0
+        await db.flush()
+
+
+# ─────────────────────────────────────────────────────────
+# P1.2  ICP SCORING  (pure function — no DB I/O)
+# ─────────────────────────────────────────────────────────
+
+def compute_icp_score(account: Account, gtm: Optional[GTMConfig]) -> tuple[int, str]:
+    """
+    Compute an ICP fit score (0–100) and tier (A/B/C/D) for an Account
+    based on the customer's GTMConfig.icp criteria.
+
+    Scoring weights:
+      - Industry match          25 pts
+      - Employee count in range 25 pts
+      - Geography match         20 pts
+      - Technology match        20 pts
+      - Revenue fit             10 pts
+
+    Returns (score, tier).  Tier: A ≥ 75 | B ≥ 50 | C ≥ 25 | D < 25.
+    If GTMConfig or icp is not set, returns (None, None).
+    """
+    if not gtm or not gtm.icp:
+        return (None, None)
+
+    icp = gtm.icp
+    filters = icp.get("company_filters") or {}
+    score = 0
+
+    # ── Industry ──────────────────────────────────────────────────────────
+    industries: list = filters.get("industries") or []
+    if industries and account.industry:
+        for ind in industries:
+            if ind.lower() in (account.industry or "").lower():
+                score += 25
+                break
+    elif not industries:
+        score += 25   # no filter = all industries qualify
+
+    # ── Employee count ────────────────────────────────────────────────────
+    emp_min = filters.get("employee_min")
+    emp_max = filters.get("employee_max")
+    emp = account.employee_count
+    if emp_min is None and emp_max is None:
+        score += 25   # no filter
+    elif emp is not None:
+        in_range = (emp_min is None or emp >= emp_min) and \
+                   (emp_max is None or emp <= emp_max)
+        if in_range:
+            score += 25
+        elif emp_min and emp < emp_min * 0.5:
+            score += 0   # way too small
+        elif emp_max and emp > emp_max * 2:
+            score += 0   # way too big
+        else:
+            score += 10  # partial fit
+
+    # ── Geography ─────────────────────────────────────────────────────────
+    geos: list = filters.get("geographies") or []
+    if not geos:
+        score += 20
+    elif account.location:
+        loc_lower = (account.location or "").lower()
+        if any(g.lower() in loc_lower for g in geos):
+            score += 20
+
+    # ── Technologies ──────────────────────────────────────────────────────
+    tech_required: list = filters.get("technologies") or []
+    if not tech_required:
+        score += 20
+    elif account.technologies:
+        acct_tech = [t.lower() for t in (account.technologies or [])]
+        if any(t.lower() in acct_tech for t in tech_required):
+            score += 20
+
+    # ── Revenue fit (bonus) ───────────────────────────────────────────────
+    acv = (gtm.goals or {}).get("acv") or 0
+    if acv and account.revenue:
+        # Companies with >10× ACV revenue tend to be good fits
+        if account.revenue >= acv * 10:
+            score += 10
+        elif account.revenue >= acv * 3:
+            score += 5
+
+    score = min(100, score)
+    if score >= 75:
+        tier = "A"
+    elif score >= 50:
+        tier = "B"
+    elif score >= 25:
+        tier = "C"
+    else:
+        tier = "D"
+    return (score, tier)
+
+
+# ─────────────────────────────────────────────────────────
+# P1.3  OPPORTUNITY HEALTH SCORING  (pure function)
+# ─────────────────────────────────────────────────────────
+
+def score_opportunity_health(opp: SalesforceOpportunity) -> tuple[int, list, int]:
+    """
+    Compute a health score (0–100), list of risk flags, and days_since_activity
+    for a SalesforceOpportunity.
+
+    Scoring (starts at 100, deductions applied):
+      -30  no activity in 14+ days
+      -20  no close date set
+      -20  amount is 0 or missing
+      -10  stage is stalled / stuck in early stage >30 days
+      -10  close date is in the past (overdue)
+      -10  no activity ever recorded
+
+    Returns (health_score, risk_flags, days_since_activity).
+    """
+    from datetime import timedelta
+    now = datetime.utcnow()
+    score = 100
+    flags: list[str] = []
+
+    # Days since last activity
+    if opp.last_activity_date:
+        delta = now - opp.last_activity_date.replace(tzinfo=None) if hasattr(opp.last_activity_date, 'tzinfo') else now - opp.last_activity_date
+        days_inactive = max(0, delta.days)
+    else:
+        days_inactive = 999  # never recorded
+
+    if days_inactive >= 14:
+        score -= 30
+        flags.append("no_activity_14d")
+    elif days_inactive == 999:
+        score -= 10
+        flags.append("no_activity_ever")
+
+    # Close date checks
+    if not opp.close_date:
+        score -= 20
+        flags.append("no_close_date")
+    else:
+        cd = opp.close_date.replace(tzinfo=None) if hasattr(opp.close_date, 'tzinfo') else opp.close_date
+        if cd < now:
+            score -= 10
+            flags.append("close_date_overdue")
+
+    # Amount check
+    if not opp.amount or opp.amount == 0:
+        score -= 20
+        flags.append("missing_amount")
+
+    # Stalled flag already computed
+    if opp.is_stalled:
+        score -= 10
+        flags.append("stalled")
+
+    return (max(0, score), flags, days_inactive if days_inactive < 999 else None)
+
+
+async def update_opp_health(
+    db: AsyncSession,
+    opp: SalesforceOpportunity,
+) -> SalesforceOpportunity:
+    """Compute and persist health score for a single opportunity."""
+    health_score, flags, days = score_opportunity_health(opp)
+    opp.health_score = health_score
+    opp.health_risk_flags = flags
+    opp.days_since_activity = days
+    await db.flush()
+    return opp
+
+
+# ─────────────────────────────────────────────────────────
+# P1.5  RECOMMENDATIONS CRUD
+# ─────────────────────────────────────────────────────────
+
+async def get_recommendations(
+    db: AsyncSession,
+    customer_id: str,
+    status: Optional[str] = "pending",
+    rec_type: Optional[str] = None,
+    limit: int = 50,
+) -> List[Recommendation]:
+    """List recommendations for a customer."""
+    q = (
+        select(Recommendation)
+        .where(Recommendation.customer_id == customer_id)
+        .order_by(
+            # urgent/high first, then by generated_at
+            Recommendation.priority.in_(["urgent", "high"]).desc(),
+            Recommendation.generated_at.desc(),
+        )
+        .limit(limit)
+    )
+    if status:
+        q = q.where(Recommendation.status == status)
+    if rec_type:
+        q = q.where(Recommendation.rec_type == rec_type)
+    return list((await db.execute(q)).scalars().all())
+
+
+async def upsert_recommendation(
+    db: AsyncSession,
+    customer_id: str,
+    *,
+    rec_type: str,
+    title: str,
+    description: Optional[str] = None,
+    priority: str = "medium",
+    account_id=None,
+    sf_opp_id: Optional[str] = None,
+    owner_name: Optional[str] = None,
+    expires_at=None,
+) -> Recommendation:
+    """
+    Create a new Recommendation.  De-duplication: if a pending rec with the
+    same (customer_id, rec_type, sf_opp_id OR account_id) already exists,
+    just refresh its generated_at rather than creating a duplicate.
+    """
+    existing = None
+    if sf_opp_id:
+        existing = await db.scalar(
+            select(Recommendation).where(
+                Recommendation.customer_id == customer_id,
+                Recommendation.rec_type == rec_type,
+                Recommendation.sf_opp_id == sf_opp_id,
+                Recommendation.status == "pending",
+            )
+        )
+    elif account_id:
+        existing = await db.scalar(
+            select(Recommendation).where(
+                Recommendation.customer_id == customer_id,
+                Recommendation.rec_type == rec_type,
+                Recommendation.account_id == account_id,
+                Recommendation.status == "pending",
+            )
+        )
+
+    if existing:
+        existing.title = title
+        existing.description = description
+        existing.priority = priority
+        existing.generated_at = datetime.utcnow()
+        existing.expires_at = expires_at
+        await db.flush()
+        return existing
+
+    rec = Recommendation(
+        customer_id=customer_id,
+        rec_type=rec_type,
+        title=title,
+        description=description,
+        priority=priority,
+        account_id=account_id,
+        sf_opp_id=sf_opp_id,
+        owner_name=owner_name,
+        expires_at=expires_at,
+    )
+    db.add(rec)
+    await db.flush()
+    return rec
+
+
+async def update_recommendation_status(
+    db: AsyncSession,
+    rec_id: str,
+    customer_id: str,
+    status: str,
+) -> Optional[Recommendation]:
+    """Update a recommendation's status (actioned / dismissed)."""
+    values: Dict = {"status": status, "updated_at": datetime.utcnow()}
+    if status == "actioned":
+        values["actioned_at"] = datetime.utcnow()
+    await db.execute(
+        update(Recommendation)
+        .where(Recommendation.id == rec_id, Recommendation.customer_id == customer_id)
+        .values(**values)
+    )
+    return await db.scalar(
+        select(Recommendation).where(
+            Recommendation.id == rec_id,
+            Recommendation.customer_id == customer_id,
+        )
+    )
+
+
+async def expire_old_recommendations(
+    db: AsyncSession,
+    customer_id: str,
+) -> int:
+    """Mark expired pending recommendations as 'expired'."""
+    result = await db.execute(
+        update(Recommendation)
+        .where(
+            Recommendation.customer_id == customer_id,
+            Recommendation.status == "pending",
+            Recommendation.expires_at < datetime.utcnow(),
+        )
+        .values(status="expired", updated_at=datetime.utcnow())
+    )
+    return result.rowcount
+
+
+async def compute_and_save_recommendations(
+    db: AsyncSession,
+    customer_id: str,
+) -> List[Recommendation]:
+    """
+    Rule engine: examine current pipeline state and generate persisted Recommendations.
+    Called after each sync and by the daily Celery task.
+
+    Rules evaluated:
+      1. Stalled deals (is_stalled=True, or no activity 14+ days on open deal)
+      2. Closing soon with no recent activity (close_date within 14 days, no activity 7+ days)
+      3. High-value ICP accounts with no open deal
+      4. Coverage gap (pipeline value < 3× revenue target)
+    """
+    from datetime import timedelta
+    now = datetime.utcnow()
+    recs: List[Recommendation] = []
+
+    # ── 1. Stalled deals ───────────────────────────────────────────────────
+    stalled_opps = await db.execute(
+        select(SalesforceOpportunity).where(
+            SalesforceOpportunity.customer_id == customer_id,
+            SalesforceOpportunity.is_stalled == True,  # noqa: E712
+            SalesforceOpportunity.stage.notin_(("Closed Won", "Closed Lost")),
+        )
+    )
+    for opp in stalled_opps.scalars().all():
+        rec = await upsert_recommendation(
+            db,
+            customer_id,
+            rec_type="stalled_deal",
+            title=f"Stalled deal: {opp.account_name}",
+            description=(
+                f"'{opp.account_name}' ({opp.stage}) has had no activity for "
+                f"{opp.days_since_activity or '?'} days. "
+                "Push forward or close the deal."
+            ),
+            priority="high" if (opp.amount or 0) > 100_000 else "medium",
+            sf_opp_id=opp.sf_opportunity_id,
+            owner_name=opp.owner_name,
+            expires_at=now + timedelta(days=7),
+        )
+        recs.append(rec)
+
+    # ── 2. Closing soon with no activity ──────────────────────────────────
+    soon_cutoff = now + timedelta(days=14)
+    activity_cutoff = now - timedelta(days=7)
+    closing_soon = await db.execute(
+        select(SalesforceOpportunity).where(
+            SalesforceOpportunity.customer_id == customer_id,
+            SalesforceOpportunity.close_date.between(now, soon_cutoff),
+            SalesforceOpportunity.stage.notin_(("Closed Won", "Closed Lost")),
+            or_(
+                SalesforceOpportunity.last_activity_date < activity_cutoff,
+                SalesforceOpportunity.last_activity_date.is_(None),
+            ),
+        )
+    )
+    for opp in closing_soon.scalars().all():
+        rec = await upsert_recommendation(
+            db,
+            customer_id,
+            rec_type="closing_soon",
+            title=f"Closing soon, no recent activity: {opp.account_name}",
+            description=(
+                f"Deal with '{opp.account_name}' closes "
+                f"{opp.close_date.date() if opp.close_date else '?'} "
+                "but has had no activity in 7+ days."
+            ),
+            priority="urgent",
+            sf_opp_id=opp.sf_opportunity_id,
+            owner_name=opp.owner_name,
+            expires_at=opp.close_date,
+        )
+        recs.append(rec)
+
+    # ── 3. ICP A/B accounts with no open deal ─────────────────────────────
+    icp_no_deal = await db.execute(
+        select(Account).where(
+            Account.customer_id == customer_id,
+            Account.icp_tier.in_(("A", "B")),
+            Account.has_open_deal == False,  # noqa: E712
+        ).limit(20)
+    )
+    for acct in icp_no_deal.scalars().all():
+        rec = await upsert_recommendation(
+            db,
+            customer_id,
+            rec_type="activate_account",
+            title=f"ICP {acct.icp_tier}-tier account not in pipeline: {acct.name}",
+            description=(
+                f"'{acct.name}' scores {acct.icp_score}/100 on your ICP criteria "
+                "but has no active deal. Consider outreach."
+            ),
+            priority="medium",
+            account_id=acct.id,
+            expires_at=now + timedelta(days=14),
+        )
+        recs.append(rec)
+
+    # ── 4. Coverage gap ────────────────────────────────────────────────────
+    gtm = await db.scalar(select(GTMConfig).where(GTMConfig.customer_id == customer_id))
+    if gtm and gtm.goals:
+        target = (gtm.goals or {}).get("revenue_target") or 0
+        if target:
+            pipeline_val = await db.scalar(
+                select(func.coalesce(func.sum(SalesforceOpportunity.amount), 0)).where(
+                    SalesforceOpportunity.customer_id == customer_id,
+                    SalesforceOpportunity.stage.notin_(("Closed Won", "Closed Lost")),
+                )
+            ) or 0
+            if pipeline_val < target * 3:
+                rec = await upsert_recommendation(
+                    db,
+                    customer_id,
+                    rec_type="coverage_gap",
+                    title="Pipeline coverage below 3× target",
+                    description=(
+                        f"Current open pipeline is {pipeline_val:,.0f} vs "
+                        f"3× target of {target * 3:,.0f}. "
+                        "Increase prospecting or adjust the revenue target."
+                    ),
+                    priority="high",
+                    expires_at=now + timedelta(days=7),
+                )
+                recs.append(rec)
+
+    return recs

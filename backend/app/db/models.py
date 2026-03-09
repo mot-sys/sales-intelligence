@@ -44,6 +44,8 @@ class Customer(Base):
     gtm_config = relationship("GTMConfig", back_populates="customer", uselist=False, cascade="all, delete-orphan")
     forecast_snapshots = relationship("ForecastSnapshot", back_populates="customer", cascade="all, delete-orphan")
     kpi_snapshots      = relationship("KpiSnapshot", back_populates="customer", cascade="all, delete-orphan")
+    accounts           = relationship("Account", back_populates="customer", cascade="all, delete-orphan")
+    recommendations    = relationship("Recommendation", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -374,6 +376,11 @@ class SalesforceOpportunity(Base):
     owner_name = Column(String(255), nullable=True)
     last_activity_date = Column(TIMESTAMP, nullable=True)
     is_stalled = Column(Boolean, default=False, nullable=False)
+
+    # P1.3 — opportunity health scoring
+    health_score       = Column(Integer, nullable=True)   # 0-100 (100 = perfectly healthy)
+    health_risk_flags  = Column(JSON, nullable=True)      # e.g. ["no_activity_14d", "no_close_date"]
+    days_since_activity = Column(Integer, nullable=True)  # computed on every sync
 
     raw_data = Column(JSON, nullable=True)
     synced_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
@@ -822,4 +829,149 @@ class KpiSnapshot(Base):
 
     __table_args__ = (
         Index("idx_kpi_snapshot_customer_date", "customer_id", "snapshot_date", unique=True),
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# P1.1 — CANONICAL ACCOUNT MODEL
+# ─────────────────────────────────────────────────────────
+
+class Account(Base):
+    """
+    Canonical account entity — the single source of truth for a company.
+
+    Deduplication key: (customer_id, domain). When domain is null, each
+    source record creates its own Account (no cross-source merge possible
+    without a domain).
+
+    Populated by: Clay sync, HubSpot companies sync, Salesforce accounts sync.
+    ICP score computed by compute_icp_score() on every upsert.
+    """
+    __tablename__ = "accounts"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    # ── Identity ───────────────────────────────────────────────────────────
+    domain   = Column(String(255), nullable=True)   # canonical dedup key
+    name     = Column(String(255), nullable=False)
+
+    # ── Company attributes ─────────────────────────────────────────────────
+    industry       = Column(String(100), nullable=True)
+    employee_count = Column(Integer, nullable=True)
+    revenue        = Column(BigInteger, nullable=True)
+    location       = Column(String(255), nullable=True)
+    website        = Column(String(500), nullable=True)
+    linkedin_url   = Column(String(500), nullable=True)
+    technologies   = Column(JSON, nullable=True)    # list of tech strings
+
+    # ── ICP scoring (P1.2) ─────────────────────────────────────────────────
+    icp_score = Column(Integer, nullable=True)       # 0–100, null = not yet scored
+    icp_tier  = Column(String(1), nullable=True)     # A / B / C / D
+
+    # ── CRM status (denormalised for fast queries) ─────────────────────────
+    in_crm       = Column(Boolean, default=False, nullable=False)  # has SF/HubSpot record
+    has_open_deal = Column(Boolean, default=False, nullable=False)  # has active opportunity
+
+    # ── Sources that contributed to this account ───────────────────────────
+    # e.g. ["clay", "hubspot"]  — denormalised list for quick filtering
+    sources = Column(JSON, nullable=True)
+
+    # ── Timestamps ─────────────────────────────────────────────────────────
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="accounts")
+    account_sources = relationship("AccountSource", back_populates="account",
+                                   cascade="all, delete-orphan")
+
+    __table_args__ = (
+        # Domain-based dedup: one canonical account per domain per customer.
+        # The partial unique index lets multiple domain=NULL rows coexist.
+        Index("idx_account_customer_domain", "customer_id", "domain", unique=True),
+        Index("idx_account_icp_tier", "customer_id", "icp_tier"),
+        Index("idx_account_has_open_deal", "customer_id", "has_open_deal"),
+    )
+
+
+class AccountSource(Base):
+    """
+    Junction table: tracks which source systems contributed data to an Account.
+    One row per (account_id, source, external_id).
+    Keeps the raw external ID so we can re-sync / update the canonical record.
+    """
+    __tablename__ = "account_sources"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    account_id  = Column(UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="CASCADE"), nullable=False)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    source      = Column(String(50), nullable=False)   # clay / salesforce / hubspot / snitcher
+    external_id = Column(String(255), nullable=False)  # ID in the source system
+
+    # Optional back-references to raw source rows
+    lead_id     = Column(UUID(as_uuid=True), ForeignKey("leads.id", ondelete="SET NULL"), nullable=True)
+
+    synced_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Relationships
+    account = relationship("Account", back_populates="account_sources")
+
+    __table_args__ = (
+        Index("idx_acct_source_unique", "account_id", "source", "external_id", unique=True),
+        Index("idx_acct_source_lookup", "customer_id", "source", "external_id"),
+    )
+
+
+# ─────────────────────────────────────────────────────────
+# P1.5 — RECOMMENDATIONS
+# ─────────────────────────────────────────────────────────
+
+class Recommendation(Base):
+    """
+    Persisted, actionable recommendation for a sales rep or manager.
+
+    Generated daily by the rule engine (compute_recommendations).
+    Lifecycle: pending → actioned / dismissed / expired.
+    Expired recs are those whose expires_at has passed without action.
+    """
+    __tablename__ = "recommendations"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    # ── Classification ─────────────────────────────────────────────────────
+    rec_type = Column(String(50), nullable=False)
+    # stalled_deal | closing_soon | rep_coaching | activate_account | coverage_gap
+
+    priority = Column(String(20), nullable=False, default="medium")
+    # urgent / high / medium / low
+
+    # ── Content ────────────────────────────────────────────────────────────
+    title       = Column(String(500), nullable=False)
+    description = Column(Text, nullable=True)
+
+    # ── Target entity (at most one of these is set) ────────────────────────
+    account_id       = Column(UUID(as_uuid=True), ForeignKey("accounts.id", ondelete="SET NULL"), nullable=True)
+    sf_opp_id        = Column(String(255), nullable=True)   # SalesforceOpportunity.sf_opportunity_id
+    owner_name       = Column(String(255), nullable=True)   # sales rep
+
+    # ── Lifecycle ──────────────────────────────────────────────────────────
+    status       = Column(String(20), nullable=False, default="pending")
+    # pending / actioned / dismissed / expired
+
+    generated_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    expires_at   = Column(TIMESTAMP, nullable=True)   # auto-expire after N days
+    actioned_at  = Column(TIMESTAMP, nullable=True)
+    created_at   = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at   = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="recommendations")
+
+    __table_args__ = (
+        Index("idx_rec_customer_status", "customer_id", "status", "created_at"),
+        Index("idx_rec_customer_type", "customer_id", "rec_type"),
+        Index("idx_rec_account", "account_id"),
     )

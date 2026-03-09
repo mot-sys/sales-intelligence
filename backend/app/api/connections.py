@@ -250,14 +250,30 @@ async def sync_salesforce(
         opps_upserted = 0
         for opp in opps:
             sf_id = opp.pop("sf_opportunity_id")
-            await crud.upsert_sf_opportunity(db, customer_id, sf_id, opp)
+            opp_row = await crud.upsert_sf_opportunity(db, customer_id, sf_id, opp)
+            await crud.update_opp_health(db, opp_row)          # P1.3
+            if opp_row.account_name:                           # P1.1 keep deal flag up to date
+                await crud.refresh_account_deal_flag(db, customer_id, opp_row.account_name)
             opps_upserted += 1
 
         accs_upserted = 0
         for acc in accs:
             sf_id = acc.pop("sf_account_id")
             await crud.upsert_sf_account(db, customer_id, sf_id, acc)
+            # P1.1 — also create/update canonical Account
+            await crud.upsert_account(
+                db, customer_id,
+                name=acc.get("name") or sf_id,
+                domain=acc.get("domain"),
+                industry=acc.get("industry"),
+                employee_count=acc.get("employee_count"),
+                in_crm=True,
+                source="salesforce",
+            )
             accs_upserted += 1
+
+        # P1.5 — regenerate recommendations after sync
+        await crud.compute_and_save_recommendations(db, customer_id)
 
         await _write_sync_log(
             db, integration,
@@ -436,7 +452,10 @@ async def sync_hubspot(
         leads_upserted = 0
         for deal in deals:
             sf_id = deal.pop("sf_opportunity_id")
-            await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
+            opp_row = await crud.upsert_sf_opportunity(db, customer_id, sf_id, deal)
+            await crud.update_opp_health(db, opp_row)          # P1.3
+            if opp_row.account_name:
+                await crud.refresh_account_deal_flag(db, customer_id, opp_row.account_name)
             deals_upserted += 1
 
             stage = (deal.get("stage") or "").lower()
@@ -468,7 +487,20 @@ async def sync_hubspot(
         for company in companies:
             sf_id = company.pop("sf_account_id")
             await crud.upsert_sf_account(db, customer_id, sf_id, company)
+            # P1.1 — canonical account
+            await crud.upsert_account(
+                db, customer_id,
+                name=company.get("name") or sf_id,
+                domain=company.get("domain"),
+                industry=company.get("industry"),
+                employee_count=company.get("employee_count"),
+                in_crm=True,
+                source="hubspot",
+            )
             companies_upserted += 1
+
+        # P1.5 — regenerate recommendations after sync
+        await crud.compute_and_save_recommendations(db, customer_id)
 
         # Save cursor so next sync is incremental
         await crud.save_sync_cursor(
@@ -598,10 +630,25 @@ async def _sync_clay(db: AsyncSession, integration: Integration, customer_id: st
                 recommendation=result["recommendation"],
             )
 
+            # P1.1 — upsert canonical Account from Clay lead
+            await crud.upsert_account(
+                db, customer_id,
+                name=lead.company_name,
+                domain=lead.company_domain,
+                industry=lead.industry,
+                employee_count=lead.employee_count,
+                revenue=lead.revenue,
+                location=lead.location,
+                source="clay",
+            )
+
             if already_exists:
                 updated += 1
             else:
                 created += 1
+
+        # P1.5 — regenerate recommendations after clay sync
+        await crud.compute_and_save_recommendations(db, customer_id)
 
         await _write_sync_log(
             db, integration,
