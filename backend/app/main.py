@@ -14,7 +14,7 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 import uuid
 from app.core.config import settings, is_production
-from app.api import leads, analysis, connections, auth, alerts, webhooks, chat, reports, cmt, workflows, gtm, accounts
+from app.api import leads, analysis, connections, auth, alerts, webhooks, chat, reports, cmt, workflows, gtm, accounts, outbound
 from app.api import settings as settings_api
 from app.db.session import engine, Base, AsyncSessionLocal
 
@@ -182,15 +182,24 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Detailed health check"""
-    # TODO: Add checks for database, Redis, external APIs
+    """Detailed health check with real DB connectivity probe."""
+    from sqlalchemy import text
+    db_status = "ok"
+    db_error  = None
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+    except Exception as exc:
+        db_status = "error"
+        db_error  = str(exc)[:200]
+
+    overall = "healthy" if db_status == "ok" else "degraded"
     return {
-        "status": "healthy",
+        "status": overall,
         "checks": {
-            "database": "ok",
-            "redis": "ok",
-            "integrations": "ok"
-        }
+            "database": db_status,
+            **({"database_error": db_error} if db_error else {}),
+        },
     }
 
 
@@ -207,6 +216,7 @@ app.include_router(reports.router, prefix="/api/reports/weekly", tags=["Reports"
 app.include_router(cmt.router, prefix="/api/cmt", tags=["CMT"])
 app.include_router(workflows.router, prefix="/api/workflows", tags=["Workflows"])
 app.include_router(gtm.router, prefix="/api/gtm", tags=["GTM"])
+app.include_router(outbound.router, prefix="/api/outbound", tags=["Outbound"])
 app.include_router(accounts.router, prefix="/api/accounts", tags=["Accounts"])
 
 
