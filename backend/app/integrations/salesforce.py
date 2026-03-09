@@ -81,6 +81,126 @@ class SalesforceIntegration(BaseIntegration):
         records = await asyncio.to_thread(_query)
         return [self._map_account(r) for r in records]
 
+    async def sync_activities(self, days_back: int = 90) -> List[Dict]:
+        """
+        Fetch Salesforce Task and Event records for the last `days_back` days
+        and return normalised activity dicts ready for upsert into crm_activities.
+
+        Each result maps to:
+          external_id, activity_type, occurred_at, owner_name, contact_name,
+          company_name, subject, body, deal_id
+
+        Args:
+            days_back: How many calendar days to look back for activities.
+                       Defaults to 90. Use a smaller window for incremental syncs.
+        """
+        tasks  = await self._fetch_tasks(days_back)
+        events = await self._fetch_events(days_back)
+        return tasks + events
+
+    async def _fetch_tasks(self, days_back: int) -> List[Dict]:
+        """Fetch Salesforce Task objects via SOQL."""
+        soql = (
+            "SELECT Id, Subject, ActivityDate, Type, Status, "
+            "Owner.Name, WhoId, What.Name, Description "
+            f"FROM Task WHERE ActivityDate >= LAST_N_DAYS:{days_back} "
+            "ORDER BY ActivityDate DESC LIMIT 2000"
+        )
+        try:
+            def _query():
+                sf = self._get_sf()
+                result = sf.query_all(soql)
+                return result.get("records", [])
+            records = await asyncio.to_thread(_query)
+        except Exception:
+            return []
+
+        activities = []
+        for r in records:
+            activities.append({
+                "external_id":   r.get("Id", ""),
+                "activity_type": self._map_sf_task_type(r.get("Type") or r.get("Status")),
+                "occurred_at":   self._parse_sf_date(r.get("ActivityDate")),
+                "owner_name":    (r.get("Owner") or {}).get("Name"),
+                "contact_name":  None,          # WhoId lookup would need extra query
+                "company_name":  (r.get("What") or {}).get("Name"),
+                "subject":       r.get("Subject"),
+                "body":          r.get("Description"),
+                "deal_id":       None,           # enriched via company_name match post-sync
+            })
+        return activities
+
+    async def _fetch_events(self, days_back: int) -> List[Dict]:
+        """Fetch Salesforce Event objects via SOQL."""
+        soql = (
+            "SELECT Id, Subject, ActivityDateTime, Type, "
+            "Owner.Name, WhoId, What.Name, Description "
+            f"FROM Event WHERE ActivityDateTime >= LAST_N_DAYS:{days_back} "
+            "ORDER BY ActivityDateTime DESC LIMIT 2000"
+        )
+        try:
+            def _query():
+                sf = self._get_sf()
+                result = sf.query_all(soql)
+                return result.get("records", [])
+            records = await asyncio.to_thread(_query)
+        except Exception:
+            return []
+
+        activities = []
+        for r in records:
+            activities.append({
+                "external_id":   r.get("Id", ""),
+                "activity_type": self._map_sf_event_type(r.get("Type")),
+                "occurred_at":   self._parse_sf_datetime(r.get("ActivityDateTime")),
+                "owner_name":    (r.get("Owner") or {}).get("Name"),
+                "contact_name":  None,
+                "company_name":  (r.get("What") or {}).get("Name"),
+                "subject":       r.get("Subject"),
+                "body":          r.get("Description"),
+                "deal_id":       None,
+            })
+        return activities
+
+    # ── Salesforce activity type helpers ──────────────────────────────────
+
+    @staticmethod
+    def _map_sf_task_type(sf_type: Optional[str]) -> str:
+        """Map a Salesforce Task Type/Status value to our activity_type enum."""
+        t = (sf_type or "").lower()
+        if "call" in t:      return "call"
+        if "email" in t:     return "email"
+        if "meeting" in t:   return "meeting"
+        return "task"
+
+    @staticmethod
+    def _map_sf_event_type(sf_type: Optional[str]) -> str:
+        """Map a Salesforce Event Type to our activity_type enum."""
+        t = (sf_type or "").lower()
+        if "call" in t:      return "call"
+        if "email" in t:     return "email"
+        return "meeting"  # default for calendar events
+
+    @staticmethod
+    def _parse_sf_date(date_str: Optional[str]) -> Optional[datetime]:
+        """Parse a Salesforce date string (YYYY-MM-DD)."""
+        if not date_str:
+            return None
+        try:
+            return datetime.fromisoformat(date_str)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _parse_sf_datetime(dt_str: Optional[str]) -> Optional[datetime]:
+        """Parse a Salesforce datetime string (ISO 8601)."""
+        if not dt_str:
+            return None
+        try:
+            return datetime.fromisoformat(dt_str.replace("Z", ""))
+        except Exception:
+            return None
+
     async def detect_stalled_deals(self, days: int = 7) -> List[Dict]:
         """
         Return open opportunities with LastActivityDate older than `days` days

@@ -272,13 +272,22 @@ async def sync_salesforce(
             )
             accs_upserted += 1
 
+        # P1.6 — sync Task + Event activity records
+        activities = await sf.sync_activities()
+        acts_upserted = 0
+        for act in activities:
+            ext_id = act.pop("external_id")
+            if ext_id:
+                await crud.upsert_crm_activity(db, customer_id, "salesforce", ext_id, act)
+                acts_upserted += 1
+
         # P1.5 — regenerate recommendations after sync
         await crud.compute_and_save_recommendations(db, customer_id)
 
         await _write_sync_log(
             db, integration,
             status="success",
-            records_created=opps_upserted + accs_upserted,
+            records_created=opps_upserted + accs_upserted + acts_upserted,
             duration_ms=int((time.monotonic() - t0) * 1000),
         )
     except Exception as exc:
@@ -301,6 +310,7 @@ async def sync_salesforce(
         "message": "Salesforce sync complete",
         "opportunities_synced": opps_upserted,
         "accounts_synced": accs_upserted,
+        "activities_synced": acts_upserted,
     }
 
 
@@ -499,17 +509,31 @@ async def sync_hubspot(
             )
             companies_upserted += 1
 
+        # P1.6 — sync engagements (calls, emails, meetings, notes)
+        engagements_cursor = await crud.get_sync_cursor(db, str(integration.id), "engagements")
+        engagements = await hs.sync_engagements(modified_after=engagements_cursor)
+        acts_upserted = 0
+        for eng in engagements:
+            ext_id = eng.pop("external_id")
+            if ext_id:
+                await crud.upsert_crm_activity(db, customer_id, "hubspot", ext_id, eng)
+                acts_upserted += 1
+        # Advance cursor for next incremental engagements sync
+        await crud.save_sync_cursor(
+            db, str(integration.id), customer_id, "engagements", sync_start_ts
+        )
+
         # P1.5 — regenerate recommendations after sync
         await crud.compute_and_save_recommendations(db, customer_id)
 
-        # Save cursor so next sync is incremental
+        # Save cursor so next deals sync is incremental
         await crud.save_sync_cursor(
             db, str(integration.id), customer_id, "deals", sync_start_ts
         )
         await _write_sync_log(
             db, integration,
             status="success",
-            records_created=deals_upserted + companies_upserted,
+            records_created=deals_upserted + companies_upserted + acts_upserted,
             duration_ms=int((time.monotonic() - t0) * 1000),
         )
     except Exception as exc:
@@ -529,14 +553,15 @@ async def sync_hubspot(
     await db.commit()
 
     logger.info(
-        "HubSpot sync complete for customer %s: %d deals, %d companies, %d leads",
-        customer_id, deals_upserted, companies_upserted, leads_upserted,
+        "HubSpot sync complete for customer %s: %d deals, %d companies, %d leads, %d activities",
+        customer_id, deals_upserted, companies_upserted, leads_upserted, acts_upserted,
     )
     return {
         "message": "HubSpot sync complete",
         "deals_synced": deals_upserted,
         "companies_synced": companies_upserted,
         "leads_upserted": leads_upserted,
+        "activities_synced": acts_upserted,
         "incremental": deals_cursor is not None,
     }
 

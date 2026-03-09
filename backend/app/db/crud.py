@@ -16,7 +16,7 @@ from app.db.models import (
     SalesforceOpportunity, SalesforceAccount,
     ChatSession, ChatMessage, AIAction, IntegrationSyncLog, AISettings, WeeklyReport,
     NotionInitiative, IntegrationSyncState, KpiSnapshot,
-    Account, AccountSource, Recommendation, GTMConfig,
+    Account, AccountSource, Recommendation, GTMConfig, CRMActivity,
 )
 
 
@@ -1731,3 +1731,105 @@ async def compute_and_save_recommendations(
                 recs.append(rec)
 
     return recs
+
+
+# ─────────────────────────────────────────────
+# CRM ACTIVITY OPERATIONS  (P1.6)
+# ─────────────────────────────────────────────
+
+async def upsert_crm_activity(
+    db: AsyncSession,
+    customer_id: str,
+    source: str,
+    external_id: str,
+    data: Dict,
+) -> CRMActivity:
+    """
+    Insert-or-update a CRM activity row keyed on (customer_id, source, external_id).
+
+    data keys (all optional):
+        activity_type, occurred_at, owner_name, contact_name,
+        company_name, subject, body, deal_id
+    """
+    result = await db.execute(
+        select(CRMActivity).where(
+            CRMActivity.customer_id == customer_id,
+            CRMActivity.source == source,
+            CRMActivity.external_id == external_id,
+        )
+    )
+    act = result.scalar_one_or_none()
+    if act:
+        for k, v in data.items():
+            setattr(act, k, v)
+        act.synced_at = datetime.utcnow()
+    else:
+        act = CRMActivity(
+            customer_id=customer_id,
+            source=source,
+            external_id=external_id,
+            synced_at=datetime.utcnow(),
+            **data,
+        )
+        db.add(act)
+    await db.flush()
+    return act
+
+
+async def get_activity_summary(
+    db: AsyncSession,
+    customer_id: str,
+    days: int = 30,
+) -> Dict:
+    """
+    Return a summary of CRM activities for the last `days` days.
+    Used by the Intelligence tab activity breakdown.
+    """
+    from datetime import timedelta
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+    rows = await db.execute(
+        select(
+            CRMActivity.activity_type,
+            CRMActivity.source,
+            func.count(CRMActivity.id).label("count"),
+        )
+        .where(
+            CRMActivity.customer_id == customer_id,
+            CRMActivity.occurred_at >= cutoff,
+        )
+        .group_by(CRMActivity.activity_type, CRMActivity.source)
+    )
+    breakdown: Dict = {}
+    total = 0
+    for atype, source, count in rows:
+        key = atype or "other"
+        breakdown[key] = breakdown.get(key, 0) + count
+        total += count
+
+    # recent activities (last 10)
+    recent_rows = await db.execute(
+        select(CRMActivity)
+        .where(
+            CRMActivity.customer_id == customer_id,
+            CRMActivity.occurred_at >= cutoff,
+        )
+        .order_by(CRMActivity.occurred_at.desc())
+        .limit(10)
+    )
+    recent = [
+        {
+            "id":            str(r.id),
+            "source":        r.source,
+            "activity_type": r.activity_type,
+            "occurred_at":   r.occurred_at.isoformat() if r.occurred_at else None,
+            "owner_name":    r.owner_name,
+            "contact_name":  r.contact_name,
+            "company_name":  r.company_name,
+            "subject":       r.subject,
+            "deal_id":       r.deal_id,
+        }
+        for r in recent_rows.scalars()
+    ]
+
+    return {"total": total, "breakdown": breakdown, "recent": recent}

@@ -308,6 +308,150 @@ class HubSpotIntegration(BaseIntegration):
                     break
         return results
 
+    # ─────────────────────────────────────────────
+    # Engagements (calls, emails, meetings, notes)
+    # ─────────────────────────────────────────────
+
+    async def sync_engagements(self, modified_after: Optional[str] = None, limit: int = 500) -> List[Dict]:
+        """
+        Fetch HubSpot engagements (calls, emails, meetings, notes) and return
+        normalised activity dicts ready for upsert into crm_activities.
+
+        Uses the v1 Engagements API which returns all engagement types in one
+        paginated feed.  Each result is mapped to:
+          external_id, activity_type, occurred_at, owner_name, contact_name,
+          company_name, subject, body, deal_id
+
+        Args:
+            modified_after: ISO timestamp — only fetch engagements created/updated
+                            after this point (incremental sync).  None = full sync.
+            limit:          Maximum engagements to return (capped at 250 per page).
+        """
+        try:
+            owner_map = await self._fetch_owners()
+            records   = await self._fetch_engagements_paged(modified_after, max_results=limit)
+            return [self._map_engagement(r, owner_map) for r in records]
+        except Exception:
+            return []
+
+    async def _fetch_engagements_paged(
+        self,
+        modified_after: Optional[str],
+        max_results: int = 500,
+    ) -> List[Dict]:
+        """
+        Paginate through /engagements/v1/engagements/paged.
+        Optionally filter server-side by lastUpdated when modified_after is set.
+        """
+        after_ts: Optional[int] = None
+        if modified_after:
+            try:
+                from datetime import timezone as _tz
+                dt = datetime.fromisoformat(modified_after.replace("Z", "+00:00"))
+                after_ts = int(dt.timestamp() * 1000)
+            except Exception:
+                pass
+
+        results: List[Dict] = []
+        offset = 0
+        page_size = min(250, max_results)
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            while len(results) < max_results:
+                params: Dict = {"count": page_size, "offset": offset}
+                r = await client.get(
+                    f"{HUBSPOT_BASE}/engagements/v1/engagements/paged",
+                    headers=self._headers,
+                    params=params,
+                )
+                if r.status_code == 404:
+                    # Endpoint not available on this portal plan
+                    break
+                r.raise_for_status()
+                data = r.json()
+                for item in data.get("results", []):
+                    eng = item.get("engagement", {})
+                    # Filter by lastUpdated if incremental
+                    if after_ts and eng.get("lastUpdated", 0) < after_ts:
+                        continue
+                    results.append(item)
+                    if len(results) >= max_results:
+                        break
+                if not data.get("hasMore") or not data.get("results"):
+                    break
+                offset = data.get("offset", offset + page_size)
+
+        return results
+
+    def _map_engagement(self, item: Dict, owner_map: Dict[str, str]) -> Dict:
+        """Map a HubSpot engagement record to our internal activity dict."""
+        eng   = item.get("engagement", {})
+        meta  = item.get("metadata", {})
+        assoc = item.get("associations", {})
+
+        eng_id   = str(eng.get("id", ""))
+        eng_type = (eng.get("type") or "").upper()
+
+        type_map = {
+            "CALL":    "call",
+            "EMAIL":   "email",
+            "MEETING": "meeting",
+            "NOTE":    "note",
+            "TASK":    "task",
+        }
+        activity_type = type_map.get(eng_type, eng_type.lower() or "other")
+
+        # Timestamp: prefer activityDate > createdAt
+        ts_ms = eng.get("activityDate") or eng.get("createdAt")
+        occurred_at: Optional[datetime] = None
+        if ts_ms:
+            try:
+                occurred_at = datetime.utcfromtimestamp(int(ts_ms) / 1000)
+            except Exception:
+                pass
+
+        # Owner
+        owner_id   = str(eng.get("ownerId") or "")
+        owner_name = owner_map.get(owner_id) if owner_id else None
+
+        # Subject / body
+        subject = (
+            meta.get("subject") or meta.get("title")
+            or meta.get("durationMilliseconds") and f"Call ({int(meta.get('durationMilliseconds', 0)) // 60000} min)"
+            or None
+        )
+        body = meta.get("body") or meta.get("text") or meta.get("html") or None
+
+        # Associated deal
+        deal_ids = assoc.get("dealIds", [])
+        deal_id  = f"hs_{deal_ids[0]}" if deal_ids else None
+
+        # Associated contact (first only)
+        contact_vids = assoc.get("contactIds", [])
+        contact_name: Optional[str] = None
+        if contact_vids:
+            # We store the contact VID as placeholder; a full lookup would need
+            # a separate API call — not worth it for the activity feed.
+            contact_name = f"contact:{contact_vids[0]}"
+
+        # Associated company
+        company_ids = assoc.get("companyIds", [])
+        company_name: Optional[str] = None
+        if company_ids:
+            company_name = f"company:{company_ids[0]}"
+
+        return {
+            "external_id":   eng_id,
+            "activity_type": activity_type,
+            "occurred_at":   occurred_at,
+            "owner_name":    owner_name,
+            "contact_name":  contact_name,
+            "company_name":  company_name,
+            "subject":       subject,
+            "body":          body,
+            "deal_id":       deal_id,
+        }
+
     async def detect_stalled_deals(self, days: int = 7) -> List[Dict]:
         """Return deals with no activity in the last `days` days."""
         all_deals = await self.sync_deals()

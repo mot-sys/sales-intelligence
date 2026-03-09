@@ -46,6 +46,7 @@ class Customer(Base):
     kpi_snapshots      = relationship("KpiSnapshot", back_populates="customer", cascade="all, delete-orphan")
     accounts           = relationship("Account", back_populates="customer", cascade="all, delete-orphan")
     recommendations    = relationship("Recommendation", back_populates="customer", cascade="all, delete-orphan")
+    crm_activities     = relationship("CRMActivity", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -974,4 +975,43 @@ class Recommendation(Base):
         Index("idx_rec_customer_status", "customer_id", "status", "created_at"),
         Index("idx_rec_customer_type", "customer_id", "rec_type"),
         Index("idx_rec_account", "account_id"),
+    )
+
+
+class CRMActivity(Base):
+    """
+    Logged CRM activity synced from HubSpot (engagements) or Salesforce (Task/Event).
+    One row per engagement/task/event; deduped on (customer_id, source, external_id).
+
+    activity_type values: call | email | meeting | task | note
+    source values:        hubspot | salesforce
+    """
+    __tablename__ = "crm_activities"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"), nullable=False)
+
+    source      = Column(String(50),  nullable=False)              # "hubspot" | "salesforce"
+    external_id = Column(String(255), nullable=False)              # engagement/task/event ID in source CRM
+
+    activity_type = Column(String(50), nullable=True)              # call | email | meeting | task | note
+    occurred_at   = Column(TIMESTAMP, nullable=True)               # when the activity happened
+    owner_name    = Column(String(255), nullable=True)             # sales rep who logged it
+    contact_name  = Column(String(255), nullable=True)             # contact the activity is about
+    company_name  = Column(String(255), nullable=True)             # company / deal name
+    subject       = Column(String(500), nullable=True)             # task subject / call title
+    body          = Column(Text,        nullable=True)             # notes / description
+    deal_id       = Column(String(255), nullable=True)             # sf_opportunity_id of linked deal
+
+    synced_at  = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Relationships
+    customer = relationship("Customer", back_populates="crm_activities")
+
+    __table_args__ = (
+        Index("idx_crm_activity_customer",    "customer_id", "occurred_at"),
+        Index("idx_crm_activity_dedup",       "customer_id", "source", "external_id", unique=True),
+        Index("idx_crm_activity_owner",       "customer_id", "owner_name"),
+        Index("idx_crm_activity_type",        "customer_id", "activity_type"),
     )
