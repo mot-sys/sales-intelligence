@@ -144,7 +144,7 @@ export default function PipelinePage() {
                   {(analyticsData?.accounts?.accounts || []).slice(0, 25).map((a, i) => (
                     <tr key={i} className="hover:bg-gray-50">
                       <td className="px-6 py-3 text-sm font-medium text-gray-900">
-                        {a.account_name || a.company_name || '—'}
+                        {a.company || a.account_name || a.company_name || '—'}
                       </td>
                       <td className="px-6 py-3 text-sm text-gray-600">{a.industry || '—'}</td>
                       <td className="px-6 py-3 text-sm text-right text-gray-600">
@@ -152,11 +152,11 @@ export default function PipelinePage() {
                       </td>
                       <td className="px-6 py-3 text-right">
                         <span className="text-sm font-bold text-blue-600">
-                          {Math.round(a.priority_score || a.score || 0)}
+                          {Math.round(a.priority_score || a.lead_score || a.score || 0)}
                         </span>
                       </td>
                       <td className="px-6 py-3 text-sm text-gray-500">
-                        {a.stage || a.current_stage || '—'}
+                        {a.deal_stage || a.stage || a.current_stage || (a.has_open_deal ? 'Open Deal' : '—')}
                       </td>
                     </tr>
                   ))}
