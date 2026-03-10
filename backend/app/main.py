@@ -14,7 +14,7 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 import uuid
 from app.core.config import settings, is_production
-from app.api import leads, analysis, connections, auth, alerts, webhooks, chat, reports, cmt, workflows, gtm, accounts, team, alert_rules
+from app.api import leads, analysis, connections, auth, alerts, webhooks, chat, reports, cmt, workflows, gtm, accounts, team, alert_rules, board
 from app.api import settings as settings_api
 from app.db.session import engine, Base, AsyncSessionLocal
 
@@ -219,6 +219,7 @@ app.include_router(gtm.router, prefix="/api/gtm", tags=["GTM"])
 app.include_router(accounts.router, prefix="/api/accounts", tags=["Accounts"])
 app.include_router(team.router,        prefix="/api/team",         tags=["Team"])
 app.include_router(alert_rules.router, prefix="/api/alert-rules", tags=["Alert Rules"])
+app.include_router(board.router,       prefix="/api/board",       tags=["Board"])
 
 
 if __name__ == "__main__":

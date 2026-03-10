@@ -3,7 +3,7 @@ import {
   Activity, Database, Brain, Users,
   TrendingUp, Zap, RefreshCw, Bell, X, ChevronDown,
   Sparkles, BarChart2, Target, FileText,
-  Building2, Compass, Archive, Radio, UserCog,
+  Building2, Compass, Archive, Radio, UserCog, Award,
 } from 'lucide-react';
 
 // ── Page components (P1.10 extraction) ───────────────────────────────────────
@@ -24,6 +24,7 @@ import DataPage         from './pages/DataPage';
 import LeadsPage        from './pages/LeadsPage';
 import TeamPage         from './pages/TeamPage';
 import AlertRulesPage   from './pages/AlertRulesPage';
+import BoardPage        from './pages/BoardPage';
 
 import useDataStore from './store/dataStore';
 
@@ -56,6 +57,7 @@ const SalesIntelligencePlatform = () => {
     { id: 'leads',       label: 'Lead Intel',    icon: Users },
     { id: 'team',        label: 'Team',          icon: UserCog },
     { id: 'alert-rules', label: 'Alert Regler',  icon: Bell },
+    { id: 'board',       label: 'Board Summary', icon: Award },
   ];
 
   return (
@@ -178,6 +180,7 @@ const SalesIntelligencePlatform = () => {
         {activeTab === 'leads'       && <LeadsPage />}
         {activeTab === 'team'        && <TeamPage />}
         {activeTab === 'alert-rules' && <AlertRulesPage />}
+        {activeTab === 'board'       && <BoardPage />}
 
       </div>
     </div>

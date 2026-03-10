@@ -40,6 +40,9 @@ anthropic==0.40.0
 # Email delivery (weekly report, alerts)
 resend==2.0.0
 
+# PDF generation (board summary export)
+fpdf2==2.7.9
+
 # Task Queue
 celery==5.3.6
 flower==2.0.1
