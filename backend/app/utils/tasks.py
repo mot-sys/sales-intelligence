@@ -447,7 +447,27 @@ Svar kun med de tre sektioner, ingen introduktion."""
                     model_used=settings.ANTHROPIC_MODEL,
                 )
                 db.add(report)
+                await db.flush()   # get report.id before commit
                 reports_generated += 1
+
+                # P2.10 — email the report if enabled and customer has an email address
+                if settings.EMAIL_REPORT_ENABLED and settings.RESEND_API_KEY:
+                    try:
+                        from app.core.email import send_weekly_report_email
+                        week_start_str = week_start_date.isoformat()
+                        await send_weekly_report_email(
+                            to_email=customer.email,
+                            customer_name=customer.name or "din virksomhed",
+                            week_start=week_start_str,
+                            section_what_happened=s_happened,
+                            section_this_week=s_week,
+                            section_management=s_mgmt,
+                        )
+                    except Exception as mail_exc:
+                        import logging as _log
+                        _log.getLogger(__name__).warning(
+                            "Email for customer %s failed: %s", cid, mail_exc
+                        )
 
             except Exception as exc:
                 # Don't fail the whole batch if one customer errors

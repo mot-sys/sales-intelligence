@@ -17,7 +17,7 @@ from app.core.config import settings
 from app.core.security import get_current_customer_id
 from app.db import crud as db_crud
 from app.db.models import (
-    Alert, SalesforceOpportunity, OutboundAction, Integration
+    Alert, SalesforceOpportunity, Integration
 )
 from app.db.session import get_db
 
@@ -363,6 +363,25 @@ async def generate_weekly_report(
         model_used=model,
     )
 
+    # P2.10 — auto-send email if enabled
+    if settings.EMAIL_REPORT_ENABLED and settings.RESEND_API_KEY:
+        try:
+            from app.core.email import send_weekly_report_email
+            from app.db.models import Customer as _Customer
+            from sqlalchemy import select as _select
+            customer_row = await db.scalar(_select(_Customer).where(_Customer.id == customer_id))
+            if customer_row:
+                await send_weekly_report_email(
+                    to_email=customer_row.email,
+                    customer_name=customer_row.name or "din virksomhed",
+                    week_start=report.week_start.strftime("%Y-%m-%d") if report.week_start else "—",
+                    section_what_happened=what_happened,
+                    section_this_week=this_week,
+                    section_management=management,
+                )
+        except Exception as mail_exc:
+            logger.warning("Auto-email after generate failed: %s", mail_exc)
+
     return WeeklyReportResponse(
         week_start=report.week_start.strftime("%Y-%m-%d") if report.week_start else None,
         generated_at=report.generated_at.isoformat() if report.generated_at else None,
@@ -474,3 +493,79 @@ def _build_changelog_summary(deltas: Dict) -> List[str]:
         pct_str = f" ({sign}{abs(pct)}%)" if pct is not None else ""
         bullets.append(f"{label}: {v['previous']} → {v['current']}{pct_str}")
     return bullets
+
+
+# ─────────────────────────────────────────────
+# P2.10  POST /weekly/send  — email the latest report
+# ─────────────────────────────────────────────
+
+@router.post("/send")
+async def send_weekly_report_email_now(
+    to_email: Optional[str] = None,   # override recipient; defaults to customer email
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Email the latest stored weekly report to the customer (or a specified address).
+
+    - Uses the most recently persisted WeeklyReport row.
+    - Returns 404 if no report has been generated yet.
+    - Returns 503 if RESEND_API_KEY is not configured.
+    """
+    from app.core.email import send_weekly_report_email
+    from app.db.models import Customer
+    from sqlalchemy import select
+
+    if not settings.ANTHROPIC_API_KEY and not settings.RESEND_API_KEY:
+        pass  # will 503 below
+
+    if not settings.RESEND_API_KEY:
+        raise HTTPException(
+            status_code=503,
+            detail="RESEND_API_KEY er ikke sat — email kan ikke sendes. Tilføj den til .env.",
+        )
+
+    report = await db_crud.get_latest_weekly_report(db, customer_id)
+    if not report:
+        raise HTTPException(
+            status_code=404,
+            detail="Ingen rapport fundet. Generer en rapport først via POST /weekly/generate.",
+        )
+
+    # Resolve recipient
+    recipient = to_email
+    if not recipient:
+        customer = await db.scalar(select(Customer).where(Customer.id == customer_id))
+        recipient = customer.email if customer else None
+
+    if not recipient:
+        raise HTTPException(status_code=400, detail="Kunne ikke finde modtager-email.")
+
+    # Resolve customer name for the email header
+    customer_name = "din virksomhed"
+    try:
+        customer_row = await db.scalar(select(Customer).where(Customer.id == customer_id))
+        if customer_row and customer_row.name:
+            customer_name = customer_row.name
+    except Exception:
+        pass
+
+    week_start_str = report.week_start.strftime("%Y-%m-%d") if report.week_start else "—"
+
+    ok = await send_weekly_report_email(
+        to_email=recipient,
+        customer_name=customer_name,
+        week_start=week_start_str,
+        section_what_happened=report.section_what_happened,
+        section_this_week=report.section_this_week,
+        section_management=report.section_management,
+    )
+
+    if not ok:
+        raise HTTPException(status_code=502, detail="Email afsendelse mislykkedes. Tjek RESEND_API_KEY og FROM_EMAIL.")
+
+    return {
+        "message": "Rapport sendt",
+        "recipient": recipient,
+        "week_start": week_start_str,
+    }

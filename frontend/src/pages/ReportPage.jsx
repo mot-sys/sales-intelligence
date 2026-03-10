@@ -3,9 +3,10 @@
  * Store state: weeklyReport, weeklyReportLoading, weeklyReportGenerating,
  *              weeklyReportError, fetchWeeklyReport, generateWeeklyReport
  */
-import { useEffect } from 'react';
-import { RefreshCw, Sparkles, FileText, Activity, Target, Award } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { RefreshCw, Sparkles, FileText, Activity, Target, Award, Mail } from 'lucide-react';
 import useDataStore from '../store/dataStore';
+import { post } from '../api/client';
 
 // Simple markdown line renderer
 function renderMd(text) {
@@ -27,6 +28,9 @@ function renderMd(text) {
 }
 
 export default function ReportPage() {
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailResult,  setEmailResult]  = useState(null); // { ok: bool, msg: string }
+
   const {
     weeklyReport,
     weeklyReportLoading,
@@ -37,6 +41,19 @@ export default function ReportPage() {
   } = useDataStore();
 
   useEffect(() => { fetchWeeklyReport(); }, [fetchWeeklyReport]);
+
+  const handleSendEmail = async () => {
+    setEmailSending(true);
+    setEmailResult(null);
+    try {
+      const res = await post('/reports/weekly/send', {});
+      setEmailResult({ ok: true, msg: `Sent til ${res.recipient}` });
+    } catch (e) {
+      setEmailResult({ ok: false, msg: e?.message || 'Email fejlede' });
+    } finally {
+      setEmailSending(false);
+    }
+  };
 
   const report    = weeklyReport;
   const hasReport = report && (report.section_what_happened || report.section_this_week || report.section_management);
@@ -58,7 +75,7 @@ export default function ReportPage() {
                 : 'Klik "Generer rapport" for at lave denne uges analyse'}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {hasReport && (
               <button
                 onClick={fetchWeeklyReport}
@@ -67,6 +84,17 @@ export default function ReportPage() {
               >
                 <RefreshCw className={`w-4 h-4 ${weeklyReportLoading ? 'animate-spin' : ''}`} />
                 Opdater
+              </button>
+            )}
+            {hasReport && (
+              <button
+                onClick={handleSendEmail}
+                disabled={emailSending}
+                title="Send rapporten til din email via Resend (kræver RESEND_API_KEY)"
+                className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                <Mail className={`w-4 h-4 ${emailSending ? 'animate-pulse' : ''}`} />
+                {emailSending ? 'Sender…' : 'Send email'}
               </button>
             )}
             <button
@@ -86,11 +114,21 @@ export default function ReportPage() {
           </div>
         )}
 
+        {emailResult && (
+          <div className={`mt-4 p-3 rounded-lg text-sm flex items-center gap-2 ${
+            emailResult.ok
+              ? 'bg-green-50 border border-green-200 text-green-700'
+              : 'bg-red-50 border border-red-200 text-red-700'
+          }`}>
+            {emailResult.ok ? '✅' : '⚠️'} {emailResult.msg}
+          </div>
+        )}
+
         {weeklyReportGenerating && (
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
             <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-blue-700">
-              Claude analyserer pipeline, alerts, HubSpot-opgaver og outbound aktivitet…
+              Claude analyserer pipeline, alerts og HubSpot-opgaver…
             </span>
           </div>
         )}

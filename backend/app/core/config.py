@@ -106,6 +106,11 @@ class Settings(BaseSettings):
     ALERT_INTENT_SPIKE_PAGES: int = 3        # Pages in session → intent spike threshold
     SLACK_WEBHOOK_URL: Optional[str] = None  # Optional Slack alert notifications
 
+    # Email delivery (Resend)
+    RESEND_API_KEY: Optional[str] = None         # Get at resend.com — required for email features
+    FROM_EMAIL: str = "rapport@signal-intelligence.app"  # Verified sender in Resend dashboard
+    EMAIL_REPORT_ENABLED: bool = False           # Set True to enable automatic weekly email
+
     # Webhook Secrets
     SNITCHER_WEBHOOK_SECRET: Optional[str] = None  # HMAC-SHA256 for Snitcher webhooks
     SF_CDC_VERIFY_TOKEN: Optional[str] = None       # Salesforce CDC webhook verify token

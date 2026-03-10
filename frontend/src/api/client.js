@@ -130,19 +130,22 @@ function _logout() {
 
 // ── Typed convenience wrappers ───────────────────────────────────────────────
 
-/** GET /api/<path> */
-export const get = (path, params) => api.get(`/api${path}`, { params });
+// Unwrap response.data so callers receive the parsed JSON directly.
+// Errors still propagate — the interceptor handles 401 refresh on the Axios level.
 
-/** POST /api/<path> with body */
-export const post = (path, body) => api.post(`/api${path}`, body);
+/** GET /api/<path> → response body */
+export const get = (path, params) => api.get(`/api${path}`, { params }).then(r => r.data);
 
-/** PUT /api/<path> with body */
-export const put = (path, body) => api.put(`/api${path}`, body);
+/** POST /api/<path> with body → response body */
+export const post = (path, body) => api.post(`/api${path}`, body).then(r => r.data);
 
-/** PATCH /api/<path> with body */
-export const patch = (path, body) => api.patch(`/api${path}`, body);
+/** PUT /api/<path> with body → response body */
+export const put = (path, body) => api.put(`/api${path}`, body).then(r => r.data);
 
-/** DELETE /api/<path> */
-export const del = (path) => api.delete(`/api${path}`);
+/** PATCH /api/<path> with body → response body */
+export const patch = (path, body) => api.patch(`/api${path}`, body).then(r => r.data);
+
+/** DELETE /api/<path> → response body */
+export const del = (path) => api.delete(`/api${path}`).then(r => r.data);
 
 export default api;
