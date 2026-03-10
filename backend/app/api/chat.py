@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.ai import build_pipeline_context, chat_with_pipeline, SUGGESTED_QUESTIONS
+from app.core.ai import build_pipeline_context, chat_with_pipeline, SUGGESTED_QUESTIONS, build_suggested_questions
 from app.core.config import settings
 from app.db.session import get_db
 from app.core.security import get_current_customer_id
@@ -45,10 +45,14 @@ class ChatResponse(BaseModel):
 # ─────────────────────────────────────────────
 
 @router.get("/suggested")
-async def get_suggested_questions():
-    """Return suggested questions for the chat UI."""
+async def get_suggested_questions(
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return pipeline-aware suggested questions for the chat UI."""
+    questions = await build_suggested_questions(db, customer_id)
     return {
-        "questions": SUGGESTED_QUESTIONS,
+        "questions": questions,
         "ai_configured": bool(settings.ANTHROPIC_API_KEY),
     }
 

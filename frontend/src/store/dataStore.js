@@ -666,7 +666,7 @@ const useDataStore = create((set, getStore) => ({
   fetchRecommendations: async () => {
     set({ recommendationsLoading: true });
     try {
-      const data = await get('/outbound/recommendations?status=pending&limit=20');
+      const data = await get('/gtm/recommendations?status=pending&limit=20');
       set({ recommendations: data });
     } catch {
       set({ recommendations: null });
@@ -677,7 +677,7 @@ const useDataStore = create((set, getStore) => ({
 
   dismissRecommendation: async (recId) => {
     try {
-      await post(`/outbound/recommendations/${recId}/action?action=dismissed`, {});
+      await post(`/gtm/recommendations/${recId}/action?action=dismissed`, {});
       // Remove from local state immediately
       const current = useDataStore.getState().recommendations;
       if (current?.recommendations) {

@@ -293,6 +293,7 @@ CHART_TOOL = {
     },
 }
 
+# Fallback for unauthenticated / error cases
 SUGGESTED_QUESTIONS = [
     "Hvad skal jeg fokusere på denne uge?",
     "Hvilke deals er mest i fare for at gå tabt?",
@@ -301,6 +302,97 @@ SUGGESTED_QUESTIONS = [
     "Hvilke deals ser ud til at vinde?",
     "Hvor stor er min samlede pipeline?",
 ]
+
+
+async def build_suggested_questions(db, customer_id: str) -> list:
+    """
+    Generate context-aware suggested questions based on the customer's actual
+    pipeline state.  Falls back to SUGGESTED_QUESTIONS on any error.
+    """
+    from sqlalchemy import select, func, and_
+    from app.db.models import SalesforceOpportunity, Alert, Lead
+    from datetime import datetime, timedelta
+
+    try:
+        now = datetime.utcnow()
+        cutoff_14 = now - timedelta(days=14)
+        cutoff_30 = now - timedelta(days=30)
+        end_of_month = (now.replace(day=1) + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+
+        # Count stalled deals (no activity in 14+ days, not closed)
+        stalled = await db.scalar(
+            select(func.count()).select_from(SalesforceOpportunity).where(
+                SalesforceOpportunity.customer_id == customer_id,
+                SalesforceOpportunity.last_activity_date < cutoff_14,
+                ~SalesforceOpportunity.stage.ilike('%closed%'),
+            )
+        ) or 0
+
+        # Count deals closing this calendar month
+        closing_soon = await db.scalar(
+            select(func.count()).select_from(SalesforceOpportunity).where(
+                SalesforceOpportunity.customer_id == customer_id,
+                SalesforceOpportunity.close_date >= now,
+                SalesforceOpportunity.close_date <= end_of_month,
+                ~SalesforceOpportunity.stage.ilike('%closed%'),
+            )
+        ) or 0
+
+        # Count pending alerts
+        pending_alerts = await db.scalar(
+            select(func.count()).select_from(Alert).where(
+                Alert.customer_id == customer_id,
+                Alert.status == "pending",
+            )
+        ) or 0
+
+        # Count hot leads scored in the last 30 days
+        hot_leads = await db.scalar(
+            select(func.count()).select_from(Lead).where(
+                Lead.customer_id == customer_id,
+                Lead.priority == "hot",
+                Lead.updated_at >= cutoff_30,
+            )
+        ) or 0
+
+        questions = []
+
+        if stalled > 0:
+            questions.append(
+                f"Jeg har {stalled} deal{'s' if stalled > 1 else ''} uden aktivitet i 14+ dage — hvad skal jeg prioritere?"
+            )
+        if closing_soon > 0:
+            questions.append(
+                f"Hvad er chancerne for at lukke mine {closing_soon} deal{'s' if closing_soon > 1 else ''} der udløber denne måned?"
+            )
+        if pending_alerts > 3:
+            questions.append(
+                f"Jeg har {pending_alerts} ubehandlede alerts — hvad bør jeg tage fat på først?"
+            )
+        if hot_leads > 0:
+            questions.append(
+                f"Hvilke af mine {hot_leads} hot lead{'s' if hot_leads > 1 else ''} bør jeg kontakte i dag?"
+            )
+
+        # Always add generic fallbacks to reach 6 questions
+        fallbacks = [
+            "Hvad skal jeg fokusere på denne uge?",
+            "Giv mig et overblik over min pipeline",
+            "Hvilke deals er mest i fare for at gå tabt?",
+            "Hvor stor er min samlede pipeline?",
+            "Hvilke deals ser ud til at vinde?",
+            "Hvad er min forecast for resten af kvartalet?",
+        ]
+        for q in fallbacks:
+            if q not in questions:
+                questions.append(q)
+            if len(questions) >= 6:
+                break
+
+        return questions[:6]
+
+    except Exception:
+        return SUGGESTED_QUESTIONS
 
 
 async def chat_with_pipeline(

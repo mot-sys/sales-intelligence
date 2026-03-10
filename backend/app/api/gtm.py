@@ -11,8 +11,10 @@ Endpoints:
   POST /api/gtm/forecast/snapshot  — save forecast snapshot for accuracy tracking
   GET  /api/gtm/forecast/history   — historical snapshots + actuals + accuracy stats
   GET  /api/gtm/learnings          — CRM win/loss pattern cards
-  GET  /api/gtm/management-tasks   — auto-generated management action items
-  POST /api/gtm/agent/analyze      — AI agent pipeline analysis (Anthropic)
+  GET  /api/gtm/management-tasks           — auto-generated management action items
+  GET  /api/gtm/recommendations            — persisted recs (pending/actioned/dismissed)
+  POST /api/gtm/recommendations/{id}/action — action or dismiss a recommendation
+  POST /api/gtm/agent/analyze              — AI agent pipeline analysis (Anthropic)
 """
 
 from fastapi import APIRouter, Depends
@@ -33,8 +35,10 @@ from app.db.models import (
     Signal,
     ConversionData,
     Alert,
+    Recommendation,
 )
 from app.core.security import get_current_customer_id
+from app.db import crud
 
 router = APIRouter()
 
@@ -1564,3 +1568,74 @@ async def get_activity_summary(
         }
     """
     return await crud.get_activity_summary(db, customer_id, days=days)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /api/gtm/recommendations  — persisted recommendations (migrated from outbound)
+# ─────────────────────────────────────────────────────────────────────────────
+
+@router.get("/recommendations")
+async def get_recommendations(
+    status: Optional[str] = "pending",
+    limit: int = 20,
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Return AI/rule-generated recommendations for this customer.
+
+    Query params:
+        status (str):  pending | actioned | dismissed | expired (default: pending)
+        limit  (int):  max recs to return (default: 20)
+    """
+    recs = await crud.get_recommendations(db, customer_id, status=status, limit=limit)
+    return {
+        "recommendations": [
+            {
+                "id":           str(r.id),
+                "rec_type":     r.rec_type,
+                "priority":     r.priority,
+                "title":        r.title,
+                "description":  r.description,
+                "owner_name":   r.owner_name,
+                "sf_opp_id":    r.sf_opp_id,
+                "status":       r.status,
+                "generated_at": r.generated_at.isoformat() if r.generated_at else None,
+                "expires_at":   r.expires_at.isoformat() if r.expires_at else None,
+            }
+            for r in recs
+        ],
+        "total": len(recs),
+    }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# POST /api/gtm/recommendations/{rec_id}/action
+# ─────────────────────────────────────────────────────────────────────────────
+
+import uuid as _uuid
+
+@router.post("/recommendations/{rec_id}/action")
+async def action_recommendation(
+    rec_id: _uuid.UUID,
+    action: str,   # "actioned" | "dismissed"
+    customer_id: str = Depends(get_current_customer_id),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark a recommendation as actioned or dismissed."""
+    from fastapi import HTTPException
+    rec = await db.scalar(
+        select(Recommendation).where(
+            Recommendation.id == rec_id,
+            Recommendation.customer_id == customer_id,
+        )
+    )
+    if not rec:
+        raise HTTPException(status_code=404, detail="Recommendation not found")
+    if action not in ("actioned", "dismissed"):
+        raise HTTPException(status_code=422, detail="action must be 'actioned' or 'dismissed'")
+
+    rec.status = action
+    rec.actioned_at = datetime.utcnow()
+    await db.commit()
+    return {"id": str(rec_id), "status": action}
