@@ -57,4 +57,9 @@ celery_app.conf.beat_schedule = {
         "task": "app.utils.tasks.generate_weekly_reports",
         "schedule": crontab(hour=7, minute=0, day_of_week=1),
     },
+    # Evaluate custom alert rules every 15 minutes (piggybacks on the stalled-deals cadence)
+    "evaluate-custom-alert-rules": {
+        "task": "app.utils.tasks.evaluate_custom_alert_rules",
+        "schedule": 900.0,
+    },
 }

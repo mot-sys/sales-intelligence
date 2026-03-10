@@ -48,6 +48,7 @@ class Customer(Base):
     recommendations    = relationship("Recommendation", back_populates="customer", cascade="all, delete-orphan")
     crm_activities     = relationship("CRMActivity", back_populates="customer", cascade="all, delete-orphan")
     users              = relationship("User", back_populates="customer", cascade="all, delete-orphan")
+    custom_alert_rules = relationship("CustomAlertRule", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -1056,3 +1057,44 @@ class User(Base):
     )
 
     customer = relationship("Customer", back_populates="users")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# P2.8  CUSTOM ALERT RULES
+# ─────────────────────────────────────────────────────────────────────────────
+
+class CustomAlertRule(Base):
+    """
+    User-defined alert trigger rules.
+
+    trigger_type options:
+      deal_stalled      — deal goes N days without activity
+      deal_closing_soon — deal closes in N days with no activity in last M days
+      deal_amount_gt    — any open deal above X amount hits a condition
+      pipeline_below    — total open pipeline drops below X% of revenue target
+
+    conditions is a JSON dict whose keys depend on trigger_type:
+      deal_stalled:      {"days_inactive": 21, "min_amount": 0}
+      deal_closing_soon: {"days_to_close": 14, "days_inactive": 7, "min_amount": 0}
+      deal_amount_gt:    {"min_amount": 100000, "stage": null}   (stage=null means any open stage)
+      pipeline_below:    {"coverage_pct": 200}                   (alert when pipeline < X% of target)
+    """
+    __tablename__ = "custom_alert_rules"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"),
+                         nullable=False, index=True)
+
+    name         = Column(String(255), nullable=False)
+    trigger_type = Column(String(50),  nullable=False)   # deal_stalled | deal_closing_soon | deal_amount_gt | pipeline_below
+    conditions   = Column(JSON, nullable=False, default=dict)
+    severity     = Column(String(20),  nullable=False, default="medium")   # low|medium|high|critical
+    enabled      = Column(Boolean,     nullable=False, default=True)
+
+    # Cooldown: don't re-fire the same rule for the same deal within N hours
+    cooldown_hours = Column(Integer, nullable=False, default=24)
+
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    customer = relationship("Customer", back_populates="custom_alert_rules")

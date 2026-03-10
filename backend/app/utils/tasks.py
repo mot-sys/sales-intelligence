@@ -497,5 +497,39 @@ Svar kun med de tre sektioner, ingen introduktion."""
     return {"reports_generated": reports_generated}
 
 
+# ─────────────────────────────────────────────────────────
+# CUSTOM ALERT RULE EVALUATION (every 15 min, with stalled deals)
+# ─────────────────────────────────────────────────────────
+
+@celery_app.task(name="app.utils.tasks.evaluate_custom_alert_rules", bind=True, max_retries=3)
+def evaluate_custom_alert_rules(self):
+    """
+    Every 15 min: run all custom alert rules for every customer with integrations.
+    Fires Alert records for any rule matches.
+    """
+    return _run(_evaluate_custom_rules_async())
+
+
+async def _evaluate_custom_rules_async():
+    from app.db.session import AsyncSessionLocal
+    from app.db import crud
+    from app.api.alert_rules import evaluate_custom_rules_for_customer
+
+    total_fired = 0
+    async with AsyncSessionLocal() as db:
+        customers = await crud.get_all_active_customers(db)
+        for customer in customers:
+            try:
+                fired = await evaluate_custom_rules_for_customer(db, str(customer.id))
+                total_fired += len(fired)
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).exception(
+                    "Custom rule evaluation failed for customer %s: %s", customer.id, exc
+                )
+
+    return {"fired": total_fired}
+
+
 # SQLAlchemy Integer needed for cast in KPI snapshot
 from sqlalchemy import Integer as sa_Integer

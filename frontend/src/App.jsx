@@ -23,6 +23,7 @@ import ReportPage       from './pages/ReportPage';
 import DataPage         from './pages/DataPage';
 import LeadsPage        from './pages/LeadsPage';
 import TeamPage         from './pages/TeamPage';
+import AlertRulesPage   from './pages/AlertRulesPage';
 
 import useDataStore from './store/dataStore';
 
@@ -54,6 +55,7 @@ const SalesIntelligencePlatform = () => {
     { id: 'connections', label: 'Connections',   icon: Database },
     { id: 'leads',       label: 'Lead Intel',    icon: Users },
     { id: 'team',        label: 'Team',          icon: UserCog },
+    { id: 'alert-rules', label: 'Alert Regler',  icon: Bell },
   ];
 
   return (
@@ -175,6 +177,7 @@ const SalesIntelligencePlatform = () => {
         {activeTab === 'cmt'         && <CMTPage onNavigateToConnections={() => setActiveTab('connections')} />}
         {activeTab === 'leads'       && <LeadsPage />}
         {activeTab === 'team'        && <TeamPage />}
+        {activeTab === 'alert-rules' && <AlertRulesPage />}
 
       </div>
     </div>

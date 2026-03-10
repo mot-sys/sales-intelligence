@@ -576,6 +576,12 @@ async def get_stale_opportunities(
     return result.scalars().all()
 
 
+async def get_all_active_customers(db: AsyncSession) -> List[Customer]:
+    """Get all customer rows (used for tasks that run for every org)."""
+    result = await db.execute(select(Customer))
+    return result.scalars().all()
+
+
 async def get_customers_with_integration(
     db: AsyncSession,
     service: str,
