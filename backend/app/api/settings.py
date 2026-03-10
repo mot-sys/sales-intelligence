@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings as app_settings
+
 from app.core.security import get_current_customer_id
 from app.db import crud
 from app.db.session import get_db
@@ -103,3 +105,28 @@ async def save_ai_settings(
         company_context=row.company_context,
         available_models=AVAILABLE_MODELS,
     )
+
+
+# ─────────────────────────────────────────────
+# P2.5  Notification status (read-only; secrets stay server-side)
+# ─────────────────────────────────────────────
+
+@router.get("/notifications")
+async def get_notification_status(
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Return which notification channels are active for this deployment.
+    Secrets are never exposed — only boolean configured flags.
+    """
+    return {
+        "slack": {
+            "configured": bool(app_settings.SLACK_WEBHOOK_URL),
+            "min_priority": app_settings.SLACK_ALERT_MIN_PRIORITY,
+        },
+        "email": {
+            "configured": bool(app_settings.RESEND_API_KEY),
+            "auto_send": app_settings.EMAIL_REPORT_ENABLED,
+            "from_email": app_settings.FROM_EMAIL if app_settings.RESEND_API_KEY else None,
+        },
+    }

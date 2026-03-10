@@ -1,11 +1,12 @@
 /**
  * ConnectionsPage
  * Connect and manage data integrations: Salesforce, HubSpot, Clay, Snitcher, Notion.
+ * Also shows read-only status of notification channels (Slack, Email/Resend).
  */
 import { useState, useEffect } from 'react';
-import { Database, Activity, Layers, CheckCircle, AlertCircle, RefreshCw, X, Zap } from 'lucide-react';
+import { Database, Activity, Layers, CheckCircle, AlertCircle, RefreshCw, X, Zap, Bell, Mail } from 'lucide-react';
 import useDataStore from '../store/dataStore';
-import { post } from '../api/client';
+import { post, get } from '../api/client';
 
 const INTEGRATION_DEFS = [
   {
@@ -49,6 +50,7 @@ export default function ConnectionsPage() {
   const [connectForm,    setConnectForm]    = useState({});
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectError,   setConnectError]   = useState(null);
+  const [notifStatus,    setNotifStatus]    = useState(null); // notification channel status
 
   const {
     connections,
@@ -59,7 +61,10 @@ export default function ConnectionsPage() {
     handleDisconnect,
   } = useDataStore();
 
-  useEffect(() => { fetchConnections(); }, [fetchConnections]);
+  useEffect(() => {
+    fetchConnections();
+    get('/settings/notifications').then(setNotifStatus).catch(() => {});
+  }, [fetchConnections]);
 
   const connectedIds = new Set(connections.map(c => c.service));
   const activeDef    = INTEGRATION_DEFS.find(d => d.id === connectModal);
@@ -154,6 +159,88 @@ export default function ConnectionsPage() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Notification Channels */}
+      <div className="bg-white rounded-lg border border-gray-200">
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Bell className="w-5 h-5 text-blue-600" /> Notification Channels
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Server-side notification channels configured via environment variables.
+          </p>
+        </div>
+        <div className="p-6 space-y-4">
+          {/* Slack */}
+          <div className="flex items-center justify-between p-5 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-purple-50 rounded-lg">
+                <Bell className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Slack</h3>
+                <p className="text-sm text-gray-500">
+                  Alerts posted to a Slack channel via Incoming Webhook.
+                  {notifStatus?.slack?.configured && (
+                    <span className="ml-2 text-xs text-gray-400">
+                      Min. prioritet: <strong>{notifStatus.slack.min_priority}</strong>
+                    </span>
+                  )}
+                </p>
+                {!notifStatus?.slack?.configured && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Set <code className="bg-gray-100 px-1 rounded">SLACK_WEBHOOK_URL</code> i Railway Variables for at aktivere.
+                  </p>
+                )}
+              </div>
+            </div>
+            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm ${
+              notifStatus?.slack?.configured ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+            }`}>
+              {notifStatus?.slack?.configured
+                ? <><CheckCircle className="w-3.5 h-3.5" /> Aktiv</>
+                : <><AlertCircle className="w-3.5 h-3.5" /> Ikke konfigureret</>
+              }
+            </span>
+          </div>
+
+          {/* Email */}
+          <div className="flex items-center justify-between p-5 border border-gray-200 rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <Mail className="w-6 h-6 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Email (Resend)</h3>
+                <p className="text-sm text-gray-500">
+                  Ugentlig rapport sendt via Resend.
+                  {notifStatus?.email?.configured && notifStatus.email.from_email && (
+                    <span className="ml-2 text-xs text-gray-400">Fra: {notifStatus.email.from_email}</span>
+                  )}
+                </p>
+                {notifStatus?.email?.configured && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Auto-send: <strong>{notifStatus.email.auto_send ? 'Aktiv' : 'Deaktiveret'}</strong> — sæt <code className="bg-gray-100 px-1 rounded">EMAIL_REPORT_ENABLED=True</code> for automatisk udsendelse.
+                  </p>
+                )}
+                {!notifStatus?.email?.configured && (
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Set <code className="bg-gray-100 px-1 rounded">RESEND_API_KEY</code> i Railway Variables for at aktivere.
+                  </p>
+                )}
+              </div>
+            </div>
+            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm ${
+              notifStatus?.email?.configured ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+            }`}>
+              {notifStatus?.email?.configured
+                ? <><CheckCircle className="w-3.5 h-3.5" /> Aktiv</>
+                : <><AlertCircle className="w-3.5 h-3.5" /> Ikke konfigureret</>
+              }
+            </span>
+          </div>
         </div>
       </div>
 

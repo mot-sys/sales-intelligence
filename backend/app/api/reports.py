@@ -363,6 +363,21 @@ async def generate_weekly_report(
         model_used=model,
     )
 
+    # P2.5 — Slack notification on report generation
+    if settings.SLACK_WEBHOOK_URL:
+        try:
+            from app.core.slack import send_weekly_report_notification
+            from app.db.models import Customer as _Customer2
+            from sqlalchemy import select as _select2
+            _customer2 = await db.scalar(_select2(_Customer2).where(_Customer2.id == customer_id))
+            await send_weekly_report_notification(
+                customer_name=_customer2.name if _customer2 else "din virksomhed",
+                week_start=report.week_start.strftime("%Y-%m-%d") if report.week_start else "—",
+                section_what_happened=what_happened,
+            )
+        except Exception as slack_exc:
+            logger.warning("Slack weekly report notification failed: %s", slack_exc)
+
     # P2.10 — auto-send email if enabled
     if settings.EMAIL_REPORT_ENABLED and settings.RESEND_API_KEY:
         try:

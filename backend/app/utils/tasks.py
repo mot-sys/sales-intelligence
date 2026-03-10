@@ -450,6 +450,22 @@ Svar kun med de tre sektioner, ingen introduktion."""
                 await db.flush()   # get report.id before commit
                 reports_generated += 1
 
+                # P2.5 — Slack digest after weekly report generation
+                if settings.SLACK_WEBHOOK_URL:
+                    try:
+                        from app.core.slack import send_weekly_report_notification
+                        week_start_str = week_start_date.isoformat()
+                        await send_weekly_report_notification(
+                            customer_name=customer.name or "din virksomhed",
+                            week_start=week_start_str,
+                            section_what_happened=s_happened,
+                        )
+                    except Exception as slack_exc:
+                        import logging as _log
+                        _log.getLogger(__name__).warning(
+                            "Slack report notification for customer %s failed: %s", cid, slack_exc
+                        )
+
                 # P2.10 — email the report if enabled and customer has an email address
                 if settings.EMAIL_REPORT_ENABLED and settings.RESEND_API_KEY:
                     try:

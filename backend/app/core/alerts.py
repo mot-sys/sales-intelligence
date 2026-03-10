@@ -3,6 +3,7 @@ Alert Engine
 Creates, deduplicates, and generates recommendations for revenue signal alerts.
 """
 
+import logging
 from typing import Dict, Optional
 from datetime import datetime
 
@@ -11,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import crud
 from app.db.models import Alert
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────
@@ -109,6 +112,20 @@ async def create_alert(
 
     if alert:
         await db.commit()
+
+        # P2.5 — Slack notification for high/urgent alerts (fire-and-forget)
+        if settings.SLACK_WEBHOOK_URL:
+            try:
+                from app.core.slack import send_alert_notification
+                await send_alert_notification(
+                    headline=headline,
+                    priority=priority,
+                    alert_type=alert_type,
+                    context=context_json,
+                    recommendation=recommendation,
+                )
+            except Exception as slack_exc:
+                logger.warning("Slack alert notification failed: %s", slack_exc)
 
     return alert
 

@@ -105,6 +105,7 @@ class Settings(BaseSettings):
     ALERT_STALE_DEAL_DAYS: int = 7           # Days without SF activity → stalled deal alert
     ALERT_INTENT_SPIKE_PAGES: int = 3        # Pages in session → intent spike threshold
     SLACK_WEBHOOK_URL: Optional[str] = None  # Optional Slack alert notifications
+    SLACK_ALERT_MIN_PRIORITY: str = "high"   # Minimum priority to Slack: urgent|high|medium|low
 
     # Email delivery (Resend)
     RESEND_API_KEY: Optional[str] = None         # Get at resend.com — required for email features
