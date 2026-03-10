@@ -47,6 +47,7 @@ class Customer(Base):
     accounts           = relationship("Account", back_populates="customer", cascade="all, delete-orphan")
     recommendations    = relationship("Recommendation", back_populates="customer", cascade="all, delete-orphan")
     crm_activities     = relationship("CRMActivity", back_populates="customer", cascade="all, delete-orphan")
+    users              = relationship("User", back_populates="customer", cascade="all, delete-orphan")
 
 
 class Integration(Base):
@@ -1015,3 +1016,43 @@ class CRMActivity(Base):
         Index("idx_crm_activity_owner",       "customer_id", "owner_name"),
         Index("idx_crm_activity_type",        "customer_id", "activity_type"),
     )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# P2.1  MULTI-USER
+# ─────────────────────────────────────────────────────────────────────────────
+
+class User(Base):
+    """
+    Individual user within a Customer (organisation).
+
+    Roles:
+      owner   — full access + can delete org, cannot be removed
+      admin   — full access + invite/remove members
+      member  — read/write to all data (default)
+      viewer  — read-only
+
+    An invite starts with password_hash=NULL and invite_token set.
+    Accepting the invite sets password_hash and clears invite_token.
+    """
+    __tablename__ = "users"
+
+    id          = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    customer_id = Column(UUID(as_uuid=True), ForeignKey("customers.id", ondelete="CASCADE"),
+                         nullable=False, index=True)
+    email          = Column(String(255), nullable=False)
+    name           = Column(String(255), nullable=True)
+    password_hash  = Column(String(255), nullable=True)   # NULL until invite is accepted
+    role           = Column(String(50),  nullable=False, default="member")  # owner|admin|member|viewer
+    is_active      = Column(Boolean, nullable=False, default=True)
+    invite_token   = Column(String(255), nullable=True, unique=True, index=True)
+    invite_expires = Column(TIMESTAMP, nullable=True)
+
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        Index("ix_users_customer_email", "customer_id", "email", unique=True),
+    )
+
+    customer = relationship("Customer", back_populates="users")

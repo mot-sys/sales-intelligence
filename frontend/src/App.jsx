@@ -3,7 +3,7 @@ import {
   Activity, Database, Brain, Users,
   TrendingUp, Zap, RefreshCw, Bell, X, ChevronDown,
   Sparkles, BarChart2, Target, FileText,
-  Building2, Compass, Archive, Radio,
+  Building2, Compass, Archive, Radio, UserCog,
 } from 'lucide-react';
 
 // ── Page components (P1.10 extraction) ───────────────────────────────────────
@@ -22,6 +22,7 @@ import ChatPage         from './pages/ChatPage';
 import ReportPage       from './pages/ReportPage';
 import DataPage         from './pages/DataPage';
 import LeadsPage        from './pages/LeadsPage';
+import TeamPage         from './pages/TeamPage';
 
 import useDataStore from './store/dataStore';
 
@@ -52,6 +53,7 @@ const SalesIntelligencePlatform = () => {
     { id: 'analytics',   label: 'Analytics',     icon: BarChart2 },
     { id: 'connections', label: 'Connections',   icon: Database },
     { id: 'leads',       label: 'Lead Intel',    icon: Users },
+    { id: 'team',        label: 'Team',          icon: UserCog },
   ];
 
   return (
@@ -172,6 +174,7 @@ const SalesIntelligencePlatform = () => {
         {activeTab === 'connections' && <ConnectionsPage />}
         {activeTab === 'cmt'         && <CMTPage onNavigateToConnections={() => setActiveTab('connections')} />}
         {activeTab === 'leads'       && <LeadsPage />}
+        {activeTab === 'team'        && <TeamPage />}
 
       </div>
     </div>

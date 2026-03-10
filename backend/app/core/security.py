@@ -147,8 +147,11 @@ async def get_current_customer_id(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
 ) -> str:
     """
-    FastAPI dependency that extracts and validates the JWT from
-    the Authorization header, returning the customer_id.
+    FastAPI dependency: returns the customer_id (= organisation ID) from the JWT.
+
+    Supports two JWT formats for backwards compatibility:
+      Legacy:  {"sub": "<customer_id>", "type": "access"}
+      New:     {"sub": "<user_id>", "cid": "<customer_id>", "role": "...", "type": "access"}
 
     Usage:
         @router.get("/leads")
@@ -161,7 +164,45 @@ async def get_current_customer_id(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return verify_access_token(credentials.credentials)
+    payload = decode_token(credentials.credentials)
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+    # New multi-user tokens store customer_id in "cid"; legacy tokens use "sub"
+    cid = payload.get("cid") or payload.get("sub")
+    if not cid:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing customer id")
+    return cid
+
+
+async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+) -> Dict:
+    """
+    FastAPI dependency: returns a dict with user_id, customer_id, and role.
+
+    Use this when the endpoint needs to know which specific user is acting
+    (e.g., audit logs, role-based guards, invite flows).
+
+    Returns:
+        {"user_id": str|None, "customer_id": str, "role": str}
+    """
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    payload = decode_token(credentials.credentials)
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
+    cid = payload.get("cid") or payload.get("sub")
+    if not cid:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing customer id")
+    return {
+        "user_id":     payload.get("sub"),
+        "customer_id": cid,
+        "role":        payload.get("role", "member"),
+    }
 
 
 # Development-only bypass: returns a fixed customer_id so endpoints work
