@@ -40,7 +40,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
     Dependency for getting database sessions.
     Use in FastAPI route functions.
-    
+
     Example:
         @app.get("/leads")
         async def get_leads(db: AsyncSession = Depends(get_db)):
@@ -55,3 +55,31 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
+
+async def set_rls_customer_id(session: AsyncSession, customer_id: str) -> None:
+    """
+    P2.9 — Set the PostgreSQL session variable used by RLS policies.
+
+    Call this at the start of any request handler that should benefit from
+    row-level security enforcement:
+
+        async def my_endpoint(
+            customer_id: str = Depends(get_current_customer_id),
+            db: AsyncSession = Depends(get_db),
+        ):
+            await set_rls_customer_id(db, customer_id)
+            ...
+
+    Uses SET LOCAL so the variable is automatically cleared when the
+    transaction commits or rolls back (transaction-scoped, safe with pooling).
+    """
+    from sqlalchemy import text
+    # Validate it looks like a UUID before passing to SQL (belt-and-suspenders)
+    import re
+    if not re.match(r'^[0-9a-f-]{36}$', customer_id.lower()):
+        raise ValueError(f"Invalid customer_id for RLS: {customer_id!r}")
+    await session.execute(
+        text("SET LOCAL app.current_customer_id = :cid"),
+        {"cid": customer_id},
+    )
