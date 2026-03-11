@@ -6,7 +6,8 @@ Entry point for the Signal Intelligence API.
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from pathlib import Path
 from contextlib import asynccontextmanager
 import time
 import sentry_sdk
@@ -220,6 +221,17 @@ app.include_router(accounts.router, prefix="/api/accounts", tags=["Accounts"])
 app.include_router(team.router,        prefix="/api/team",         tags=["Team"])
 app.include_router(alert_rules.router, prefix="/api/alert-rules", tags=["Alert Rules"])
 app.include_router(board.router,       prefix="/api/board",       tags=["Board"])
+
+
+# ── Serve Vite frontend (production) ─────────────────────────────────────────
+# The root Dockerfile copies the built React app into /app/frontend_dist.
+# This catch-all serves index.html for all non-API paths (React Router SPA).
+_FRONTEND = Path("/app/frontend_dist")
+if _FRONTEND.exists():
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def _serve_spa(full_path: str):
+        f = _FRONTEND / full_path
+        return FileResponse(str(f if f.is_file() else _FRONTEND / "index.html"))
 
 
 if __name__ == "__main__":
