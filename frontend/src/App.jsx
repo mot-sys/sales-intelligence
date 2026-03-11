@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity, Database, Brain, Users,
   TrendingUp, Zap, RefreshCw, Bell, X, ChevronDown,
   Sparkles, BarChart2, Target, FileText,
   Building2, Compass, Archive, Radio, UserCog, Award,
 } from 'lucide-react';
+import useAuthStore from './store/authStore';
 
 // ── Page components (P1.10 extraction) ───────────────────────────────────────
 import GTMSetupPage     from './pages/GTMSetupPage';
@@ -28,11 +29,110 @@ import BoardPage        from './pages/BoardPage';
 
 import useDataStore from './store/dataStore';
 
+// ── Login / Register Screen ───────────────────────────────────────────────────
+const AuthScreen = () => {
+  const { login, register } = useAuthStore();
+  const [tab,      setTab]      = useState('login');
+  const [email,    setEmail]    = useState('');
+  const [password, setPassword] = useState('');
+  const [name,     setName]     = useState('');
+  const [error,    setError]    = useState('');
+  const [loading,  setLoading]  = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      if (tab === 'login') {
+        await login(email, password);
+      } else {
+        if (!name.trim()) { setError('Navn er påkrævet'); setLoading(false); return; }
+        await register(name.trim(), email, password);
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.detail || err?.message || 'Noget gik galt';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-sm mx-4 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <Zap className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Signal Intelligence</h1>
+            <p className="text-xs text-gray-500">GTM Intelligence Platform</p>
+          </div>
+        </div>
+
+        {/* Tab toggle */}
+        <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
+          {['login', 'register'].map(t => (
+            <button key={t} onClick={() => { setTab(t); setError(''); }}
+              className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+              }`}>
+              {t === 'login' ? 'Log ind' : 'Opret konto'}
+            </button>
+          ))}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {tab === 'register' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Navn</label>
+              <input type="text" value={name} onChange={e => setName(e.target.value)}
+                placeholder="Dit navn" required
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              placeholder="din@email.com" required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Adgangskode</label>
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+              placeholder="Min. 8 tegn" required minLength={8}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</p>
+          )}
+          <button type="submit" disabled={loading}
+            className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                {tab === 'login' ? 'Logger ind...' : 'Opretter konto...'}
+              </span>
+            ) : (
+              tab === 'login' ? 'Log ind' : 'Opret konto'
+            )}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+
 // ── Main App ──────────────────────────────────────────────────────────────────
 const SalesIntelligencePlatform = () => {
+  const { isAuthenticated, loading: authLoading, logout, customer } = useAuthStore();
   const [activeTab,   setActiveTab]   = useState('gtm-setup');
   const [error,       setError]       = useState(null);
   const [legacyOpen,  setLegacyOpen]  = useState(false);
+
+  useEffect(() => {
+    useAuthStore.getState().initAuth();
+  }, []);
 
   const { alertStats, fetchAlerts } = useDataStore();
 
@@ -60,6 +160,20 @@ const SalesIntelligencePlatform = () => {
     { id: 'board',       label: 'Board Summary', icon: Award },
   ];
 
+  // Show spinner while checking stored token
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
+      </div>
+    );
+  }
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <AuthScreen />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -74,12 +188,21 @@ const SalesIntelligencePlatform = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            {customer?.email && (
+              <span className="text-sm text-gray-500 hidden sm:block">{customer.email}</span>
+            )}
             <button
               onClick={() => fetchAlerts('pending')}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
+            </button>
+            <button
+              onClick={logout}
+              className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              Log ud
             </button>
           </div>
         </div>

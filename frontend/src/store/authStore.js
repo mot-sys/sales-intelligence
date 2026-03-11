@@ -17,6 +17,10 @@
  *
  * The store also listens for the `signal:logout` custom event fired by the
  * Axios client when token refresh fails, so the UI reacts automatically.
+ *
+ * NOTE: The auth backend endpoints (/login, /register, /refresh) expect
+ * parameters as URL query strings, not as a JSON body. All calls here use
+ * encodeURIComponent to build the query string.
  */
 
 import { create } from 'zustand';
@@ -38,7 +42,7 @@ const useAuthStore = create((set, getState) => ({
       return;
     }
     try {
-      const { data } = await get('/auth/me');
+      const data = await get('/auth/me');
       set({ isAuthenticated: true, customer: data, loading: false });
     } catch {
       clearTokens();
@@ -48,21 +52,27 @@ const useAuthStore = create((set, getState) => ({
 
   /** Log in with email + password. Throws on failure. */
   login: async (email, password) => {
-    const { data } = await post('/auth/login', { email, password });
+    // Auth endpoints expect query params, not JSON body
+    const data = await post(
+      `/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+    );
     setTokens(data.access_token, data.refresh_token);
     set({ isAuthenticated: true });
     // Fetch customer profile
     try {
       const me = await get('/auth/me');
-      set({ customer: me.data });
+      set({ customer: me });
     } catch { /* ignore — not critical */ }
   },
 
   /** Register a new account. Auto-logs in on success. Throws on failure. */
   register: async (name, email, password) => {
-    const { data } = await post('/auth/register', { name, email, password });
+    // Auth endpoints expect query params, not JSON body
+    const data = await post(
+      `/auth/register?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+    );
     setTokens(data.access_token, data.refresh_token);
-    set({ isAuthenticated: true, customer: data.customer });
+    set({ isAuthenticated: true, customer: data });
   },
 
   /** Log out: clear tokens + reset store. */
@@ -74,7 +84,7 @@ const useAuthStore = create((set, getState) => ({
   /** Refresh customer profile from API. */
   fetchMe: async () => {
     try {
-      const { data } = await get('/auth/me');
+      const data = await get('/auth/me');
       set({ customer: data });
     } catch { /* ignore */ }
   },
