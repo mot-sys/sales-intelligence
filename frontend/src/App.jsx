@@ -125,14 +125,9 @@ const AuthScreen = () => {
 
 // ── Main App ──────────────────────────────────────────────────────────────────
 const SalesIntelligencePlatform = () => {
-  const { isAuthenticated, loading: authLoading, logout, customer } = useAuthStore();
   const [activeTab,   setActiveTab]   = useState('gtm-setup');
   const [error,       setError]       = useState(null);
   const [legacyOpen,  setLegacyOpen]  = useState(false);
-
-  useEffect(() => {
-    useAuthStore.getState().initAuth();
-  }, []);
 
   const { alertStats, fetchAlerts } = useDataStore();
 
@@ -160,20 +155,6 @@ const SalesIntelligencePlatform = () => {
     { id: 'board',       label: 'Board Summary', icon: Award },
   ];
 
-  // Show spinner while checking stored token
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <RefreshCw className="w-8 h-8 text-blue-600 animate-spin" />
-      </div>
-    );
-  }
-
-  // Show login screen if not authenticated
-  if (!isAuthenticated) {
-    return <AuthScreen />;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
 
@@ -188,21 +169,12 @@ const SalesIntelligencePlatform = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {customer?.email && (
-              <span className="text-sm text-gray-500 hidden sm:block">{customer.email}</span>
-            )}
             <button
               onClick={() => fetchAlerts('pending')}
               className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               <RefreshCw className="w-4 h-4" />
               <span>Refresh</span>
-            </button>
-            <button
-              onClick={logout}
-              className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Log ud
             </button>
           </div>
         </div>
