@@ -1,0 +1,22 @@
+# Node modules (rebuilt inside Docker)
+frontend/node_modules
+node_modules
+
+# Git
+.git
+.gitignore
+
+# Python cache
+**/__pycache__
+**/*.pyc
+**/*.pyo
+backend/.env
+backend/venv
+backend/.venv
+
+# Build artifacts
+frontend/dist
+
+# Misc
+.DS_Store
+*.log
