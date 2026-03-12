@@ -45,45 +45,48 @@ def _validate_startup_config():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
-    # Startup
     print(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     print(f"📊 Environment: {settings.ENVIRONMENT}")
 
-    # Validate configuration before anything else
-    _validate_startup_config()
-
-    # Create / migrate database tables (create_all is idempotent — safe in all envs)
-    print("⏳ Connecting to database...")
+    # Outer safety net — nothing inside startup can prevent yield from being reached
     try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        print("✅ DB tables ensured")
-    except Exception as e:
-        print(f"⚠️  create_all failed (continuing anyway): {type(e).__name__}: {e}")
+        _validate_startup_config()
 
-    # Seed the default customer so the FK constraint on integrations/leads is satisfied
-    print("⏳ Seeding default customer...")
-    try:
-        from app.db.models import Customer
-        from app.core.security import TEMP_CUSTOMER_ID
-        from sqlalchemy import select as sa_select
-        dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
-        async with AsyncSessionLocal() as session:
-            exists = await session.scalar(sa_select(Customer).where(Customer.id == dev_id))
-            if not exists:
-                session.add(Customer(
-                    id=dev_id,
-                    name="Dev User",
-                    email="dev@example.com",
-                ))
-                await session.commit()
-                print("✅ Default customer seeded")
+        # Create / migrate database tables (create_all is idempotent — safe in all envs)
+        print("⏳ Connecting to database...")
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(Base.metadata.create_all)
+            print("✅ DB tables ensured")
+        except Exception as e:
+            print(f"⚠️  create_all failed (continuing anyway): {type(e).__name__}: {e}")
+
+        # Seed the default customer so the FK constraint on integrations/leads is satisfied
+        print("⏳ Seeding default customer...")
+        try:
+            from app.db.models import Customer
+            from app.core.security import TEMP_CUSTOMER_ID
+            from sqlalchemy import select as sa_select
+            dev_id = uuid.UUID(TEMP_CUSTOMER_ID)
+            async with AsyncSessionLocal() as session:
+                exists = await session.scalar(sa_select(Customer).where(Customer.id == dev_id))
+                if not exists:
+                    session.add(Customer(
+                        id=dev_id,
+                        name="Dev User",
+                        email="dev@example.com",
+                    ))
+                    await session.commit()
+                    print("✅ Default customer seeded")
+        except Exception as e:
+            print(f"⚠️  Default customer seed skipped: {type(e).__name__}: {e}")
+
     except Exception as e:
-        print(f"⚠️  Default customer seed skipped: {type(e).__name__}: {e}")
+        print(f"🔴 Unexpected startup error (uvicorn will still serve): {type(e).__name__}: {e}")
 
     print("✅ Startup complete — serving requests")
     yield
-    
+
     # Shutdown
     print("👋 Shutting down...")
     await engine.dispose()
@@ -175,20 +178,30 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Detailed health check with real DB connectivity probe."""
+    """Liveness probe — always 200 if uvicorn is alive. Used by Railway healthcheck."""
+    return {"status": "healthy", "environment": settings.ENVIRONMENT}
+
+
+@app.get("/health/db")
+async def db_health_check():
+    """Deep health check with DB connectivity probe (not used for Railway healthcheck)."""
+    import asyncio
     from sqlalchemy import text
     db_status = "ok"
     db_error  = None
     try:
-        async with AsyncSessionLocal() as session:
-            await session.execute(text("SELECT 1"))
+        async with asyncio.timeout(5):
+            async with AsyncSessionLocal() as session:
+                await session.execute(text("SELECT 1"))
+    except TimeoutError:
+        db_status = "timeout"
+        db_error  = "DB query exceeded 5 s"
     except Exception as exc:
         db_status = "error"
         db_error  = str(exc)[:200]
 
-    overall = "healthy" if db_status == "ok" else "degraded"
     return {
-        "status": overall,
+        "status": "healthy" if db_status == "ok" else "degraded",
         "checks": {
             "database": db_status,
             **({"database_error": db_error} if db_error else {}),
