@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     # Falls back to wildcard only in development.
     FRONTEND_URL: Optional[str] = None
 
+    # Public backend base URL — used to build absolute callback URIs (e.g. OAuth redirects).
+    # Set to the Railway service URL, e.g. https://sales-intelligence-production.up.railway.app
+    BACKEND_URL: Optional[str] = None
+
     @property
     def cors_origins(self) -> list[str]:
         if self.FRONTEND_URL:

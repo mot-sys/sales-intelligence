@@ -21,9 +21,12 @@ const INTEGRATION_DEFS = [
   },
   {
     id: 'hubspot', name: 'HubSpot',
-    desc: 'Deal + company sync via Private App access token',
+    desc: 'Deal + company sync via OAuth Connected App',
     icon: Database,
-    fields: [{ key: 'access_token', label: 'Private App Access Token', type: 'password' }],
+    fields: [
+      { key: 'client_id',     label: 'App Client ID',     type: 'text' },
+      { key: 'client_secret', label: 'App Client Secret', type: 'password' },
+    ],
   },
   {
     id: 'clay', name: 'Clay',
@@ -64,6 +67,17 @@ export default function ConnectionsPage() {
   useEffect(() => {
     fetchConnections();
     get('/settings/notifications').then(setNotifStatus).catch(() => {});
+
+    // Detect HubSpot OAuth callback result (e.g. /connections?hubspot=connected)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hsResult = urlParams.get('hubspot');
+    if (hsResult === 'connected') {
+      window.history.replaceState({}, '', '/connections');
+      fetchConnections();
+    } else if (hsResult === 'error') {
+      window.history.replaceState({}, '', '/connections');
+      setConnectError('HubSpot OAuth mislykkedes — tjek credentials og prøv igen.');
+    }
   }, [fetchConnections]);
 
   const connectedIds = new Set(connections.map(c => c.service));
@@ -75,11 +89,9 @@ export default function ConnectionsPage() {
     try {
       const params = new URLSearchParams(connectForm).toString();
       const data = await post(`/connections/${connectModal}?${params}`);
-      // OAuth services return an auth_url — open in new tab
+      // OAuth services return an auth_url — redirect current tab so the callback lands here
       if (data.auth_url) {
-        window.open(data.auth_url, '_blank', 'noopener,noreferrer');
-        setConnectModal(null);
-        setConnectForm({});
+        window.location.href = data.auth_url;
         return;
       }
       await fetchConnections();

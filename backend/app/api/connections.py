@@ -5,11 +5,13 @@ Manage integrations with external services (Clay, Salesforce, Snitcher, Outreach
 
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 import uuid
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException
+from starlette.responses import RedirectResponse
 from sqlalchemy import select, delete, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,6 +55,32 @@ async def _write_sync_log(
         completed_at=datetime.utcnow(),
     )
     db.add(log)
+
+
+async def _refresh_hubspot_token(creds: dict, integration: Integration, db: AsyncSession) -> dict:
+    """
+    Exchange a HubSpot refresh_token for a new access_token (OAuth apps only).
+    Updates integration credentials in the DB and returns the updated creds dict.
+    """
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        r = await client.post(
+            "https://api.hubapi.com/oauth/v1/token",
+            data={
+                "grant_type":    "refresh_token",
+                "client_id":     creds["client_id"],
+                "client_secret": creds["client_secret"],
+                "refresh_token": creds["refresh_token"],
+            },
+        )
+    r.raise_for_status()
+    data = r.json()
+    creds["access_token"]  = data["access_token"]
+    creds["refresh_token"] = data.get("refresh_token", creds["refresh_token"])  # rotating token
+    expires_in = data.get("expires_in", 21600)
+    creds["expires_at"] = (datetime.utcnow() + timedelta(seconds=expires_in)).isoformat()
+    integration.credentials = encrypt_credentials(creds)
+    await db.flush()
+    return creds
 
 
 def _integration_to_dict(integration: Integration) -> dict:
@@ -363,55 +391,129 @@ async def connect_snitcher(
 
 @router.post("/hubspot")
 async def connect_hubspot(
-    access_token: str,
+    client_id: str,
+    client_secret: str,
     db: AsyncSession = Depends(get_db),
     customer_id: str = Depends(get_current_customer_id),
 ):
     """
-    Connect HubSpot via Private App access token.
-    Tests the connection before saving credentials.
+    Initiate HubSpot OAuth flow (Connected App).
+    Stores client credentials as a pending integration and returns the HubSpot
+    authorization URL. The frontend should redirect the browser to auth_url;
+    HubSpot will call back to /connections/hubspot/callback when approved.
     """
-    from app.integrations.hubspot import HubSpotIntegration
+    from app.core.config import settings
+    from urllib.parse import urlencode
 
-    hs = HubSpotIntegration(credentials={"access_token": access_token})
-    ok = await hs.test_connection()
-    if not ok:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not connect to HubSpot — please verify the access token.",
-        )
-
+    # Persist client credentials so the callback can exchange the code for tokens
     existing = await db.scalar(
         select(Integration).where(
             Integration.customer_id == customer_id,
             Integration.service == "hubspot",
         )
     )
-    encrypted = encrypt_credentials({"access_token": access_token})
+    encrypted = encrypt_credentials({"client_id": client_id, "client_secret": client_secret})
     if existing:
         existing.credentials = encrypted
-        existing.status = "connected"
+        existing.status = "pending"
         integration = existing
     else:
         integration = Integration(
             customer_id=customer_id,
             service="hubspot",
-            status="connected",
+            status="pending",
             credentials=encrypted,
         )
         db.add(integration)
 
     await db.flush()
-    await db.refresh(integration)
     await db.commit()
 
-    logger.info("HubSpot connected for customer %s", customer_id)
-    return {
-        "message": "HubSpot connected successfully",
-        "integration_id": str(integration.id),
-        "service": "hubspot",
-        "status": "connected",
-    }
+    backend_url = (settings.BACKEND_URL or "").rstrip("/")
+    redirect_uri = f"{backend_url}/api/connections/hubspot/callback"
+
+    scopes = " ".join([
+        "crm.objects.deals.read",
+        "crm.objects.contacts.read",
+        "crm.objects.companies.read",
+        "crm.objects.owners.read",
+        "crm.objects.tasks.read",
+        "crm.objects.tasks.write",
+    ])
+
+    auth_url = "https://app.hubspot.com/oauth/authorize?" + urlencode({
+        "client_id":    client_id,
+        "redirect_uri": redirect_uri,
+        "scope":        scopes,
+        "state":        customer_id,  # returned unchanged by HubSpot; used to look up the integration
+    })
+
+    logger.info("HubSpot OAuth initiated for customer %s", customer_id)
+    return {"auth_url": auth_url}
+
+
+@router.get("/hubspot/callback")
+async def hubspot_oauth_callback(
+    code: str,
+    state: str,   # customer_id we passed in the auth URL
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    HubSpot OAuth callback.
+    Exchanges the authorization code for access + refresh tokens,
+    saves them, and redirects the browser to the frontend connections page.
+    """
+    from app.core.config import settings
+
+    customer_id = state
+    integration = await db.scalar(
+        select(Integration).where(
+            Integration.customer_id == customer_id,
+            Integration.service == "hubspot",
+        )
+    )
+    if not integration:
+        raise HTTPException(status_code=400, detail="HubSpot connection not initiated — please start again.")
+
+    creds = decrypt_credentials(integration.credentials)
+    backend_url  = (settings.BACKEND_URL  or "").rstrip("/")
+    frontend_url = (settings.FRONTEND_URL or "").rstrip("/")
+    redirect_uri = f"{backend_url}/api/connections/hubspot/callback"
+
+    # Exchange authorization code for tokens
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        r = await client.post(
+            "https://api.hubapi.com/oauth/v1/token",
+            data={
+                "grant_type":    "authorization_code",
+                "client_id":     creds.get("client_id", ""),
+                "client_secret": creds.get("client_secret", ""),
+                "redirect_uri":  redirect_uri,
+                "code":          code,
+            },
+        )
+
+    if r.status_code != 200:
+        logger.error("HubSpot token exchange failed: %s %s", r.status_code, r.text[:300])
+        return RedirectResponse(f"{frontend_url}/connections?hubspot=error")
+
+    token_data = r.json()
+    expires_at  = (
+        datetime.utcnow() + timedelta(seconds=token_data.get("expires_in", 21600))
+    ).isoformat()
+
+    integration.credentials = encrypt_credentials({
+        "access_token":  token_data["access_token"],
+        "refresh_token": token_data.get("refresh_token", ""),
+        "client_id":     creds.get("client_id", ""),
+        "client_secret": creds.get("client_secret", ""),
+        "expires_at":    expires_at,
+    })
+    integration.status = "connected"
+    await db.commit()
+
+    logger.info("HubSpot OAuth completed for customer %s", customer_id)
+    return RedirectResponse(f"{frontend_url}/connections?hubspot=connected")
 
 
 @router.post("/hubspot/sync")
@@ -443,7 +545,15 @@ async def sync_hubspot(
 
     t0 = time.monotonic()
     try:
-        hs = HubSpotIntegration(credentials=decrypt_credentials(integration.credentials))
+        creds = decrypt_credentials(integration.credentials)
+        # Auto-refresh OAuth access token if it has expired (OAuth apps only)
+        if creds.get("refresh_token") and creds.get("expires_at"):
+            try:
+                if datetime.utcnow() >= datetime.fromisoformat(creds["expires_at"]):
+                    creds = await _refresh_hubspot_token(creds, integration, db)
+            except Exception as ref_err:
+                logger.warning("HubSpot token refresh failed (continuing with existing token): %s", ref_err)
+        hs = HubSpotIntegration(credentials=creds)
         deals = await hs.sync_deals(modified_after=deals_cursor)
         companies = await hs.sync_companies()
 
@@ -650,7 +760,15 @@ async def trigger_sync(
         sync_start_ts = datetime.utcnow().isoformat()
         t0 = time.monotonic()
         try:
-            hs = HubSpotIntegration(credentials=decrypt_credentials(integration.credentials))
+            hs_creds = decrypt_credentials(integration.credentials)
+            # Auto-refresh OAuth access token if expired (OAuth apps only)
+            if hs_creds.get("refresh_token") and hs_creds.get("expires_at"):
+                try:
+                    if datetime.utcnow() >= datetime.fromisoformat(hs_creds["expires_at"]):
+                        hs_creds = await _refresh_hubspot_token(hs_creds, integration, db)
+                except Exception as ref_err:
+                    logger.warning("HubSpot token refresh failed (continuing with existing token): %s", ref_err)
+            hs = HubSpotIntegration(credentials=hs_creds)
             deals = await hs.sync_deals(modified_after=deals_cursor)
             companies = await hs.sync_companies()
             engagements = await hs.sync_engagements(modified_after=engagements_cursor)
