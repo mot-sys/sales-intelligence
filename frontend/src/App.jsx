@@ -256,7 +256,7 @@ const SalesIntelligencePlatform = () => {
       <div className="p-6">
 
         {/* ── Primary tabs (extracted P1.10) ─────────────────────────────── */}
-        {activeTab === 'gtm-setup'    && <GTMSetupPage onOpenConnectModal={() => {}} />}
+        {activeTab === 'gtm-setup'    && <GTMSetupPage onOpenConnectModal={() => setActiveTab('connections')} />}
         {activeTab === 'intelligence' && <IntelligencePage />}
         {activeTab === 'pipeline'     && <PipelinePage />}
         {activeTab === 'signals'      && <SignalsPage />}
