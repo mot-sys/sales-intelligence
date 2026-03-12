@@ -20,7 +20,12 @@ _is_sqlite = _db_url.startswith("sqlite")
 engine = create_async_engine(
     _db_url,
     echo=False,  # Set to True for SQL query logging
-    **({} if _is_sqlite else {"pool_pre_ping": True, "pool_size": 10, "max_overflow": 20}),
+    **({} if _is_sqlite else {
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 10,
+        "connect_args": {"timeout": 10},  # asyncpg: fail fast if DB unreachable
+    }),
 )
 
 # Create session factory

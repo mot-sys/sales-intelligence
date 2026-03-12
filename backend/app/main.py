@@ -63,14 +63,16 @@ async def lifespan(app: FastAPI):
     _validate_startup_config()
 
     # Create / migrate database tables (create_all is idempotent — safe in all envs)
+    print("⏳ Connecting to database...")
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         print("✅ DB tables ensured")
     except Exception as e:
-        print(f"⚠️  create_all failed: {e}")
+        print(f"⚠️  create_all failed (continuing anyway): {type(e).__name__}: {e}")
 
     # Seed the default customer so the FK constraint on integrations/leads is satisfied
+    print("⏳ Seeding default customer...")
     try:
         from app.db.models import Customer
         from app.core.security import TEMP_CUSTOMER_ID
@@ -87,8 +89,9 @@ async def lifespan(app: FastAPI):
                 await session.commit()
                 print("✅ Default customer seeded")
     except Exception as e:
-        print(f"⚠️  Default customer seed skipped: {e}")
+        print(f"⚠️  Default customer seed skipped: {type(e).__name__}: {e}")
 
+    print("✅ Startup complete — serving requests")
     yield
     
     # Shutdown
