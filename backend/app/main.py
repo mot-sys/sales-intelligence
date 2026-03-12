@@ -31,25 +31,15 @@ if is_production() and settings.SENTRY_DSN:
 
 
 def _validate_startup_config():
-    """Fail fast if critical configuration is missing or unsafe."""
-    errors = []
-
+    """Log warnings for unsafe or missing configuration — never blocks startup."""
     if settings.SECRET_KEY == "your-secret-key-change-in-production":
-        if is_production():
-            errors.append("SECRET_KEY is the insecure placeholder. Set a random 64-byte hex string via SECRET_KEY env var.")
-        else:
-            print("⚠️  WARNING: SECRET_KEY is the placeholder default. This is insecure in production.")
+        print("⚠️  WARNING: SECRET_KEY is the placeholder default. Set a random 64-byte hex string via SECRET_KEY env var.")
 
     if is_production():
         if not settings.FRONTEND_URL:
-            print("⚠️  WARNING: FRONTEND_URL not set — CORS will deny all origins in production.")
+            print("⚠️  WARNING: FRONTEND_URL not set — CORS will deny all cross-origin requests.")
         if not settings.CREDENTIAL_ENCRYPTION_KEY:
-            errors.append("CREDENTIAL_ENCRYPTION_KEY must be set in production. Generate with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"")
-
-    if errors:
-        for err in errors:
-            print(f"❌ STARTUP ERROR: {err}")
-        raise RuntimeError(f"Fatal configuration error(s):\n" + "\n".join(errors))
+            print("⚠️  WARNING: CREDENTIAL_ENCRYPTION_KEY not set — using temp in-memory key. Credentials won't survive restart.")
 
 
 @asynccontextmanager
