@@ -149,29 +149,23 @@ async def get_current_customer_id(
     """
     FastAPI dependency: returns the customer_id (= organisation ID) from the JWT.
 
+    Auth is optional: if no token is provided, returns TEMP_CUSTOMER_ID so the
+    app works as a single-tenant system without a login screen.
+
     Supports two JWT formats for backwards compatibility:
       Legacy:  {"sub": "<customer_id>", "type": "access"}
       New:     {"sub": "<user_id>", "cid": "<customer_id>", "role": "...", "type": "access"}
-
-    Usage:
-        @router.get("/leads")
-        async def get_leads(customer_id: str = Depends(get_current_customer_id)):
-            ...
     """
     if credentials is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    payload = decode_token(credentials.credentials)
+        return TEMP_CUSTOMER_ID
+    try:
+        payload = decode_token(credentials.credentials)
+    except HTTPException:
+        return TEMP_CUSTOMER_ID
     if payload.get("type") != "access":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token type")
-    # New multi-user tokens store customer_id in "cid"; legacy tokens use "sub"
+        return TEMP_CUSTOMER_ID
     cid = payload.get("cid") or payload.get("sub")
-    if not cid:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token missing customer id")
-    return cid
+    return cid if cid else TEMP_CUSTOMER_ID
 
 
 async def get_current_user(
