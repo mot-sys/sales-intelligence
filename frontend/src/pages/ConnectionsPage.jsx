@@ -3,7 +3,7 @@
  * Connect and manage data integrations: Salesforce, HubSpot, Clay, Snitcher, Notion.
  * Also shows read-only status of notification channels (Slack, Email/Resend).
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Database, Activity, Layers, CheckCircle, AlertCircle, RefreshCw, X, Zap, Bell, Mail } from 'lucide-react';
 import useDataStore from '../store/dataStore';
 import { post, get } from '../api/client';
@@ -54,6 +54,7 @@ export default function ConnectionsPage() {
   const [connectLoading, setConnectLoading] = useState(false);
   const [connectError,   setConnectError]   = useState(null);
   const [notifStatus,    setNotifStatus]    = useState(null); // notification channel status
+  const popupRef = useRef(null); // reference to HubSpot OAuth popup window
 
   const {
     connections,
@@ -67,17 +68,21 @@ export default function ConnectionsPage() {
   useEffect(() => {
     fetchConnections();
     get('/settings/notifications').then(setNotifStatus).catch(() => {});
+  }, [fetchConnections]);
 
-    // Detect HubSpot OAuth callback result (e.g. /connections?hubspot=connected)
-    const urlParams = new URLSearchParams(window.location.search);
-    const hsResult = urlParams.get('hubspot');
-    if (hsResult === 'connected') {
-      window.history.replaceState({}, '', '/connections');
-      fetchConnections();
-    } else if (hsResult === 'error') {
-      window.history.replaceState({}, '', '/connections');
-      setConnectError('HubSpot OAuth mislykkedes — tjek credentials og prøv igen.');
-    }
+  // Listen for postMessage from the HubSpot OAuth popup window
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.data?.type !== 'oauth_callback' || event.data?.service !== 'hubspot') return;
+      popupRef.current = null;
+      if (event.data.status === 'connected') {
+        fetchConnections();
+      } else {
+        setConnectError('HubSpot OAuth mislykkedes — tjek credentials og prøv igen.');
+      }
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
   }, [fetchConnections]);
 
   const connectedIds = new Set(connections.map(c => c.service));
@@ -86,18 +91,46 @@ export default function ConnectionsPage() {
   const handleConnect = async () => {
     setConnectLoading(true);
     setConnectError(null);
+
+    // For HubSpot (OAuth), open the popup synchronously here — before any await —
+    // so browsers don't classify it as an unsolicited popup and block it.
+    let popup = null;
+    if (connectModal === 'hubspot') {
+      const w = 600, h = 700;
+      const left = Math.round(window.screen.width  / 2 - w / 2);
+      const top  = Math.round(window.screen.height / 2 - h / 2);
+      popup = window.open(
+        'about:blank', 'hubspot_oauth',
+        `width=${w},height=${h},left=${left},top=${top},toolbar=0,menubar=0,scrollbars=1`
+      );
+      popupRef.current = popup;
+    }
+
     try {
       const params = new URLSearchParams(connectForm).toString();
       const data = await post(`/connections/${connectModal}?${params}`);
-      // OAuth services return an auth_url — redirect current tab so the callback lands here
+
       if (data.auth_url) {
-        window.location.href = data.auth_url;
+        if (popup && !popup.closed) {
+          popup.location.href = data.auth_url; // navigate the already-open popup to HubSpot
+        } else {
+          // Popup was blocked — fall back to full-page redirect
+          window.location.href = data.auth_url;
+        }
+        setConnectModal(null);
+        setConnectForm({});
         return;
       }
+
+      // Non-OAuth integrations (Clay, Salesforce, Notion, Snitcher)
+      if (popup && !popup.closed) popup.close();
+      popupRef.current = null;
       await fetchConnections();
       setConnectModal(null);
       setConnectForm({});
     } catch (e) {
+      if (popup && !popup.closed) popup.close();
+      popupRef.current = null;
       setConnectError(e.message || 'Connection failed — check your credentials.');
     } finally {
       setConnectLoading(false);

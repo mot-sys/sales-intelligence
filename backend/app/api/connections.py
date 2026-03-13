@@ -11,6 +11,7 @@ import uuid
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import HTMLResponse
 from starlette.responses import RedirectResponse
 from sqlalchemy import select, delete, update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,6 +26,29 @@ from app.db import crud
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Inline HTML served by the HubSpot OAuth callback.
+# The popup posts a message to the parent window (ConnectionsPage) and closes itself.
+_OAUTH_POPUP_HTML = """\
+<!DOCTYPE html><html>
+<head><title>HubSpot OAuth</title></head>
+<body>
+<p style="font-family:sans-serif;text-align:center;margin-top:80px;color:#374151">
+  Connecting HubSpot&hellip; this window will close automatically.
+</p>
+<script>
+  try {{
+    window.opener.postMessage(
+      {{type:"oauth_callback",service:"hubspot",status:"{status}"}}, "*"
+    );
+    window.close();
+  }} catch(e) {{
+    document.body.innerHTML =
+      '<p style="font-family:sans-serif;text-align:center;margin-top:80px">'
+      + 'HubSpot {status}. You can close this window.</p>';
+  }}
+</script>
+</body></html>"""
 
 
 async def _write_sync_log(
@@ -477,7 +501,6 @@ async def hubspot_oauth_callback(
 
     creds = decrypt_credentials(integration.credentials)
     backend_url  = (settings.BACKEND_URL  or "").rstrip("/")
-    frontend_url = (settings.FRONTEND_URL or "").rstrip("/")
     redirect_uri = f"{backend_url}/api/connections/hubspot/callback"
 
     # Exchange authorization code for tokens
@@ -495,7 +518,7 @@ async def hubspot_oauth_callback(
 
     if r.status_code != 200:
         logger.error("HubSpot token exchange failed: %s %s", r.status_code, r.text[:300])
-        return RedirectResponse(f"{frontend_url}/connections?hubspot=error")
+        return HTMLResponse(_OAUTH_POPUP_HTML.format(status="error"))
 
     token_data = r.json()
     expires_at  = (
@@ -513,7 +536,7 @@ async def hubspot_oauth_callback(
     await db.commit()
 
     logger.info("HubSpot OAuth completed for customer %s", customer_id)
-    return RedirectResponse(f"{frontend_url}/connections?hubspot=connected")
+    return HTMLResponse(_OAUTH_POPUP_HTML.format(status="connected"))
 
 
 @router.post("/hubspot/sync")
