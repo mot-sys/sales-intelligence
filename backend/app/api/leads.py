@@ -116,6 +116,41 @@ async def get_leads(
 
 
 # ─────────────────────────────────────────────
+# GET /leads/search  (semantic search — must come before /{lead_id})
+# ─────────────────────────────────────────────
+
+@router.get("/search")
+async def semantic_search_leads_endpoint(
+    q: str = Query(..., min_length=1, description="Natural-language search query"),
+    limit: int = Query(10, ge=1, le=50, description="Max results per entity type"),
+    db: AsyncSession = Depends(get_db),
+    customer_id: str = Depends(get_current_customer_id),
+):
+    """
+    Semantic search over leads and opportunities using pgvector cosine similarity.
+
+    Requires OPENAI_API_KEY to be set. Returns the most semantically relevant
+    leads and deals for the given natural-language query.
+
+    Example: GET /api/leads/search?q=fintech+companies+with+growth
+    """
+    from app.core.embeddings import embed_text
+    from app.db.crud import semantic_search_leads, semantic_search_opportunities
+
+    embedding = await embed_text(q.strip())
+    if not embedding:
+        raise HTTPException(
+            status_code=503,
+            detail="Semantic search unavailable — set OPENAI_API_KEY in Railway Variables.",
+        )
+
+    leads = await semantic_search_leads(db, customer_id, embedding, limit=limit)
+    opps  = await semantic_search_opportunities(db, customer_id, embedding, limit=limit)
+
+    return {"query": q, "leads": leads, "opportunities": opps}
+
+
+# ─────────────────────────────────────────────
 # GET /leads/{lead_id}
 # ─────────────────────────────────────────────
 

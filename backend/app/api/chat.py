@@ -96,6 +96,22 @@ async def chat(
     # Build context regardless of AI config (we always return the summary)
     context = await build_pipeline_context(db, customer_id)
 
+    # RAG: find semantically relevant leads + deals for this specific question
+    if settings.OPENAI_API_KEY:
+        try:
+            from app.core.embeddings import embed_text
+            from app.db.crud import semantic_search_leads, semantic_search_opportunities
+            q_emb = await embed_text(body.question)
+            if q_emb:
+                rag_leads = await semantic_search_leads(db, customer_id, q_emb, limit=5)
+                rag_opps  = await semantic_search_opportunities(db, customer_id, q_emb, limit=5)
+                if rag_leads:
+                    context["semantically_relevant_leads"] = rag_leads
+                if rag_opps:
+                    context["semantically_relevant_deals"] = rag_opps
+        except Exception as rag_err:
+            logger.warning("RAG retrieval skipped: %s", rag_err)
+
     ai_configured = bool(settings.ANTHROPIC_API_KEY)
 
     if not ai_configured:

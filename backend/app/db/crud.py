@@ -3,9 +3,12 @@ Database CRUD Operations
 Async database operations for all models.
 """
 
+import logging
 from typing import Dict, List, Optional
 from datetime import datetime
 import uuid
+
+logger = logging.getLogger(__name__)
 
 from sqlalchemy import select, func, update, and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -140,9 +143,25 @@ async def upsert_lead(
             existing.updated_at = datetime.utcnow()
             await db.flush()
             await db.refresh(existing)
-            return existing
+            lead = existing
+        else:
+            lead = await create_lead(db, {**lead_data, "customer_id": customer_id, "source": source, "external_id": external_id})
+    else:
+        lead = await create_lead(db, {**lead_data, "customer_id": customer_id, "source": source, "external_id": external_id})
 
-    return await create_lead(db, {**lead_data, "customer_id": customer_id, "source": source, "external_id": external_id})
+    # Generate embedding for semantic search (non-blocking — skip on error)
+    try:
+        from app.core.embeddings import embed_text, compose_lead_text
+        text = compose_lead_text(lead)
+        if text:
+            emb = await embed_text(text)
+            if emb:
+                lead.embedding = emb
+                await db.flush()
+    except Exception as emb_err:
+        logger.warning("Lead embedding failed (non-fatal): %s", emb_err)
+
+    return lead
 
 
 async def update_lead_score(
@@ -522,6 +541,19 @@ async def upsert_sf_opportunity(
         db.add(opp)
     await db.flush()
     await db.refresh(opp)
+
+    # Generate embedding for semantic search (non-blocking — skip on error)
+    try:
+        from app.core.embeddings import embed_text, compose_opportunity_text
+        text = compose_opportunity_text(opp)
+        if text:
+            emb = await embed_text(text)
+            if emb:
+                opp.embedding = emb
+                await db.flush()
+    except Exception as emb_err:
+        logger.warning("Opportunity embedding failed (non-fatal): %s", emb_err)
+
     return opp
 
 
@@ -1211,6 +1243,19 @@ async def upsert_account(
 
     await db.flush()
     await db.refresh(account)
+
+    # Generate embedding for semantic search (non-blocking — skip on error)
+    try:
+        from app.core.embeddings import embed_text, compose_account_text
+        text = compose_account_text(account)
+        if text:
+            emb = await embed_text(text)
+            if emb:
+                account.embedding = emb
+                await db.flush()
+    except Exception as emb_err:
+        logger.warning("Account embedding failed (non-fatal): %s", emb_err)
+
     return account
 
 
@@ -1839,3 +1884,79 @@ async def get_activity_summary(
     ]
 
     return {"total": total, "breakdown": breakdown, "recent": recent}
+
+
+# ─────────────────────────────────────────────
+# SEMANTIC SEARCH (pgvector)
+# ─────────────────────────────────────────────
+
+async def semantic_search_leads(
+    db: AsyncSession,
+    customer_id: str,
+    query_embedding: list,
+    limit: int = 5,
+) -> list:
+    """Return top-K leads sorted by cosine similarity to query_embedding."""
+    if not query_embedding:
+        return []
+    try:
+        result = await db.execute(
+            select(Lead)
+            .where(
+                Lead.customer_id == customer_id,
+                Lead.embedding.is_not(None),
+            )
+            .order_by(Lead.embedding.cosine_distance(query_embedding))
+            .limit(limit)
+        )
+        leads = result.scalars().all()
+        return [
+            {
+                "company": l.company_name,
+                "industry": l.industry,
+                "score": l.score,
+                "priority": l.priority,
+                "recommendation": l.recommendation,
+                "owner": l.owner_name,
+                "source": l.source,
+            }
+            for l in leads
+        ]
+    except Exception as exc:
+        logger.warning("semantic_search_leads failed: %s", exc)
+        return []
+
+
+async def semantic_search_opportunities(
+    db: AsyncSession,
+    customer_id: str,
+    query_embedding: list,
+    limit: int = 5,
+) -> list:
+    """Return top-K opportunities sorted by cosine similarity to query_embedding."""
+    if not query_embedding:
+        return []
+    try:
+        result = await db.execute(
+            select(SalesforceOpportunity)
+            .where(
+                SalesforceOpportunity.customer_id == customer_id,
+                SalesforceOpportunity.embedding.is_not(None),
+            )
+            .order_by(SalesforceOpportunity.embedding.cosine_distance(query_embedding))
+            .limit(limit)
+        )
+        opps = result.scalars().all()
+        return [
+            {
+                "name": o.account_name,
+                "stage": o.stage,
+                "amount": o.amount,
+                "owner": o.owner_name,
+                "is_stalled": o.is_stalled,
+            }
+            for o in opps
+        ]
+    except Exception as exc:
+        logger.warning("semantic_search_opportunities failed: %s", exc)
+        return []

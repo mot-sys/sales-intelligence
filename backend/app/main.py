@@ -61,6 +61,33 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             print(f"⚠️  create_all failed (continuing anyway): {type(e).__name__}: {e}")
 
+        # Enable pgvector and add embedding columns to existing tables (all idempotent)
+        try:
+            from sqlalchemy import text
+            async with engine.begin() as conn:
+                await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+                await conn.execute(text(
+                    "ALTER TABLE leads ADD COLUMN IF NOT EXISTS embedding vector(1536)"
+                ))
+                await conn.execute(text(
+                    "ALTER TABLE salesforce_opportunities ADD COLUMN IF NOT EXISTS embedding vector(1536)"
+                ))
+                await conn.execute(text(
+                    "ALTER TABLE accounts ADD COLUMN IF NOT EXISTS embedding vector(1536)"
+                ))
+                # HNSW indexes for fast cosine similarity search
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS idx_leads_embedding "
+                    "ON leads USING hnsw (embedding vector_cosine_ops) WHERE embedding IS NOT NULL"
+                ))
+                await conn.execute(text(
+                    "CREATE INDEX IF NOT EXISTS idx_sf_opp_embedding "
+                    "ON salesforce_opportunities USING hnsw (embedding vector_cosine_ops) WHERE embedding IS NOT NULL"
+                ))
+            print("✅ pgvector extension + embedding columns ready")
+        except Exception as e:
+            print(f"⚠️  pgvector setup skipped: {type(e).__name__}: {e}")
+
         # Seed the default customer so the FK constraint on integrations/leads is satisfied
         print("⏳ Seeding default customer...")
         try:

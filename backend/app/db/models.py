@@ -14,6 +14,13 @@ import uuid
 
 from app.db.session import Base  # single shared Base so create_all sees all models
 
+try:
+    from pgvector.sqlalchemy import Vector as _PGVector
+    _EMBEDDING_COLUMN = _PGVector(1536)
+except ImportError:
+    # pgvector not installed — fall back to JSON so the app still starts
+    _EMBEDDING_COLUMN = JSON
+
 
 class Customer(Base):
     """Customer/Account (multi-tenant)"""
@@ -156,6 +163,9 @@ class Lead(Base):
     # Timestamps
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Semantic search embedding (OpenAI text-embedding-3-small, 1536 dims)
+    embedding = Column(_EMBEDDING_COLUMN, nullable=True)
 
     # Relationships
     customer = relationship("Customer", back_populates="leads")
@@ -387,6 +397,9 @@ class SalesforceOpportunity(Base):
 
     raw_data = Column(JSON, nullable=True)
     synced_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
+
+    # Semantic search embedding (OpenAI text-embedding-3-small, 1536 dims)
+    embedding = Column(_EMBEDDING_COLUMN, nullable=True)
 
     # Relationships
     customer = relationship("Customer", back_populates="sf_opportunities")
@@ -883,6 +896,9 @@ class Account(Base):
     # ── Timestamps ─────────────────────────────────────────────────────────
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
     updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Semantic search embedding (OpenAI text-embedding-3-small, 1536 dims)
+    embedding = Column(_EMBEDDING_COLUMN, nullable=True)
 
     # Relationships
     customer = relationship("Customer", back_populates="accounts")
